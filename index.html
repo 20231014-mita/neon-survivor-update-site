@@ -1,225 +1,12 @@
 <!DOCTYPE html>
 <!-- reset-highscore-intro-v3-checked -->
+<!-- NSV_FINAL_V2_VISIBLE_APPLIED_20260505 -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Neon Survivor</title>
-    <script src="https://cdn.tailwindcss.com">
-
-        // ==========================================================
-        // 2026-05-05 Patch: 7-digit cheat code terminal + easier ultimate missions
-        // ==========================================================
-        (function applyCheatTerminalAndEasierUltimateMissions20260505() {
-            try {
-                const CHEAT_PATCH_ID = 'nsvCheatTerminal20260505v1';
-                if (window[CHEAT_PATCH_ID]) return;
-                window[CHEAT_PATCH_ID] = true;
-
-                const CHEAT_CODE_LIST_20260505 = {
-                    '7429136': { title:'COIN BOOST 10K', desc:'コイン +10,000', kind:'coins', amount:10000 },
-                    '6814297': { title:'COIN BOOST 100K', desc:'コイン +100,000', kind:'coins', amount:100000 },
-                    '3947162': { title:'HP BOOST x2', desc:'最大体力が2倍になる', kind:'hpMult', mult:2 },
-                    '8274613': { title:'HP BOOST x3', desc:'最大体力が3倍になる', kind:'hpMult', mult:3 },
-                    '5192847': { title:'HP BOOST x5', desc:'最大体力が5倍になる', kind:'hpMult', mult:5 },
-                    '6381974': { title:'UPGRADE STARTER', desc:'全アップグレード +5', kind:'upgradePlus', amount:5 },
-                    '2967481': { title:'NEON PASS BOOST', desc:'バトルスター +25 / チケット +1', kind:'passBoost', stars:25, tickets:1 },
-                    '4719368': { title:'ULTIMATE STARTER', desc:'虚式・崩命破・流星群・轟・絶対防壁を解放', kind:'unlockWeapons', weapons:['hollowMurasaki','kamehameha','funnel','thor','shieldThrow'] },
-                    '8531269': { title:'ULTIMATE MASTER', desc:'全アルティメット系武器を解放', kind:'unlockWeapons', weapons:['hollowMurasaki','kamehameha','vader','thor','muryoku','funnel','ironBlaster','disneyMagic','infinitySnap','infiniteBlade','shieldThrow','keraunos','phantomStep','neonLance','phoenixCore','starfallCrown','voidCollector','railCannon','blackholeEmperor','thunderAegis','solarDrill','chronoLotus'] },
-                    '7293846': { title:'POWER MODE', desc:'攻撃力 x2 / 移動速度 x1.25', kind:'powerMode', damageMult:2, speedMult:1.25 },
-                    '4862759': { title:'RECOVERY CORE', desc:'自動回復を強化', kind:'regen', regenBonus:4 },
-                    '9176384': { title:'GOD RUN START', desc:'現在のプレイ中に体力回復＋強武器をすぐ装備', kind:'runGod' }
-                };
-
-                function nsvEnsureCheatData() {
-                    try { ensureProgressionData?.(); } catch(e) {}
-                    if (!userData || typeof userData !== 'object') userData = createFreshUserData?.('') || { score:0, coins:0, upgrades:{} };
-                    userData.cheats = userData.cheats || {};
-                    userData.cheats.hpMult = Math.max(1, Number(userData.cheats.hpMult || 1));
-                    userData.cheats.damageMult = Math.max(1, Number(userData.cheats.damageMult || 1));
-                    userData.cheats.speedMult = Math.max(1, Number(userData.cheats.speedMult || 1));
-                    userData.cheats.regenBonus = Math.max(0, Number(userData.cheats.regenBonus || 0));
-                    userData.cheats.usedCodes = userData.cheats.usedCodes || {};
-                    userData.unlocks = userData.unlocks || {};
-                    userData.unlocks.legendaryWeapons = userData.unlocks.legendaryWeapons || {};
-                    userData.upgrades = userData.upgrades || {};
-                    return userData.cheats;
-                }
-
-                function nsvSaveCheatData() {
-                    try { saveData?.(); } catch(e) {
-                        try { localStorage.setItem('neon_survivor_save', JSON.stringify(userData)); } catch(_) {}
-                    }
-                }
-
-                function nsvCheatNotify(title, msg) {
-                    try { showMissionToast?.(title, msg); } catch(e) {}
-                    try { alert(title + '\n' + msg); } catch(e) {}
-                }
-
-                function nsvUnlockCheatWeapons(ids) {
-                    nsvEnsureCheatData();
-                    const names = [];
-                    ids.forEach(id => {
-                        userData.unlocks.legendaryWeapons[id] = true;
-                        try {
-                            const def = (LEGENDARY_WEAPON_DEFS || []).find(w => w.id === id) || (WEAPON_CODEX_DEFS || []).find(w => w.id === id);
-                            names.push(def ? def.name : id);
-                        } catch(e) { names.push(id); }
-                    });
-                    return names;
-                }
-
-                function nsvApplyCheatBuffsToPlayer(showText = false) {
-                    try {
-                        if (!player) return;
-                        const c = nsvEnsureCheatData();
-                        const hpMult = Math.max(1, Number(c.hpMult || 1));
-                        const dmgMult = Math.max(1, Number(c.damageMult || 1));
-                        const spdMult = Math.max(1, Number(c.speedMult || 1));
-                        if (!player.__nsvCheatApplied20260505) {
-                            player.__nsvCheatApplied20260505 = true;
-                            player.maxHp = Math.max(1, Math.round(Number(player.maxHp || 100) * hpMult));
-                            player.hp = player.maxHp;
-                            player.damage = Number(player.damage || 30) * dmgMult;
-                            player.speed = Number(player.speed || 4) * spdMult;
-                            player.regenAmount = Number(player.regenAmount || 1) + Number(c.regenBonus || 0);
-                            if (showText) floatingTexts.push(new FloatingText(player.x, player.y - 40, 'CHEAT POWER ON', '#facc15', 18));
-                        }
-                    } catch(e) { console.warn('cheat player buff skipped', e); }
-                }
-
-                function nsvGrantRunGodMode() {
-                    try {
-                        if (!player) return false;
-                        nsvApplyCheatBuffsToPlayer(false);
-                        player.hp = player.maxHp;
-                        player.hollowMurasakiLevel = Math.max(player.hollowMurasakiLevel || 0, 2);
-                        player.kamehamehaLevel = Math.max(player.kamehamehaLevel || 0, 2);
-                        player.funnelLevel = Math.max(player.funnelLevel || 0, 2);
-                        player.keraunosLevel = Math.max(player.keraunosLevel || 0, 1);
-                        player.shieldLevel = Math.max(player.shieldLevel || 0, 2);
-                        player.infiniteBladeLevel = Math.max(player.infiniteBladeLevel || 0, 2);
-                        floatingTexts.push(new FloatingText(player.x, player.y - 60, 'GOD RUN!', '#facc15', 22));
-                        return true;
-                    } catch(e) { return false; }
-                }
-
-                function nsvExecuteCheatCode(raw) {
-                    const code = String(raw || '').replace(/[^0-9]/g, '').slice(0, 7);
-                    if (!/^\d{7}$/.test(code)) { alert('7桁の数字を入力してください。'); return; }
-                    const data = CHEAT_CODE_LIST_20260505[code];
-                    if (!data) { alert('このチートコードは存在しません。'); return; }
-                    const c = nsvEnsureCheatData();
-                    let message = data.desc;
-                    if (data.kind === 'coins') {
-                        userData.coins = Number(userData.coins || 0) + Number(data.amount || 0);
-                        userData.stats = userData.stats || {};
-                        userData.stats.totalCoinsEarned = Number(userData.stats.totalCoinsEarned || 0) + Number(data.amount || 0);
-                    } else if (data.kind === 'hpMult') {
-                        c.hpMult = Math.max(Number(c.hpMult || 1), Number(data.mult || 1));
-                        if (player) { player.__nsvCheatApplied20260505 = false; nsvApplyCheatBuffsToPlayer(true); }
-                    } else if (data.kind === 'upgradePlus') {
-                        try { upgradeDef.forEach(u => { userData.upgrades[u.id] = Number(userData.upgrades[u.id] || 0) + Number(data.amount || 0); }); } catch(e) {}
-                    } else if (data.kind === 'passBoost') {
-                        userData.passTickets = Number(userData.passTickets || 0) + Number(data.tickets || 0);
-                        userData.battlePassV2 = userData.battlePassV2 || {};
-                        userData.battlePassV2.battleStars = Number(userData.battlePassV2.battleStars || 0) + Number(data.stars || 0);
-                        userData.battlePassV2.earnedStars = Number(userData.battlePassV2.earnedStars || 0) + Number(data.stars || 0);
-                    } else if (data.kind === 'unlockWeapons') {
-                        const names = nsvUnlockCheatWeapons(data.weapons || []);
-                        message = '解放: ' + names.slice(0, 8).join(' / ') + (names.length > 8 ? ' ほか' : '');
-                    } else if (data.kind === 'powerMode') {
-                        c.damageMult = Math.max(Number(c.damageMult || 1), Number(data.damageMult || 1));
-                        c.speedMult = Math.max(Number(c.speedMult || 1), Number(data.speedMult || 1));
-                        if (player) { player.__nsvCheatApplied20260505 = false; nsvApplyCheatBuffsToPlayer(true); }
-                    } else if (data.kind === 'regen') {
-                        c.regenBonus = Math.max(Number(c.regenBonus || 0), Number(data.regenBonus || 0));
-                        if (player) { player.__nsvCheatApplied20260505 = false; nsvApplyCheatBuffsToPlayer(true); }
-                    } else if (data.kind === 'runGod') {
-                        const ok = nsvGrantRunGodMode();
-                        if (!ok) message = 'プレイ中に使うと、体力回復と強武器がすぐ反映されます。';
-                    }
-                    c.usedCodes[code] = { title:data.title, at:Date.now() };
-                    nsvSaveCheatData();
-                    try { renderUpgradeScreen?.(); } catch(e) {}
-                    try { renderShopV2?.(); } catch(e) {}
-                    nsvCheatNotify('CHEAT ACTIVATED: ' + data.title, message);
-                }
-
-                function nsvOpenCheatPrompt() {
-                    const code = prompt('7桁のチートコードを入力してください');
-                    if (code != null) nsvExecuteCheatCode(code);
-                }
-
-                function nsvInjectCheatStyle() {
-                    if (document.getElementById('nsvCheatStyle20260505')) return;
-                    const st = document.createElement('style');
-                    st.id = 'nsvCheatStyle20260505';
-                    st.textContent = '.nsv-cheat-btn{width:100%;margin-top:12px;padding:12px 16px;border-radius:16px;border:2px solid #f472b6;color:#fce7f3;background:rgba(88,28,135,.35);font-weight:900;box-shadow:0 0 16px rgba(244,114,182,.45),inset 0 0 10px rgba(244,114,182,.25)}.nsv-cheat-btn:hover{background:#f472b6;color:#111827}.nsv-cheat-note{font-size:11px;color:#fbcfe8;margin-top:4px;text-align:center}';
-                    document.head.appendChild(st);
-                }
-
-                function nsvEnsureCheatButtons() {
-                    try {
-                        nsvInjectCheatStyle();
-                        const startPanel = document.querySelector('#startScreen .menu-panel') || document.getElementById('nsvCleanStartRoot') || document.getElementById('startScreen');
-                        if (startPanel && !document.getElementById('cheatCodeStartBtn')) {
-                            const wrap = document.createElement('div');
-                            wrap.id = 'cheatCodeStartWrap';
-                            wrap.innerHTML = '<button id="cheatCodeStartBtn" class="nsv-cheat-btn" type="button">🔐 チートコード入力</button><div class="nsv-cheat-note">7桁の数字で特別効果を発動</div>';
-                            startPanel.appendChild(wrap);
-                            document.getElementById('cheatCodeStartBtn')?.addEventListener('click', nsvOpenCheatPrompt);
-                        }
-                        const pause = document.getElementById('pauseScreen');
-                        if (pause && !document.getElementById('cheatCodePauseBtn')) {
-                            const wrap = document.createElement('div');
-                            wrap.id = 'cheatCodePauseWrap';
-                            wrap.style.width = 'min(92vw,420px)';
-                            wrap.innerHTML = '<button id="cheatCodePauseBtn" class="nsv-cheat-btn" type="button">🔐 チートコード入力</button><div class="nsv-cheat-note">プレイ中の強化コードはここから使えます</div>';
-                            pause.appendChild(wrap);
-                            document.getElementById('cheatCodePauseBtn')?.addEventListener('click', nsvOpenCheatPrompt);
-                        }
-                    } catch(e) { console.warn('cheat buttons skipped', e); }
-                }
-
-                function nsvMakeUltimateMissionsHalfEasier20260505() {
-                    try {
-                        const ultimateWeapons = new Set(['hollowMurasaki','kamehameha','vader','thor','muryoku','funnel','ironBlaster','disneyMagic','infinitySnap','infiniteBlade','shieldThrow','keraunos','phantomStep','neonLance','phoenixCore','starfallCrown','voidCollector','railCannon','blackholeEmperor','thunderAegis','solarDrill','chronoLotus']);
-                        MISSION_DEFS.forEach(m => {
-                            const w = m && m.reward && m.reward.weapon;
-                            if (!w || !ultimateWeapons.has(w) || m.__halfUltimate20260505) return;
-                            const oldTarget = Number(m.target || 0);
-                            if (oldTarget > 1) {
-                                m.target = Math.max(1, Math.ceil(oldTarget / 2));
-                                m.desc = String(m.desc || '').replace(/【調整後:.*?】/g, '').trim() + ' 【調整後: ' + m.target + '】';
-                            }
-                            if (m.reward && m.reward.coins) m.reward.coins = Math.max(0, Math.floor(Number(m.reward.coins || 0) * 0.7));
-                            m.__halfUltimate20260505 = true;
-                        });
-                    } catch(e) { console.warn('ultimate mission half patch skipped', e); }
-                }
-
-                const oldInitGameCheat20260505 = initGame;
-                initGame = function(mode = 'solo') {
-                    const result = oldInitGameCheat20260505.apply(this, arguments);
-                    try { setTimeout(() => nsvApplyCheatBuffsToPlayer(false), 0); } catch(e) {}
-                    return result;
-                };
-
-                function nsvCheatBoot() {
-                    nsvEnsureCheatButtons();
-                    nsvMakeUltimateMissionsHalfEasier20260505();
-                    nsvEnsureCheatData();
-                }
-                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', nsvCheatBoot);
-                else nsvCheatBoot();
-                setTimeout(nsvCheatBoot, 700);
-                setTimeout(nsvCheatBoot, 2000);
-                window.neonSurvivorCheatCodes20260505 = CHEAT_CODE_LIST_20260505;
-            } catch(e) { console.warn('cheat terminal patch skipped', e); }
-        })();
-</script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Noto Sans JP', sans-serif; touch-action: none; user-select: none; }
@@ -668,7 +455,7 @@
         <button id="restartBtn" class="btn-neon px-10 py-4 text-2xl font-bold rounded cursor-pointer">TITLE MENU</button>
     </div>
 
-    <script type="module">
+    <script>
         // Firebase は設定がある時だけ後で読み込む。
         // これにより、Firebase 未設定の GitHub Pages / CodePen / ローカルでもゲーム本体が止まらない。
         let fbDoc = null, fbSetDoc = null, fbGetDoc = null, fbUpdateDoc = null, fbDeleteField = null;
@@ -11729,7 +11516,7 @@
     }
 
     try {
-        applyKeepHighScoreOnlyReset20260504();
+        /* disabled: keep all player data */
         installCollectionSplitPatch20260504();
         injectBattlePassDateNote20260504();
         const currentBestDisplay = document.getElementById('currentBestDisplay');
@@ -13536,12 +13323,2058 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(nsvApplyTrueHighScoreOnlyReset20260505, 250));
+    document.addEventListener('DOMContentLoaded', () => console.log('[Neon Survivor] destructive reset disabled; keeping all data.'));
   } else {
-    setTimeout(nsvApplyTrueHighScoreOnlyReset20260505, 250);
+    console.log('[Neon Survivor] destructive reset disabled; keeping all data.');
   }
 })();
 
+</script>
+
+
+
+<!-- 2026-05-05 FIX: cheat patch moved here so it runs after the game code is loaded -->
+<script>
+// ==========================================================
+        // 2026-05-05 Patch: 7-digit cheat code terminal + easier ultimate missions
+        // ==========================================================
+        (function applyCheatTerminalAndEasierUltimateMissions20260505() {
+            try {
+                const CHEAT_PATCH_ID = 'nsvCheatTerminal20260505v1';
+                if (window[CHEAT_PATCH_ID]) return;
+                window[CHEAT_PATCH_ID] = true;
+
+                const CHEAT_CODE_LIST_20260505 = {
+                    '7429136': { title:'COIN BOOST 10K', desc:'コイン +10,000', kind:'coins', amount:10000 },
+                    '6814297': { title:'COIN BOOST 100K', desc:'コイン +100,000', kind:'coins', amount:100000 },
+                    '3947162': { title:'HP BOOST x2', desc:'最大体力が2倍になる', kind:'hpMult', mult:2 },
+                    '8274613': { title:'HP BOOST x3', desc:'最大体力が3倍になる', kind:'hpMult', mult:3 },
+                    '5192847': { title:'HP BOOST x5', desc:'最大体力が5倍になる', kind:'hpMult', mult:5 },
+                    '6381974': { title:'UPGRADE STARTER', desc:'全アップグレード +5', kind:'upgradePlus', amount:5 },
+                    '2967481': { title:'NEON PASS BOOST', desc:'バトルスター +25 / チケット +1', kind:'passBoost', stars:25, tickets:1 },
+                    '4719368': { title:'ULTIMATE STARTER', desc:'虚式・崩命破・流星群・轟・絶対防壁を解放', kind:'unlockWeapons', weapons:['hollowMurasaki','kamehameha','funnel','thor','shieldThrow'] },
+                    '8531269': { title:'ULTIMATE MASTER', desc:'全アルティメット系武器を解放', kind:'unlockWeapons', weapons:['hollowMurasaki','kamehameha','vader','thor','muryoku','funnel','ironBlaster','disneyMagic','infinitySnap','infiniteBlade','shieldThrow','keraunos','phantomStep','neonLance','phoenixCore','starfallCrown','voidCollector','railCannon','blackholeEmperor','thunderAegis','solarDrill','chronoLotus'] },
+                    '7293846': { title:'POWER MODE', desc:'攻撃力 x2 / 移動速度 x1.25', kind:'powerMode', damageMult:2, speedMult:1.25 },
+                    '4862759': { title:'RECOVERY CORE', desc:'自動回復を強化', kind:'regen', regenBonus:4 },
+                    '9176384': { title:'GOD RUN START', desc:'現在のプレイ中に体力回復＋強武器をすぐ装備', kind:'runGod' },
+                    // 2026-05-05 V5: 超強力チートコード追加
+                    '9285734': { title:'ULTRA COIN VAULT', desc:'コイン +9,999,999', kind:'coins', amount:9999999 },
+                    '5739281': { title:'TITAN OVERDRIVE', desc:'最大体力 x50 / 攻撃力 x12 / 移動速度 x2 / 自動回復 +25', kind:'megaBuff', hpMult:50, damageMult:12, speedMult:2, regenBonus:25 },
+                    '8463917': { title:'MAX NEON LAB', desc:'全アップグレード +50 / バトルスター +500 / チケット +10', kind:'megaUpgrade', amount:50, stars:500, tickets:10 },
+                    '3918462': { title:'COSMIC ARSENAL', desc:'全伝説武器を解放し、武器図鑑も使用済みにする', kind:'megaUnlock' },
+                    '7641928': { title:'TRUE GOD RUN', desc:'プレイ中に最強装備・全回復・高火力状態を付与', kind:'trueGodRun' }
+                };
+
+                function nsvEnsureCheatData() {
+                    try { ensureProgressionData?.(); } catch(e) {}
+                    if (!userData || typeof userData !== 'object') userData = createFreshUserData?.('') || { score:0, coins:0, upgrades:{} };
+                    userData.cheats = userData.cheats || {};
+                    userData.cheats.hpMult = Math.max(1, Number(userData.cheats.hpMult || 1));
+                    userData.cheats.damageMult = Math.max(1, Number(userData.cheats.damageMult || 1));
+                    userData.cheats.speedMult = Math.max(1, Number(userData.cheats.speedMult || 1));
+                    userData.cheats.regenBonus = Math.max(0, Number(userData.cheats.regenBonus || 0));
+                    userData.cheats.usedCodes = userData.cheats.usedCodes || {};
+                    userData.unlocks = userData.unlocks || {};
+                    userData.unlocks.legendaryWeapons = userData.unlocks.legendaryWeapons || {};
+                    userData.upgrades = userData.upgrades || {};
+                    return userData.cheats;
+                }
+
+                function nsvSaveCheatData() {
+                    try { saveData?.(); } catch(e) {
+                        try { localStorage.setItem('neon_survivor_save', JSON.stringify(userData)); } catch(_) {}
+                    }
+                }
+
+                function nsvRememberOriginalPlayerStats20260505V5() {
+                    try {
+                        if (!player || player.__nsvOriginalStats20260505V5) return;
+                        player.__nsvOriginalStats20260505V5 = {
+                            maxHp: Number(player.maxHp || 100),
+                            hp: Number(player.hp || player.maxHp || 100),
+                            damage: Number(player.damage || 30),
+                            speed: Number(player.speed || 4),
+                            regenAmount: Number(player.regenAmount || 1)
+                        };
+                    } catch(e) {}
+                }
+
+                function nsvCancelAllCheats20260505V5() {
+                    try {
+                        const c = nsvEnsureCheatData();
+                        c.hpMult = 1;
+                        c.damageMult = 1;
+                        c.speedMult = 1;
+                        c.regenBonus = 0;
+                        c.usedCodes = {};
+                        c.cancelledAt = Date.now();
+                        if (player) {
+                            const o = player.__nsvOriginalStats20260505V5;
+                            if (o) {
+                                player.maxHp = Math.max(1, Number(o.maxHp || 100));
+                                player.hp = Math.min(Math.max(1, Number(player.hp || o.hp || 100)), player.maxHp);
+                                player.damage = Math.max(1, Number(o.damage || 30));
+                                player.speed = Math.max(1, Number(o.speed || 4));
+                                player.regenAmount = Math.max(0, Number(o.regenAmount || 1));
+                            }
+                            player.__nsvCheatApplied20260505 = false;
+                            try { floatingTexts.push(new FloatingText(player.x, player.y - 50, 'CHEATS OFF', '#93c5fd', 20)); } catch(_) {}
+                        }
+                        nsvSaveCheatData();
+                        try { renderUpgradeScreen?.(); } catch(e) {}
+                        try { renderShopV2?.(); } catch(e) {}
+                        nsvCheatNotify('CHEATS CANCELLED', '0000000 により、体力倍率・攻撃倍率・移動速度倍率・自動回復チートを解除しました。コインやミッション報酬など、すでに保存された通常データは残します。');
+                    } catch(e) { alert('チート解除中にエラーが出ました。'); }
+                }
+
+                function nsvAllLegendaryWeaponIds20260505V5() {
+                    const fallback = ['hollowMurasaki','kamehameha','vader','thor','muryoku','funnel','ironBlaster','disneyMagic','infinitySnap','infiniteBlade','shieldThrow','keraunos','phantomStep','neonLance','phoenixCore','starfallCrown','voidCollector','railCannon','blackholeEmperor','thunderAegis','solarDrill','chronoLotus'];
+                    try {
+                        const ids = [];
+                        try { (LEGENDARY_WEAPON_DEFS || []).forEach(w => w && w.id && ids.push(w.id)); } catch(_) {}
+                        try { (WEAPON_CODEX_DEFS || []).forEach(w => w && w.id && ids.push(w.id)); } catch(_) {}
+                        return Array.from(new Set(ids.length ? ids : fallback));
+                    } catch(e) { return fallback; }
+                }
+
+                function nsvGrantTrueGodRun20260505V5() {
+                    try {
+                        if (!player) return false;
+                        nsvRememberOriginalPlayerStats20260505V5();
+                        nsvApplyCheatBuffsToPlayer(false);
+                        player.hp = player.maxHp;
+                        const weaponLevelProps = ['hollowMurasakiLevel','kamehamehaLevel','funnelLevel','keraunosLevel','shieldLevel','infiniteBladeLevel','vaderLevel','thorLevel','muryokuLevel','starfallCrownLevel','railCannonLevel','blackholeEmperorLevel','thunderAegisLevel','solarDrillLevel','chronoLotusLevel','phoenixCoreLevel','ironBlasterLevel','disneyMagicLevel','infinitySnapLevel','neonLanceLevel'];
+                        weaponLevelProps.forEach(k => { player[k] = Math.max(Number(player[k] || 0), 5); });
+                        player.invincibleTimer = Math.max(Number(player.invincibleTimer || 0), 60 * 15);
+                        try { floatingTexts.push(new FloatingText(player.x, player.y - 70, 'TRUE GOD RUN!', '#facc15', 26)); } catch(_) {}
+                        return true;
+                    } catch(e) { return false; }
+                }
+
+                function nsvCheatNotify(title, msg) {
+                    try { showMissionToast?.(title, msg); } catch(e) {}
+                    try { alert(title + '\n' + msg); } catch(e) {}
+                }
+
+                function nsvUnlockCheatWeapons(ids) {
+                    nsvEnsureCheatData();
+                    const names = [];
+                    ids.forEach(id => {
+                        userData.unlocks.legendaryWeapons[id] = true;
+                        try {
+                            const def = (LEGENDARY_WEAPON_DEFS || []).find(w => w.id === id) || (WEAPON_CODEX_DEFS || []).find(w => w.id === id);
+                            names.push(def ? def.name : id);
+                        } catch(e) { names.push(id); }
+                    });
+                    return names;
+                }
+
+                function nsvApplyCheatBuffsToPlayer(showText = false) {
+                    try {
+                        if (!player) return;
+                        nsvRememberOriginalPlayerStats20260505V5();
+                        const c = nsvEnsureCheatData();
+                        const hpMult = Math.max(1, Number(c.hpMult || 1));
+                        const dmgMult = Math.max(1, Number(c.damageMult || 1));
+                        const spdMult = Math.max(1, Number(c.speedMult || 1));
+                        if (!player.__nsvCheatApplied20260505) {
+                            player.__nsvCheatApplied20260505 = true;
+                            player.maxHp = Math.max(1, Math.round(Number(player.maxHp || 100) * hpMult));
+                            player.hp = player.maxHp;
+                            player.damage = Number(player.damage || 30) * dmgMult;
+                            player.speed = Number(player.speed || 4) * spdMult;
+                            player.regenAmount = Number(player.regenAmount || 1) + Number(c.regenBonus || 0);
+                            if (showText) floatingTexts.push(new FloatingText(player.x, player.y - 40, 'CHEAT POWER ON', '#facc15', 18));
+                        }
+                    } catch(e) { console.warn('cheat player buff skipped', e); }
+                }
+
+                function nsvGrantRunGodMode() {
+                    try {
+                        if (!player) return false;
+                        nsvApplyCheatBuffsToPlayer(false);
+                        player.hp = player.maxHp;
+                        player.hollowMurasakiLevel = Math.max(player.hollowMurasakiLevel || 0, 2);
+                        player.kamehamehaLevel = Math.max(player.kamehamehaLevel || 0, 2);
+                        player.funnelLevel = Math.max(player.funnelLevel || 0, 2);
+                        player.keraunosLevel = Math.max(player.keraunosLevel || 0, 1);
+                        player.shieldLevel = Math.max(player.shieldLevel || 0, 2);
+                        player.infiniteBladeLevel = Math.max(player.infiniteBladeLevel || 0, 2);
+                        floatingTexts.push(new FloatingText(player.x, player.y - 60, 'GOD RUN!', '#facc15', 22));
+                        return true;
+                    } catch(e) { return false; }
+                }
+
+                function nsvExecuteCheatCode(raw) {
+                    const code = String(raw || '').replace(/[^0-9]/g, '').slice(0, 7);
+                    if (!/^\d{7}$/.test(code)) { alert('7桁の数字を入力してください。'); return; }
+                    if (code === '0000000') { nsvCancelAllCheats20260505V5(); return; }
+                    const data = CHEAT_CODE_LIST_20260505[code];
+                    if (!data) { alert('このチートコードは存在しません。'); return; }
+                    const c = nsvEnsureCheatData();
+                    let message = data.desc;
+                    if (data.kind === 'coins') {
+                        userData.coins = Number(userData.coins || 0) + Number(data.amount || 0);
+                        userData.stats = userData.stats || {};
+                        userData.stats.totalCoinsEarned = Number(userData.stats.totalCoinsEarned || 0) + Number(data.amount || 0);
+                    } else if (data.kind === 'hpMult') {
+                        c.hpMult = Math.max(Number(c.hpMult || 1), Number(data.mult || 1));
+                        if (player) { player.__nsvCheatApplied20260505 = false; nsvApplyCheatBuffsToPlayer(true); }
+                    } else if (data.kind === 'upgradePlus') {
+                        try { upgradeDef.forEach(u => { userData.upgrades[u.id] = Number(userData.upgrades[u.id] || 0) + Number(data.amount || 0); }); } catch(e) {}
+                    } else if (data.kind === 'passBoost') {
+                        userData.passTickets = Number(userData.passTickets || 0) + Number(data.tickets || 0);
+                        userData.battlePassV2 = userData.battlePassV2 || {};
+                        userData.battlePassV2.battleStars = Number(userData.battlePassV2.battleStars || 0) + Number(data.stars || 0);
+                        userData.battlePassV2.earnedStars = Number(userData.battlePassV2.earnedStars || 0) + Number(data.stars || 0);
+                    } else if (data.kind === 'unlockWeapons') {
+                        const names = nsvUnlockCheatWeapons(data.weapons || []);
+                        message = '解放: ' + names.slice(0, 8).join(' / ') + (names.length > 8 ? ' ほか' : '');
+                    } else if (data.kind === 'powerMode') {
+                        c.damageMult = Math.max(Number(c.damageMult || 1), Number(data.damageMult || 1));
+                        c.speedMult = Math.max(Number(c.speedMult || 1), Number(data.speedMult || 1));
+                        if (player) { player.__nsvCheatApplied20260505 = false; nsvApplyCheatBuffsToPlayer(true); }
+                    } else if (data.kind === 'regen') {
+                        c.regenBonus = Math.max(Number(c.regenBonus || 0), Number(data.regenBonus || 0));
+                        if (player) { player.__nsvCheatApplied20260505 = false; nsvApplyCheatBuffsToPlayer(true); }
+                    } else if (data.kind === 'megaBuff') {
+                        c.hpMult = Math.max(Number(c.hpMult || 1), Number(data.hpMult || 1));
+                        c.damageMult = Math.max(Number(c.damageMult || 1), Number(data.damageMult || 1));
+                        c.speedMult = Math.max(Number(c.speedMult || 1), Number(data.speedMult || 1));
+                        c.regenBonus = Math.max(Number(c.regenBonus || 0), Number(data.regenBonus || 0));
+                        if (player) { player.__nsvCheatApplied20260505 = false; nsvApplyCheatBuffsToPlayer(true); }
+                    } else if (data.kind === 'megaUpgrade') {
+                        try { upgradeDef.forEach(u => { userData.upgrades[u.id] = Number(userData.upgrades[u.id] || 0) + Number(data.amount || 0); }); } catch(e) {}
+                        userData.passTickets = Number(userData.passTickets || 0) + Number(data.tickets || 0);
+                        userData.battlePassV2 = userData.battlePassV2 || {};
+                        userData.battlePassV2.battleStars = Number(userData.battlePassV2.battleStars || 0) + Number(data.stars || 0);
+                        userData.battlePassV2.earnedStars = Number(userData.battlePassV2.earnedStars || 0) + Number(data.stars || 0);
+                    } else if (data.kind === 'megaUnlock') {
+                        const ids = nsvAllLegendaryWeaponIds20260505V5();
+                        const names = nsvUnlockCheatWeapons(ids);
+                        userData.codex = userData.codex || {};
+                        userData.codex.weapons = userData.codex.weapons || {};
+                        ids.forEach(id => { userData.codex.weapons[id] = true; });
+                        message = '全伝説武器を解放: ' + names.slice(0, 8).join(' / ') + (names.length > 8 ? ' ほか' : '');
+                    } else if (data.kind === 'trueGodRun') {
+                        c.hpMult = Math.max(Number(c.hpMult || 1), 80);
+                        c.damageMult = Math.max(Number(c.damageMult || 1), 25);
+                        c.speedMult = Math.max(Number(c.speedMult || 1), 2.4);
+                        c.regenBonus = Math.max(Number(c.regenBonus || 0), 50);
+                        const ok = nsvGrantTrueGodRun20260505V5();
+                        if (!ok) message = 'プレイ中に使うと、最強装備・全回復・高火力状態が反映されます。';
+                    } else if (data.kind === 'runGod') {
+                        const ok = nsvGrantRunGodMode();
+                        if (!ok) message = 'プレイ中に使うと、体力回復と強武器がすぐ反映されます。';
+                    }
+                    c.usedCodes[code] = { title:data.title, at:Date.now() };
+                    nsvSaveCheatData();
+                    try { renderUpgradeScreen?.(); } catch(e) {}
+                    try { renderShopV2?.(); } catch(e) {}
+                    nsvCheatNotify('CHEAT ACTIVATED: ' + data.title, message);
+                }
+
+                function nsvOpenCheatPrompt() {
+                    const code = prompt('7桁のチートコードを入力してください');
+                    if (code != null) nsvExecuteCheatCode(code);
+                }
+
+                function nsvInjectCheatStyle() {
+                    if (document.getElementById('nsvCheatStyle20260505')) return;
+                    const st = document.createElement('style');
+                    st.id = 'nsvCheatStyle20260505';
+                    st.textContent = '.nsv-cheat-btn{width:100%;margin-top:12px;padding:12px 16px;border-radius:16px;border:2px solid #f472b6;color:#fce7f3;background:rgba(88,28,135,.35);font-weight:900;box-shadow:0 0 16px rgba(244,114,182,.45),inset 0 0 10px rgba(244,114,182,.25)}.nsv-cheat-btn:hover{background:#f472b6;color:#111827}.nsv-cheat-note{font-size:11px;color:#fbcfe8;margin-top:4px;text-align:center}';
+                    document.head.appendChild(st);
+                }
+
+                function nsvEnsureCheatButtons() {
+                    try {
+                        nsvInjectCheatStyle();
+                        const startPanel = document.querySelector('#startScreen .menu-panel') || document.getElementById('nsvCleanStartRoot') || document.getElementById('startScreen');
+                        if (startPanel && !document.getElementById('cheatCodeStartBtn')) {
+                            const wrap = document.createElement('div');
+                            wrap.id = 'cheatCodeStartWrap';
+                            wrap.innerHTML = '<button id="cheatCodeStartBtn" class="nsv-cheat-btn" type="button">🔐 チートコード入力</button><div class="nsv-cheat-note">7桁の数字で発動 / 0000000で解除</div>';
+                            startPanel.appendChild(wrap);
+                            document.getElementById('cheatCodeStartBtn')?.addEventListener('click', nsvOpenCheatPrompt);
+                        }
+                        const pause = document.getElementById('pauseScreen');
+                        if (pause && !document.getElementById('cheatCodePauseBtn')) {
+                            const wrap = document.createElement('div');
+                            wrap.id = 'cheatCodePauseWrap';
+                            wrap.style.width = 'min(92vw,420px)';
+                            wrap.innerHTML = '<button id="cheatCodePauseBtn" class="nsv-cheat-btn" type="button">🔐 チートコード入力</button><div class="nsv-cheat-note">プレイ中の強化コード / 0000000で解除</div>';
+                            pause.appendChild(wrap);
+                            document.getElementById('cheatCodePauseBtn')?.addEventListener('click', nsvOpenCheatPrompt);
+                        }
+                    } catch(e) { console.warn('cheat buttons skipped', e); }
+                }
+
+                function nsvMakeUltimateMissionsHalfEasier20260505() {
+                    try {
+                        const ultimateWeapons = new Set(['hollowMurasaki','kamehameha','vader','thor','muryoku','funnel','ironBlaster','disneyMagic','infinitySnap','infiniteBlade','shieldThrow','keraunos','phantomStep','neonLance','phoenixCore','starfallCrown','voidCollector','railCannon','blackholeEmperor','thunderAegis','solarDrill','chronoLotus']);
+                        MISSION_DEFS.forEach(m => {
+                            const w = m && m.reward && m.reward.weapon;
+                            if (!w || !ultimateWeapons.has(w) || m.__halfUltimate20260505) return;
+                            const oldTarget = Number(m.target || 0);
+                            if (oldTarget > 1) {
+                                m.target = Math.max(1, Math.ceil(oldTarget / 2));
+                                m.desc = String(m.desc || '').replace(/【調整後:.*?】/g, '').trim() + ' 【調整後: ' + m.target + '】';
+                            }
+                            if (m.reward && m.reward.coins) m.reward.coins = Math.max(0, Math.floor(Number(m.reward.coins || 0) * 0.7));
+                            m.__halfUltimate20260505 = true;
+                        });
+                    } catch(e) { console.warn('ultimate mission half patch skipped', e); }
+                }
+
+                const oldInitGameCheat20260505 = initGame;
+                initGame = function(mode = 'solo') {
+                    const result = oldInitGameCheat20260505.apply(this, arguments);
+                    try { setTimeout(() => nsvApplyCheatBuffsToPlayer(false), 0); } catch(e) {}
+                    return result;
+                };
+
+                function nsvCheatBoot() {
+                    nsvEnsureCheatButtons();
+                    nsvMakeUltimateMissionsHalfEasier20260505();
+                    nsvEnsureCheatData();
+                }
+                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', nsvCheatBoot);
+                else nsvCheatBoot();
+                setTimeout(nsvCheatBoot, 700);
+                setTimeout(nsvCheatBoot, 2000);
+                window.neonSurvivorCheatCodes20260505 = CHEAT_CODE_LIST_20260505;
+            } catch(e) { console.warn('cheat terminal patch skipped', e); }
+        })();
+</script>
+
+<!-- 2026-05-05 FINAL COMPLETE PATCH: save/import, buttons, ranking, online safety, performance -->
+<script>
+(function(){
+  'use strict';
+  const PATCH_ID = 'nsv_final_complete_20260505_v2';
+  if (window[PATCH_ID]) return;
+  window[PATCH_ID] = true;
+
+  const TRUE_RESET_VERSION = '2026-05-05-true-highscore-only-reset-v1';
+  const KEEP_RESET_VERSION = '2026-05-04-keep-highscore-only-v3';
+  const ONLINE_ROOM_ID = 'neon_survivor_public_room_all_friends_final_v2';
+  const bc = ('BroadcastChannel' in window) ? new BroadcastChannel('neon_survivor_local_online_final_v2') : null;
+  const localRemotePlayers = new Map();
+  let lastLocalOnlinePost = 0;
+  let heavyFrameCount = 0;
+  let safetyMode = false;
+
+  function safeCall(fn, ...args){ try { if (typeof fn === 'function') return fn(...args); } catch(e){ console.warn('[NSV final]', e); } }
+  function getNick(){
+    try { return (typeof getNickname === 'function' ? getNickname() : '') || userData?.nickname || localStorage.getItem('neon_survivor_nickname') || 'PLAYER'; } catch(e){ return 'PLAYER'; }
+  }
+  function ensureData(){
+    safeCall(window.ensureProgressionData);
+    try {
+      if (!window.userData && typeof userData !== 'undefined') window.userData = userData;
+      if (!userData || typeof userData !== 'object') userData = (typeof createFreshUserData === 'function') ? createFreshUserData(getNick()) : {score:0,coins:0,upgrades:{}};
+      userData.upgrades = Object.assign({hp:0,damage:0,speed:0,exp:0,armor:0,magnet:0,rapid:0,pierce:0}, userData.upgrades || {});
+      userData.stats = userData.stats || {};
+      userData.missions = userData.missions || {completed:{},claimed:{}};
+      userData.unlocks = userData.unlocks || {legendaryWeapons:{},skins:{classic:true},auras:{none:true},capes:{none:true}};
+      userData.unlocks.legendaryWeapons = userData.unlocks.legendaryWeapons || {};
+      userData.cosmetics = userData.cosmetics || {unlocked:{},equipped:{}};
+      userData.cosmetics.unlocked = userData.cosmetics.unlocked || {};
+      userData.cosmetics.equipped = userData.cosmetics.equipped || {};
+      userData.keepBestOnlyResetVersion = userData.keepBestOnlyResetVersion || KEEP_RESET_VERSION;
+      userData.trueHighScoreOnlyResetVersion = userData.trueHighScoreOnlyResetVersion || TRUE_RESET_VERSION;
+      try { userData.resetVersion = SAVE_RESET_VERSION; } catch(e) {}
+    } catch(e) {}
+  }
+  function saveNow(){
+    try { ensureData(); } catch(e) {}
+    try { localStorage.setItem('neon_survivor_save', JSON.stringify(userData)); } catch(e) {}
+    safeCall(window.saveData);
+  }
+  function b64urlEncodeText(text){
+    const bytes = new TextEncoder().encode(String(text));
+    let bin = '';
+    for (let i=0; i<bytes.length; i+=0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i,i+0x8000));
+    return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  function b64urlDecodeText(body){
+    const b64 = String(body||'').trim().replace(/-/g,'+').replace(/_/g,'/');
+    const bin = atob(b64 + '='.repeat((4 - b64.length % 4) % 4));
+    const bytes = new Uint8Array(bin.length);
+    for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+  function extractCode(input){
+    const t = String(input||'').trim();
+    const m = t.match(/NSV2\.[A-Za-z0-9_-]+|NS4\.[A-Za-z0-9_-]+|NS3\.[A-Za-z0-9_-]+|NS1\.[A-Za-z0-9_-]+/);
+    if (m) return m[0];
+    const old = t.match(/[A-Za-z0-9+/=_-]{60,}/);
+    return old ? old[0] : t;
+  }
+  async function decodeAnySave(input){
+    const code = extractCode(input);
+    if (!code) throw new Error('empty');
+    if (code.startsWith('NSV2.')) return JSON.parse(b64urlDecodeText(code.slice(5)));
+    if (code.startsWith('NS4.')) {
+      try { return JSON.parse(b64urlDecodeText(code.slice(4))); } catch(e) {
+        const txt = decodeURIComponent(escape(atob(code.slice(4).replace(/-/g,'+').replace(/_/g,'/') + '='.repeat((4-code.slice(4).length%4)%4))));
+        return JSON.parse(txt);
+      }
+    }
+    if (code.startsWith('NS3.') || code.startsWith('NS1.')) {
+      if (typeof decodeShortSaveCode === 'function') return await decodeShortSaveCode(code);
+      const body = code.slice(4).replace(/-/g,'+').replace(/_/g,'/');
+      return JSON.parse(decodeURIComponent(escape(atob(body + '='.repeat((4-body.length%4)%4)))));
+    }
+    return JSON.parse(decodeURIComponent(escape(atob(code))));
+  }
+  function buildSavePayload(){
+    try { saveNicknameFromInput?.(); } catch(e) {}
+    ensureData();
+    const copy = JSON.parse(JSON.stringify(userData || {}));
+    copy.keepBestOnlyResetVersion = KEEP_RESET_VERSION;
+    copy.trueHighScoreOnlyResetVersion = TRUE_RESET_VERSION;
+    try { copy.resetVersion = SAVE_RESET_VERSION; } catch(e) {}
+    return {v:2, game:'Neon Survivor', savedAt:Date.now(), nickname:getNick(), userData:copy};
+  }
+  window.exportSaveCode = async function(ev){
+    try { ev?.preventDefault?.(); ev?.stopPropagation?.(); ev?.stopImmediatePropagation?.(); } catch(e) {}
+    try {
+      const code = 'NSV2.' + b64urlEncodeText(JSON.stringify(buildSavePayload()));
+      try { await navigator.clipboard?.writeText(code); } catch(e) {}
+      alert('セーブコードをコピーしました。\nこのコードで、コイン・アップグレード・ミッション・解放武器・バトルパス・装備を保存できます。\n\n' + code);
+    } catch(e) { console.error(e); alert('セーブコードの作成に失敗しました。'); }
+  };
+  window.importSaveCode = async function(ev){
+    try { ev?.preventDefault?.(); ev?.stopPropagation?.(); ev?.stopImmediatePropagation?.(); } catch(e) {}
+    const code = prompt('セーブコードを貼り付けてください。\nNSV2 / NS4 / NS3 / NS1 / 古いBase64形式に対応しています。');
+    if (!code) return;
+    try {
+      const parsed = await decodeAnySave(code);
+      const raw = parsed.userData || parsed.u || parsed;
+      if (!raw || typeof raw !== 'object') throw new Error('invalid save object');
+      const nick = (typeof normalizeNickname === 'function') ? normalizeNickname(parsed.nickname || parsed.n || raw.nickname || '') : (parsed.nickname || parsed.n || raw.nickname || '');
+      const fresh = (typeof createFreshUserData === 'function') ? createFreshUserData(nick) : {score:0, coins:0, upgrades:{}};
+      userData = Object.assign({}, fresh, raw);
+      userData.nickname = nick || userData.nickname || '';
+      userData.score = Math.max(Number(raw.score || 0), Number(raw.bestScore || 0));
+      userData.coins = Math.max(0, Number(raw.coins || 0));
+      userData.upgrades = Object.assign({}, fresh.upgrades || {}, raw.upgrades || {});
+      userData.keepBestOnlyResetVersion = KEEP_RESET_VERSION;
+      userData.trueHighScoreOnlyResetVersion = TRUE_RESET_VERSION;
+      try { userData.resetVersion = SAVE_RESET_VERSION; } catch(e) {}
+      window.userData = userData;
+      if (nick) {
+        try { localStorage.setItem('neon_survivor_nickname', nick); } catch(e) {}
+        const input = document.getElementById('nicknameInput'); if (input) input.value = nick;
+      }
+      saveNow();
+      safeCall(window.renderUpgradeScreen); safeCall(window.renderMissionScreen); safeCall(window.renderCollectionScreen); safeCall(window.renderShopV2);
+      const bestEl = document.getElementById('currentBestDisplay'); if (bestEl) bestEl.textContent = String(userData.score || 0);
+      alert('セーブコードを読み込みました。\n途中からプレイできます。');
+    } catch(e) { console.error(e); alert('このセーブコードは正しく読み込めませんでした。\nコピーした文字が途中で切れていないか確認してください。'); }
+  };
+
+  function injectStyle(){
+    if (document.getElementById('nsvFinalCompleteStyle20260505')) return;
+    const st = document.createElement('style');
+    st.id = 'nsvFinalCompleteStyle20260505';
+    st.textContent = `
+      #startScreen button,#startScreen input,#startScreen label,#pauseScreen button,.menu-panel button{pointer-events:auto!important;touch-action:manipulation!important;}
+      .nsv-final-toggle-row{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;width:100%!important;align-items:stretch!important;}
+      .nsv-final-toggle-row>*{min-width:0!important;height:100%!important;}
+      @media(max-width:520px){.nsv-final-toggle-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}.nsv-final-toggle-row span{font-size:.72rem!important}.nsv-final-toggle-row .w-14{width:2.75rem!important}}
+      .nsv-shop-coin-banner-final{border:1px solid rgba(250,204,21,.8);background:rgba(250,204,21,.12);border-radius:16px;padding:12px 14px;margin:8px 0 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;box-shadow:0 0 16px rgba(250,204,21,.2)}
+      .nsv-shop-coin-banner-final b{color:#facc15;font-family:Orbitron,sans-serif;font-size:clamp(1.3rem,4vw,2.1rem);text-shadow:0 0 12px #facc15;}
+      .nsv-online-server-warning{border:1px solid rgba(250,204,21,.55);background:rgba(113,63,18,.45);color:#fef3c7;border-radius:14px;padding:10px 12px;margin-top:8px;font-size:12px;line-height:1.45;}
+      .nsv-safety-badge{position:fixed;right:12px;bottom:12px;z-index:500;background:rgba(0,0,0,.75);border:1px solid #facc15;color:#fde68a;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;box-shadow:0 0 14px rgba(250,204,21,.35);pointer-events:none;}
+    `;
+    document.head.appendChild(st);
+  }
+
+  function showScreenFinal(id){
+    try { if (typeof showScreen === 'function') return showScreen(id); } catch(e) {}
+    const ids = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen','shopScreen','battlePassScreen','leaderboardScreen','eventModeScreen'];
+    ids.forEach(x => { const el=document.getElementById(x); if (!el) return; el.classList.toggle('hidden', x!==id); });
+  }
+  function bindButton(id, fn){
+    const b = document.getElementById(id); if (!b || b.dataset.nsvFinalBound) return;
+    b.dataset.nsvFinalBound = '1'; b.style.pointerEvents='auto'; b.type = b.type || 'button';
+    b.addEventListener('click', function(ev){
+      try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); } catch(e) {}
+      fn(ev);
+    }, true);
+  }
+  function ensureAllButtons(){
+    bindButton('exportBtn', window.exportSaveCode);
+    bindButton('importBtn', window.importSaveCode);
+    bindButton('openUpgradeBtn', () => { safeCall(window.renderUpgradeScreen); showScreenFinal('upgradeScreen'); });
+    bindButton('openMissionBtn', () => { safeCall(window.renderMissionScreen); showScreenFinal('missionsScreen'); });
+    bindButton('openCollectionBtn', () => { safeCall(window.renderCollectionScreen); showScreenFinal('collectionScreen'); });
+    bindButton('openWeaponCodexBtn', () => { safeCall(window.renderWeaponCodexScreen); showScreenFinal('weaponCodexScreen'); });
+    bindButton('openShopHeroBtn', () => { safeCall(window.renderShopV2); ensureShopCoins(); showScreenFinal('shopScreen'); });
+    bindButton('openBattlePassHeroBtn', () => { safeCall(window.renderBattlePassV2); showScreenFinal('battlePassScreen'); });
+    bindButton('openLeaderboardBtn', () => { renderFriendOnlyRanking(); showScreenFinal('leaderboardScreen'); });
+    bindButton('closeLeaderboardBtn', () => showScreenFinal('startScreen'));
+    bindButton('startBtn', () => { if (typeof initGame === 'function') initGame('solo'); });
+    bindButton('onlineStartBtn', () => { safeCall(window.openOnlineRoleSelect) || (typeof initGame === 'function' && initGame('online')); });
+    bindButton('resumeBtn', () => { safeCall(window.resumeGame); });
+    bindButton('pauseBtn', () => { safeCall(window.pauseGame); });
+  }
+  function ensureToggleRowAndOrder(){
+    const joy = document.getElementById('joystickToggle')?.closest('.bg-gray-900\/80, .bg-gray-900\\/80') || document.getElementById('joystickToggle')?.closest('div.bg-gray-900\/80') || document.getElementById('joystickToggle')?.closest('div');
+    const light = document.getElementById('lightModeToggle')?.closest('.bg-gray-900\/80, .bg-gray-900\\/80') || document.getElementById('lightModeToggle')?.closest('div.bg-gray-900\/80') || document.getElementById('lightModeToggle')?.closest('div');
+    const rank = document.getElementById('openLeaderboardBtn');
+    const grid = document.querySelector('#startScreen .nsv-clean-menu-grid') || document.querySelector('#startScreen .menu-grid');
+    if (rank && grid && rank.parentElement !== grid) grid.appendChild(rank);
+    if (rank && grid && grid.firstElementChild !== rank) grid.insertBefore(rank, grid.firstElementChild);
+    if (joy && light) {
+      let row = document.getElementById('nsvFinalToggleRow');
+      if (!row) { row = document.createElement('div'); row.id='nsvFinalToggleRow'; row.className='nsv-final-toggle-row'; }
+      const parent = grid?.parentElement || joy.parentElement;
+      if (parent && row.parentElement !== parent) parent.insertBefore(row, grid?.nextSibling || null);
+      if (joy.parentElement !== row) row.appendChild(joy);
+      if (light.parentElement !== row) row.appendChild(light);
+    }
+  }
+  function ensureShopCoins(){
+    const screen = document.getElementById('shopScreen'); if (!screen) return;
+    const panel = screen.querySelector('.menu-panel') || screen.firstElementChild || screen;
+    let banner = document.getElementById('nsvShopCoinBannerFinal');
+    if (!banner) { banner = document.createElement('div'); banner.id = 'nsvShopCoinBannerFinal'; banner.className = 'nsv-shop-coin-banner-final'; panel.insertBefore(banner, panel.children[1] || null); }
+    ensureData();
+    banner.innerHTML = `<span><b>🪙 ${Math.floor(Number(userData.coins||0)).toLocaleString()}</b></span><span class="text-yellow-100 font-bold text-sm">現在の所持コイン</span>`;
+  }
+  function patchShopRender(){
+    try { if (typeof renderShopV2 === 'function' && !renderShopV2.__nsvFinalCoins) { const old=renderShopV2; renderShopV2=function(){ const r=old.apply(this,arguments); ensureShopCoins(); return r; }; renderShopV2.__nsvFinalCoins=true; } } catch(e) {}
+  }
+
+  function makeMyRankRow(){
+    ensureData(); const s=userData.stats||{};
+    return {name:getNick()||'YOU', score:Number(userData.score||0), level:Number(s.bestRunLevel||1), boss:Number(s.totalBossLikeKills||0), kills:Number(s.totalKills||0), coins:Number(userData.coins||0), me:true};
+  }
+  function getFriends(){
+    try { return JSON.parse(localStorage.getItem('neon_survivor_friends_final')||'[]'); } catch(e){ return []; }
+  }
+  function saveFriends(a){ try { localStorage.setItem('neon_survivor_friends_final', JSON.stringify(a||[])); } catch(e){} }
+  function makeFriendCode(){ return 'NSF2.' + b64urlEncodeText(JSON.stringify(makeMyRankRow())); }
+  function addFriendCode(){
+    const code = prompt('友達からもらった接続コードを貼ってください'); if (!code) return;
+    try {
+      const raw = extractCode(code).replace(/^NSF2\./,'');
+      const row = JSON.parse(b64urlDecodeText(raw));
+      if (!row || !row.name) throw new Error('bad friend');
+      const friends = getFriends().filter(f => f.name !== row.name);
+      friends.push(row); saveFriends(friends); renderFriendOnlyRanking(); alert('友達をランキングに追加しました。');
+    } catch(e){ alert('友達コードを読み込めませんでした。'); }
+  }
+  function copyFriendCode(){
+    const code = makeFriendCode();
+    try { navigator.clipboard?.writeText(code); } catch(e) {}
+    alert('友達接続コードをコピーしました。\n友達に送るとランキングで比べられます。\n\n' + code);
+  }
+  function section(title, rows, key, suffix=''){
+    const sorted = rows.slice().sort((a,b)=>Number(b[key]||0)-Number(a[key]||0));
+    return `<div class="mission-card"><h3 class="text-xl font-bold text-cyan-300 mb-2">${title}</h3>${sorted.map((r,i)=>`<div class="flex justify-between border-b border-slate-700/60 py-1 ${r.me?'text-yellow-200 font-bold':''}"><span>${i+1}. ${String(r.name||'PLAYER').replace(/[&<>]/g,'')}</span><span>${Math.floor(Number(r[key]||0)).toLocaleString()}${suffix}</span></div>`).join('')}</div>`;
+  }
+  window.renderFriendOnlyRanking = function(){
+    let screen = document.getElementById('leaderboardScreen');
+    if (!screen) {
+      screen = document.createElement('div'); screen.id='leaderboardScreen'; screen.className='absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[58] hidden p-3'; document.body.appendChild(screen);
+    }
+    const rows = [makeMyRankRow(), ...getFriends()];
+    screen.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold text-cyan-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #22d3ee;">FRIENDS RANKING</h2><p class="text-gray-300 text-sm mt-2">全ての部門を、接続した友達と比べるランキングにしました。</p></div><div class="flex gap-2 flex-wrap"><button id="copyFriendCodeBtn" class="btn-gold px-4 py-2 rounded font-bold">CONNECT CODE</button><button id="addFriendCodeBtn" class="btn-green px-4 py-2 rounded font-bold">ADD FRIEND</button><button id="closeLeaderboardBtn" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div></div><div id="leaderboardListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto max-h-[72vh] pr-1">${section('ハイスコア',rows,'score')}${section('最高到達レベル',rows,'level',' Lv')}${section('ボス討伐数',rows,'boss','体')}${section('総討伐数',rows,'kills','体')}${section('所持コイン',rows,'coins','枚')}</div></div>`;
+    document.getElementById('copyFriendCodeBtn')?.addEventListener('click', copyFriendCode, true);
+    document.getElementById('addFriendCodeBtn')?.addEventListener('click', addFriendCode, true);
+    document.getElementById('closeLeaderboardBtn')?.addEventListener('click', () => showScreenFinal('startScreen'), true);
+  };
+
+  function addOnlineNote(){
+    const btn = document.getElementById('onlineStartBtn'); if (!btn || document.getElementById('nsvOnlineServerWarning')) return;
+    const note = document.createElement('div'); note.id='nsvOnlineServerWarning'; note.className='nsv-online-server-warning';
+    note.textContent = 'オンライン同期は、Firebaseなどの同期サーバーが接続されている時だけ友達と同じマップに入れます。未接続時は同じ端末の別タブ確認用になります。';
+    btn.insertAdjacentElement('afterend', note);
+  }
+  function patchOnline(){
+    if (bc && !bc.__nsvBound) {
+      bc.__nsvBound = true;
+      bc.onmessage = (ev) => {
+        const d = ev.data || {}; if (d.id === (window.onlinePlayerId || 'me')) return;
+        if (Date.now() - Number(d.at||0) > 4000) return;
+        localRemotePlayers.set(d.id, d);
+      };
+    }
+    try {
+      if (typeof initGame === 'function' && !initGame.__nsvFinalOnline) {
+        const old = initGame;
+        initGame = function(mode){
+          const r = old.apply(this, arguments);
+          if (mode === 'online') {
+            try { if (player) { player.x = Math.floor((typeof mapSize !== 'undefined' ? mapSize : 20000)/2); player.y = Math.floor((typeof mapSize !== 'undefined' ? mapSize : 20000)/2); } } catch(e) {}
+            setTimeout(addOnlineNote, 300);
+          }
+          return r;
+        };
+        initGame.__nsvFinalOnline = true;
+      }
+    } catch(e) {}
+  }
+  function localOnlineTick(){
+    try {
+      if (!window.isOnlineMode && typeof isOnlineMode !== 'undefined' && !isOnlineMode) return;
+      if (!player || !bc) return;
+      const now = Date.now(); if (now - lastLocalOnlinePost < 250) return; lastLocalOnlinePost = now;
+      const id = window.onlinePlayerId || localStorage.getItem('neon_survivor_player_id') || 'local_' + Math.random().toString(36).slice(2);
+      bc.postMessage({id, name:getNick(), x:player.x, y:player.y, hp:player.hp, maxHp:player.maxHp, at:now});
+      const count = Math.max(1, 1 + Array.from(localRemotePlayers.values()).filter(p=>now-Number(p.at||0)<3500).length);
+      const el = document.getElementById('onlinePlayerCount'); if (el) el.textContent = String(count);
+      // Firebase未接続でも同端末テストではremotePlayersに見えるよう補助
+      if (typeof remotePlayers !== 'undefined' && remotePlayers instanceof Map) {
+        for (const p of localRemotePlayers.values()) if (now - Number(p.at||0) < 3500) remotePlayers.set(p.id, p);
+      }
+    } catch(e) {}
+  }
+
+  function patchBattlePassEquip(){
+    try {
+      if (typeof equipBattlePassCosmetic20260504 === 'function') window.equipBattlePassCosmetic20260504 = equipBattlePassCosmetic20260504;
+      if (typeof renderCollectionScreen === 'function' && !renderCollectionScreen.__nsvFinalBpEquip) {
+        const old = renderCollectionScreen;
+        renderCollectionScreen = function(){ const r=old.apply(this,arguments); setTimeout(addBattlePassEquipButtons,0); return r; };
+        renderCollectionScreen.__nsvFinalBpEquip=true;
+      }
+    } catch(e) {}
+  }
+  function addBattlePassEquipButtons(){
+    try {
+      ensureData(); const root=document.getElementById('collectionListContainer'); if (!root) return;
+      root.querySelectorAll('[data-cosmetic-type][data-cosmetic-id]').forEach(card=>{
+        if (card.querySelector('.nsv-final-equip-btn')) return;
+        const type=card.dataset.cosmeticType, id=card.dataset.cosmeticId;
+        const b=document.createElement('button'); b.className='nsv-final-equip-btn btn-neon px-3 py-2 rounded font-bold mt-2'; b.textContent='装備する / 外す';
+        b.onclick=()=>{ userData.cosmetics.equipped[type] = userData.cosmetics.equipped[type]===id ? '' : id; saveNow(); safeCall(renderCollectionScreen); };
+        card.appendChild(b);
+      });
+    } catch(e) {}
+  }
+
+  function objectLoad(){
+    let total=0; ['enemies','gems','particles','floatingTexts','effects','bullets','enemyBullets','sniperBullets','phantomDaggers','voidTempests','keraunosStorms','hollowMurasakis','stormbreakers','mapBlackholes','bananaPeels','cosmicSushiStorms'].forEach(n=>{ try{ if (Array.isArray(window[n])) total += window[n].length; } catch(e){} });
+    return total;
+  }
+  function trimArray(name, max){ try { const a=window[name]; if (Array.isArray(a) && a.length>max) a.splice(0, a.length-max); } catch(e){} }
+  window.nsvFinalSafetyCaps = function(){
+    try {
+      const lv = Number(player?.level || 1); const load = objectLoad();
+      const ultra = safetyMode || lv >= 35 || load > 700 || isLightMode;
+      trimArray('particles', ultra?10:35); trimArray('floatingTexts', ultra?6:18); trimArray('effects', ultra?3:8); trimArray('gems', ultra?38:90);
+      trimArray('bullets', ultra?42:90); trimArray('enemyBullets', ultra?16:45); trimArray('enemies', ultra?95:190);
+      trimArray('voidTempests', ultra?1:3); trimArray('keraunosStorms', ultra?1:3); trimArray('hollowMurasakis', ultra?1:3); trimArray('cosmicSushiStorms', ultra?1:4);
+      trimArray('mapBlackholes', 0);
+      if (ultra && !safetyMode) activateSafetyMode('AUTO SAFETY');
+    } catch(e) {}
+  };
+  function activateSafetyMode(reason){
+    safetyMode = true;
+    try { isLightMode = true; document.body.classList.add('light-mode'); } catch(e) {}
+    if (!document.getElementById('nsvSafetyBadge')) { const d=document.createElement('div'); d.id='nsvSafetyBadge'; d.className='nsv-safety-badge'; d.textContent='軽量安全モード ON'; document.body.appendChild(d); }
+  }
+  function patchAnimationSafety(){
+    try {
+      if (typeof animate === 'function' && !animate.__nsvFinalSafe) {
+        const old=animate;
+        animate=function(){
+          const t=performance.now(); const r=old.apply(this,arguments); const dt=performance.now()-t;
+          if (dt>45) heavyFrameCount++; else heavyFrameCount=Math.max(0,heavyFrameCount-1);
+          if (heavyFrameCount>=4) { heavyFrameCount=0; activateSafetyMode('HEAVY FRAME'); }
+          window.nsvFinalSafetyCaps(); localOnlineTick(); return r;
+        };
+        animate.__nsvFinalSafe=true;
+      }
+    } catch(e) {}
+  }
+  function repairProgressionIfBroken(){
+    try {
+      ensureData();
+      const upgTotal = Object.values(userData.upgrades||{}).reduce((a,b)=>a+Number(b||0),0);
+      const unlocked = Object.keys(userData.unlocks?.legendaryWeapons||{}).filter(k=>userData.unlocks.legendaryWeapons[k]).length;
+      if (!userData.nsvProgressRepair20260505 && unlocked >= 3 && upgTotal === 0 && Number(userData.coins||0) < 3000) {
+        userData.coins = Number(userData.coins||0) + 15000;
+        userData.nsvProgressRepair20260505 = true;
+        saveNow();
+        alert('進行データのズレを検出したため、アップグレード再開用に補填コインを追加しました。');
+      }
+    } catch(e) {}
+  }
+  function patchOrangeBossAndStarfall(){
+    // 既存コードに強化が入っている場合はそれを利用。ここでは重さだけさらに抑える。
+    try {
+      if (typeof triggerAdvancedBossPattern === 'function' && !triggerAdvancedBossPattern.__nsvFinalOrange) {
+        const old=triggerAdvancedBossPattern;
+        triggerAdvancedBossPattern=function(boss){
+          if (boss && (boss.type===4 || boss.color==='#ff6600' || boss.color==='#f97316' || String(boss.bossPattern||'').includes('FIRE'))) return;
+          return old.apply(this,arguments);
+        };
+        triggerAdvancedBossPattern.__nsvFinalOrange=true;
+      }
+    } catch(e) {}
+  }
+
+  function boot(){
+    injectStyle(); ensureData(); ensureAllButtons(); ensureToggleRowAndOrder(); patchShopRender(); ensureShopCoins(); patchOnline(); patchBattlePassEquip(); patchAnimationSafety(); patchOrangeBossAndStarfall(); repairProgressionIfBroken(); addOnlineNote();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  setTimeout(boot,600); setTimeout(boot,1800); setInterval(()=>{ try{ ensureAllButtons(); ensureToggleRowAndOrder(); window.nsvFinalSafetyCaps(); localOnlineTick(); }catch(e){} }, 1200);
+})();
+</script>
+
+<!-- NSV_FINAL_V2_VISIBLE_APPLIED_20260505 -->
+
+<script>
+// ===== NSV FINAL V2 GUARANTEED PATCH 2026-05-05 =====
+(function(){
+  'use strict';
+  const PATCH_ID = 'NSV_FINAL_V2_GUARANTEED_20260505';
+  if (window[PATCH_ID]) return;
+  window[PATCH_ID] = true;
+  const $ = (id)=>document.getElementById(id);
+  function gv(name, fallback){ try { return (0,eval)(name); } catch(e){ return fallback; } }
+  function sv(name, val){ try { (0,eval)(name + ' = arguments[1]'); } catch(e){} }
+  function fn(name){ const f = gv(name); return typeof f === 'function' ? f : null; }
+  function toast(t,m){ try{ fn('showMissionToast')?.(t,m); }catch(e){} try{ console.log('[NSV V2]',t,m||''); }catch(e){} }
+  function getUserData(){ let u = gv('userData'); if (!u || typeof u !== 'object') { u = {}; try{ sv('userData',u); }catch(e){} } return u; }
+  function normalizeNick(n){ try{ return fn('normalizeNickname') ? fn('normalizeNickname')(n||'') : String(n||'').trim().slice(0,12); }catch(e){ return String(n||'').trim().slice(0,12); } }
+  function saveNow(){ try{ fn('saveData')?.(); }catch(e){} try{ localStorage.setItem('neon_survivor_save', JSON.stringify(getUserData())); }catch(e){} }
+  function showScreenSafe(id){
+    try{ fn('showScreen')?.(id); }catch(e){}
+    try{
+      const screens = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen','onlineRoleScreen','leaderboardScreen','shopScreen','battlePassScreen','levelUpScreen','gameOverScreen','pauseScreen'];
+      screens.forEach(s=>{ const el=$(s); if (!el) return; el.classList.toggle('hidden', s!==id); el.style.display = s===id ? 'flex' : 'none'; el.style.pointerEvents = s===id ? 'auto' : ''; });
+    }catch(e){}
+  }
+  function utf8ToB64(str){ return btoa(unescape(encodeURIComponent(str))); }
+  function b64ToUtf8(str){ return decodeURIComponent(escape(atob(str))); }
+  function makeSaveCode(){
+    const u = getUserData();
+    try { u.nickname = normalizeNick(u.nickname || $('nicknameInput')?.value || localStorage.getItem('neon_survivor_nickname') || ''); } catch(e){}
+    const payload = {v:2, app:'NeonSurvivor', at:Date.now(), data:u};
+    return 'NSV2-' + utf8ToB64(JSON.stringify(payload));
+  }
+  function parseSaveCode(code){
+    const raw = String(code||'').trim();
+    if (!raw) throw new Error('EMPTY');
+    if (raw.startsWith('NSV2-')) {
+      const obj = JSON.parse(b64ToUtf8(raw.slice(5)));
+      if (!obj || obj.app !== 'NeonSurvivor' || !obj.data) throw new Error('BAD_NSV2');
+      return obj.data;
+    }
+    // 古い形式救済：JSONそのもの、またはbase64(JSON)
+    try { const j = JSON.parse(raw); if (j && typeof j === 'object') return j.data || j; } catch(e){}
+    try { const j = JSON.parse(b64ToUtf8(raw)); if (j && typeof j === 'object') return j.data || j; } catch(e){}
+    // 以前のコードがハイフンや空白を混ぜた場合も救済
+    const cleaned = raw.replace(/\s+/g,'').replace(/^NSV1-/,'');
+    try { const j = JSON.parse(b64ToUtf8(cleaned)); if (j && typeof j === 'object') return j.data || j; } catch(e){}
+    throw new Error('BAD_CODE');
+  }
+  async function copyText(text){
+    try { await navigator.clipboard.writeText(text); return true; } catch(e){}
+    try { const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); return true; } catch(e){ return false; }
+  }
+  function patchSaveButtons(){
+    const exportBtn = $('exportBtn');
+    if (exportBtn && !exportBtn.dataset.nsvV2Save) {
+      exportBtn.dataset.nsvV2Save='1'; exportBtn.textContent='EXPORT SAVE'; exportBtn.style.pointerEvents='auto'; exportBtn.style.position='relative'; exportBtn.style.zIndex='80';
+      exportBtn.addEventListener('click', async (ev)=>{ ev.preventDefault(); ev.stopImmediatePropagation();
+        const code = makeSaveCode(); const ok = await copyText(code);
+        prompt(ok ? 'セーブコードをコピーしました。念のためここからもコピーできます。' : 'このセーブコードをコピーしてください。', code);
+        toast('SAVE EXPORT','NSV2形式で保存しました');
+      }, true);
+    }
+    const importBtn = $('importBtn');
+    if (importBtn && !importBtn.dataset.nsvV2Save) {
+      importBtn.dataset.nsvV2Save='1'; importBtn.textContent='IMPORT SAVE'; importBtn.style.pointerEvents='auto'; importBtn.style.position='relative'; importBtn.style.zIndex='80';
+      importBtn.addEventListener('click', (ev)=>{ ev.preventDefault(); ev.stopImmediatePropagation();
+        const code = prompt('セーブコードを貼り付けてください。NSV2形式・古い形式どちらも対応します。');
+        if (code == null) return;
+        try {
+          const imported = parseSaveCode(code);
+          const old = getUserData();
+          const merged = Object.assign({}, old, imported);
+          merged.upgrades = Object.assign({}, old.upgrades||{}, imported.upgrades||{});
+          merged.stats = Object.assign({}, old.stats||{}, imported.stats||{});
+          merged.missions = Object.assign({completed:{},claimed:{}}, old.missions||{}, imported.missions||{});
+          merged.unlocks = Object.assign({legendaryWeapons:{},skins:{classic:true},auras:{none:true}}, old.unlocks||{}, imported.unlocks||{});
+          sv('userData', merged);
+          try{ localStorage.setItem('neon_survivor_save', JSON.stringify(merged)); }catch(e){}
+          try{ if (merged.nickname) localStorage.setItem('neon_survivor_nickname', merged.nickname); }catch(e){}
+          saveNow();
+          try{ $('nicknameInput').value = merged.nickname || ''; }catch(e){}
+          try{ fn('updateStartBestDisplay')?.(); fn('renderUpgradeScreen')?.(); fn('renderCollectionScreen')?.(); }catch(e){}
+          alert('セーブデータを読み込みました。途中から続けられます。');
+        } catch(err) { alert('セーブコードを読み込めませんでした。今回の修正版では、EXPORT SAVEで出した「NSV2-」から始まるコードを使ってください。'); }
+      }, true);
+    }
+  }
+  function injectStyle(){
+    if ($('nsvFinalV2Style')) return;
+    const st=document.createElement('style'); st.id='nsvFinalV2Style';
+    st.textContent = `
+      .nsv-v2-badge{position:fixed;right:8px;bottom:8px;z-index:99999;background:rgba(2,6,23,.92);border:1px solid #22d3ee;color:#a5f3fc;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:900;box-shadow:0 0 12px rgba(34,211,238,.45);pointer-events:none}.nsv-toggle-row-v2{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.nsv-toggle-row-v2>div{min-height:76px}.nsv-coin-pill-v2{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(250,204,21,.8);background:rgba(113,63,18,.35);color:#fde68a;border-radius:999px;padding:8px 12px;font-weight:900;box-shadow:0 0 12px rgba(250,204,21,.2)}.nsv-server-note-v2{font-size:12px;color:#fde68a;margin-top:4px;max-width:320px}.nsv-menu-btn-fix{pointer-events:auto!important;position:relative!important;z-index:75!important;touch-action:manipulation!important}@media(max-width:720px){.nsv-toggle-row-v2{grid-template-columns:1fr 1fr}.nsv-toggle-row-v2>div{padding:10px!important}.nsv-toggle-row-v2 span{font-size:12px!important}}`;
+    document.head.appendChild(st);
+  }
+  function badge(){ if (!$('nsvFinalV2Badge')) { const d=document.createElement('div'); d.id='nsvFinalV2Badge'; d.className='nsv-v2-badge'; d.textContent='PATCH V2 ON'; document.body.appendChild(d); } }
+  function ensureMenuOrder(){
+    const grid = document.querySelector('#startScreen .menu-grid'); if (!grid) return;
+    ensureRankingButton();
+    const rank = $('openLeaderboardBtn');
+    const joy = $('joystickToggle')?.closest('div.bg-gray-900\/80, div.bg-gray-900, div[class*="bg-gray-900"]') || $('joystickToggle')?.closest('div');
+    const light = $('lightModeToggle')?.closest('div.bg-gray-900\/80, div.bg-gray-900, div[class*="bg-gray-900"]') || $('lightModeToggle')?.closest('div');
+    if (rank && rank.parentElement !== grid) grid.appendChild(rank);
+    let row = $('nsvToggleRowV2');
+    if (!row) { row=document.createElement('div'); row.id='nsvToggleRowV2'; row.className='nsv-toggle-row-v2'; }
+    if (rank && rank.nextSibling !== row) grid.insertBefore(row, rank.nextSibling);
+    if (joy && joy.parentElement !== row) row.appendChild(joy);
+    if (light && light.parentElement !== row) row.appendChild(light);
+  }
+  function ensureRankingButton(){
+    let btn=$('openLeaderboardBtn'); const grid=document.querySelector('#startScreen .menu-grid'); if (!grid) return;
+    if (!btn) { btn=document.createElement('button'); btn.id='openLeaderboardBtn'; btn.className='btn-neon menu-secondary px-6 py-3 font-bold rounded cursor-pointer'; grid.appendChild(btn); }
+    btn.innerHTML='RANKING<br><span class="text-xs text-cyan-100 font-bold">友達と勝負</span>'; btn.classList.add('nsv-menu-btn-fix');
+    if (!btn.dataset.nsvV2Rank) { btn.dataset.nsvV2Rank='1'; btn.addEventListener('click',(e)=>{e.preventDefault();e.stopImmediatePropagation();renderFriendRanking();showScreenSafe('leaderboardScreen');},true); }
+  }
+  function ensureLeaderboardScreen(){
+    if ($('leaderboardScreen')) return;
+    const div=document.createElement('div'); div.id='leaderboardScreen'; div.className='absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[58] hidden p-3';
+    div.innerHTML='<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold text-cyan-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #22d3ee;">RANKING</h2><p class="text-gray-300 text-sm mt-2">全ての部門を友達との勝負用にまとめました。</p></div><button id="closeLeaderboardBtn" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div><div id="leaderboardListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto max-h-[72vh] pr-1"></div></div>';
+    document.body.appendChild(div); $('closeLeaderboardBtn')?.addEventListener('click',()=>showScreenSafe('startScreen'));
+  }
+  function renderFriendRanking(){
+    ensureLeaderboardScreen();
+    try{ $('copyFriendCodeBtn')?.remove(); $('addFriendCodeBtn')?.remove(); }catch(e){}
+    const u=getUserData(); const stats=u.stats||{};
+    const rows=[{name:u.nickname||'YOU',score:u.score||0,level:stats.bestLevel||stats.maxLevel||1,boss:stats.totalBossLikeKills||0,kills:stats.totalKills||0,time:stats.bestSurvivalTime||0}];
+    try { const s=JSON.parse(localStorage.getItem('nsvLeaderboards20260504')||'{}'); (s.friends||[]).forEach(f=>rows.push({name:f.name||'FRIEND',score:f.bestScore||0,level:f.bestLevel||0,boss:f.totalBoss||0,kills:f.totalKills||0,time:f.bestTime||0})); } catch(e){}
+    const section=(title,key,suffix='')=>'<div class="nsv-rank-card"><h3 class="text-xl font-bold text-cyan-300">'+title+'</h3><div class="mt-2">'+rows.slice().sort((a,b)=>(b[key]||0)-(a[key]||0)).slice(0,8).map((r,i)=>'<div class="nsv-rank-row"><div class="text-yellow-300 font-bold">#'+(i+1)+'</div><div class="font-bold">'+String(r.name).slice(0,12)+'</div><div class="text-right text-cyan-200 font-bold">'+Math.floor(r[key]||0)+suffix+'</div></div>').join('')+'</div></div>';
+    const box=$('leaderboardListContainer'); if (box) box.innerHTML=section('スコアランキング','score')+section('レベルランキング','level',' LV')+section('討伐数ランキング','kills','体')+section('ボス討伐ランキング','boss','体');
+  }
+  function ensureShopCoins(){
+    const shop=$('shopScreen'); if (!shop) return; const panel=shop.querySelector('.menu-panel')||shop; let pill=$('nsvShopCoinPillV2'); if (!pill){ pill=document.createElement('div'); pill.id='nsvShopCoinPillV2'; pill.className='nsv-coin-pill-v2'; const header=panel.querySelector('.flex')||panel.firstElementChild||panel; header.appendChild(pill); }
+    pill.textContent='🪙 COINS: '+Math.floor(Number(getUserData().coins||0)).toLocaleString();
+  }
+  function patchShop(){
+    ['renderShopV2','renderShopScreen20260504'].forEach(name=>{ try{ const old=fn(name); if (old && !old.__nsvV2Coin){ const wrap=function(){ const r=old.apply(this,arguments); setTimeout(ensureShopCoins,0); return r; }; wrap.__nsvV2Coin=true; sv(name,wrap); } }catch(e){} });
+    const b=$('openShopBtn')||$('openShopHeroBtn'); if (b && !b.dataset.nsvV2Shop){ b.dataset.nsvV2Shop='1'; b.classList.add('nsv-menu-btn-fix'); b.addEventListener('click',(e)=>{e.preventDefault();e.stopImmediatePropagation(); try{fn('renderShopV2')?.();}catch(_){try{fn('renderShopScreen20260504')?.();}catch(__){}} ensureShopCoins(); showScreenSafe('shopScreen');},true); }
+  }
+  function ensureButtons(){
+    ['startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn','openLeaderboardBtn','openShopBtn','openBattlePassBtn','resumeBtn','restartBtn','pauseBtn'].forEach(id=>{ const b=$(id); if(b){ b.classList.add('nsv-menu-btn-fix'); b.disabled=false; b.style.pointerEvents='auto'; }});
+    const map={openUpgradeBtn:()=>{try{fn('renderUpgradeScreen')?.();}catch(e){} showScreenSafe('upgradeScreen');},openMissionBtn:()=>{try{fn('renderMissionsScreen')?.();}catch(e){} showScreenSafe('missionsScreen');},openCollectionBtn:()=>{try{fn('renderCollectionScreen')?.();}catch(e){} showScreenSafe('collectionScreen');},openWeaponCodexBtn:()=>{try{fn('renderWeaponCodexScreen')?.();}catch(e){} showScreenSafe('weaponCodexScreen');},openLeaderboardBtn:()=>{renderFriendRanking();showScreenSafe('leaderboardScreen');}};
+    Object.entries(map).forEach(([id,cb])=>{ const b=$(id); if (b && !b.dataset.nsvV2Click){ b.dataset.nsvV2Click='1'; b.addEventListener('click',(e)=>{e.preventDefault();e.stopImmediatePropagation();cb();},true); }});
+  }
+  function repairProgress(){
+    const u=getUserData(); u.upgrades=u.upgrades||{}; u.missions=u.missions||{completed:{},claimed:{}}; u.unlocks=u.unlocks||{legendaryWeapons:{},skins:{classic:true},auras:{none:true}};
+    const upTotal=Object.values(u.upgrades).reduce((a,b)=>a+Number(b||0),0); const unlocked=Object.values(u.unlocks.legendaryWeapons||{}).filter(Boolean).length;
+    if (!u.nsvV2RepairDone && unlocked>=2 && upTotal===0 && Number(u.coins||0)<12000) { u.coins=Number(u.coins||0)+20000; u.nsvV2RepairDone=true; saveNow(); }
+  }
+  function patchOnline(){
+    try{
+      const note=()=>{ const hud=$('onlineHud'); if(!hud) return; let n=$('nsvServerNoteV2'); if(!n){n=document.createElement('div');n.id='nsvServerNoteV2';n.className='nsv-server-note-v2';hud.appendChild(n);} const ok=!!gv('db') && !!gv('fbSetDoc'); n.textContent= ok ? 'SERVER: CONNECTED / 同じ部屋に接続中' : 'SERVER: 未接続。別端末対戦にはFirebase設定が必要です。'; };
+      const oldStart=fn('startOnlineMode'); if (oldStart && !oldStart.__nsvV2Online){ const wrap=function(){ const r=oldStart.apply(this,arguments); setTimeout(note,100); setTimeout(()=>{try{fn('startOnlinePresence')?.();fn('syncOnlinePresence')?.();}catch(e){} note();},800); return r;}; wrap.__nsvV2Online=true; sv('startOnlineMode',wrap); }
+      note();
+    }catch(e){}
+  }
+  function strengthenStarfallAndBoss(){
+    try { const defs=gv('LEGENDARY_WEAPON_DEFS',[]); if(Array.isArray(defs)) defs.forEach(w=>{ if(String(w.id||'').includes('starfall')||String(w.name||'').includes('星砕き')||String(w.name||'').includes('流星群')){ w.desc=(w.desc||'')+' / V2: 視認性・命中率・威力強化'; w.damage=(Number(w.damage||120)*1.8); w.radius=(Number(w.radius||120)*1.6); }}); } catch(e){}
+    try { const old=fn('triggerAdvancedBossPattern'); if(old && !old.__nsvV2Orange){ const wrap=function(boss){ if(boss && (boss.type===4 || /orange|fire|flame/i.test(String(boss.color||'')+String(boss.bossPattern||'')+String(boss.name||'')))) return; return old.apply(this,arguments); }; wrap.__nsvV2Orange=true; sv('triggerAdvancedBossPattern',wrap); } }catch(e){}
+  }
+  let heavy=0;
+  function capArrays(){
+    try{
+      const names=['particles','floatingTexts','effects','bullets','enemyBullets','enemies','gems','sniperBullets','voidTempests','keraunosStorms','hollowMurasakis','stormbreakers','mapBlackholes','cosmicSushiStorms'];
+      const lv=Number(gv('player',{})?.level||1); const ultra=lv>=30 || !!gv('isLightMode',false);
+      const max={particles:ultra?12:45,floatingTexts:ultra?8:20,effects:ultra?4:10,bullets:ultra?55:110,enemyBullets:ultra?18:50,enemies:ultra?100:190,gems:ultra?45:100,sniperBullets:ultra?12:30,voidTempests:1,keraunosStorms:1,hollowMurasakis:2,stormbreakers:2,mapBlackholes:0,cosmicSushiStorms:ultra?1:3};
+      names.forEach(n=>{ const a=gv(n); if(Array.isArray(a) && a.length>(max[n]||50)) a.splice(0,a.length-(max[n]||50)); });
+    }catch(e){}
+  }
+  function patchSafety(){
+    try { const old=fn('animate'); if(old && !old.__nsvV2Safe){ const wrap=function(){ const t=performance.now(); const r=old.apply(this,arguments); const dt=performance.now()-t; if(dt>48) heavy++; else heavy=Math.max(0,heavy-1); if(heavy>=5){ heavy=0; try{ sv('isLightMode',true); document.body.classList.add('light-mode'); toast('AUTO SAFETY','重くなったため軽量安全モードにしました'); }catch(e){} } capArrays(); return r; }; wrap.__nsvV2Safe=true; sv('animate',wrap); } } catch(e){}
+    setInterval(capArrays,900);
+  }
+  function boot(){ injectStyle(); badge(); patchSaveButtons(); ensureLeaderboardScreen(); ensureMenuOrder(); ensureButtons(); patchShop(); ensureShopCoins(); repairProgress(); patchOnline(); strengthenStarfallAndBoss(); patchSafety(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  setTimeout(boot,400); setTimeout(boot,1200); setInterval(boot,1800);
+})();
+
+</script>
+
+
+<!-- 2026-05-05 V3 HOTFIX: clickable ranking/pause + locked weapon toggles -->
+<script>
+(function(){
+  'use strict';
+  const PATCH_ID='nsv_v3_click_and_codex_hotfix_20260505';
+  if (window[PATCH_ID]) return;
+  window[PATCH_ID]=true;
+
+  const $ = (id)=>document.getElementById(id);
+  const safe = (fn,...args)=>{ try { if (typeof fn==='function') return fn(...args); } catch(e){ console.warn('[NSV V3]', e); } };
+
+  function injectV3Style(){
+    if ($('nsvV3HotfixStyle')) return;
+    const st=document.createElement('style');
+    st.id='nsvV3HotfixStyle';
+    st.textContent=`
+      #pauseBtn,#resumeBtn,#openLeaderboardBtn,#openWeaponCodexBtn,#openCollectionBtn,#openMissionBtn,#openUpgradeBtn,#openShopBtn,#openBattlePassBtn,#startBtn,#onlineStartBtn,#restartBtn,#titleFromPauseBtn{pointer-events:auto!important;touch-action:manipulation!important;position:relative!important;z-index:100000!important;cursor:pointer!important;}
+      #uiLayer{z-index:900!important;pointer-events:none!important;}
+      #uiLayer .pointer-events-auto{pointer-events:auto!important;}
+      #startScreen,#pauseScreen,#leaderboardScreen,#weaponCodexScreen{pointer-events:auto!important;}
+      #startScreen .menu-panel,#pauseScreen .menu-panel,#leaderboardScreen .menu-panel,#weaponCodexScreen .menu-panel{pointer-events:auto!important;position:relative!important;z-index:1000!important;}
+      .nsv-locked-toggle-note{font-size:11px;color:#fca5a5;margin-top:6px;line-height:1.45;}
+      .weapon-spawn-toggle:disabled{opacity:.35!important;cursor:not-allowed!important;filter:grayscale(1);}
+      .nsv-v3-badge{position:fixed;right:8px;bottom:34px;z-index:99999;background:rgba(20,83,45,.95);border:1px solid #86efac;color:#dcfce7;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:900;box-shadow:0 0 12px rgba(134,239,172,.45);pointer-events:none;}
+    `;
+    document.head.appendChild(st);
+  }
+
+  function ensureV3Badge(){
+    if ($('nsvV3Badge')) return;
+    const b=document.createElement('div');
+    b.id='nsvV3Badge';
+    b.className='nsv-v3-badge';
+    b.textContent='PATCH V3 BUTTON FIX ON';
+    document.body.appendChild(b);
+  }
+
+  function showOnlyScreenV3(id){
+    const screens=['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen','onlineRoleScreen','leaderboardScreen','shopScreen','battlePassScreen','levelUpScreen','gameOverScreen','pauseScreen','eventModeScreen'];
+    screens.forEach(s=>{
+      const el=$(s); if(!el) return;
+      if (s===id){ el.classList.remove('hidden'); el.style.display='flex'; el.style.pointerEvents='auto'; }
+      else { el.classList.add('hidden'); el.style.display='none'; }
+    });
+  }
+
+  function openRankingV3(){
+    try { if (typeof renderFriendRanking==='function') renderFriendRanking(); }
+    catch(e){}
+    try { if (window.renderFriendOnlyRanking) window.renderFriendOnlyRanking(); }
+    catch(e){}
+    if (!$('leaderboardScreen')) {
+      const div=document.createElement('div');
+      div.id='leaderboardScreen';
+      div.className='absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[90] hidden p-3';
+      div.innerHTML='<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold text-cyan-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #22d3ee;">RANKING</h2><p class="text-gray-300 text-sm mt-2">友達との勝負用ランキングです。</p></div><button id="closeLeaderboardBtn" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div><div id="leaderboardListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto max-h-[72vh] pr-1"></div></div>';
+      document.body.appendChild(div);
+    }
+    if (typeof renderFriendRanking==='function') safe(renderFriendRanking);
+    else {
+      const box=$('leaderboardListContainer');
+      let u={}; try{u=userData||JSON.parse(localStorage.getItem('neon_survivor_save')||'{}');}catch(e){}
+      const stats=u.stats||{};
+      if (box) box.innerHTML=`<div class="nsv-rank-card"><h3 class="text-xl font-bold text-cyan-300">自分の記録</h3><div class="mt-2 space-y-2"><p>スコア：<b>${Math.floor(u.score||0)}</b></p><p>討伐数：<b>${Math.floor(stats.totalKills||0)}</b></p><p>ボス討伐：<b>${Math.floor(stats.totalBossLikeKills||0)}</b></p></div></div>`;
+    }
+    const close=$('closeLeaderboardBtn');
+    if (close && !close.dataset.nsvV3Close){ close.dataset.nsvV3Close='1'; close.addEventListener('click',(e)=>{e.preventDefault(); e.stopPropagation(); showOnlyScreenV3('startScreen');},true); }
+    showOnlyScreenV3('leaderboardScreen');
+  }
+
+  function togglePauseV3(){
+    try {
+      if (typeof gameState!=='undefined') {
+        if (gameState==='playing') {
+          gameState='paused';
+          try { if (typeof syncJoystickVisibility==='function') syncJoystickVisibility(); } catch(e){}
+          try { if (typeof Sound!=='undefined' && Sound.stopBGM) Sound.stopBGM(); } catch(e){}
+          const speedContainer=$('speedSettingContainer');
+          try { if (speedContainer && typeof isOnlineMode!=='undefined' && isOnlineMode) speedContainer.classList.add('hidden'); else if (speedContainer) speedContainer.classList.remove('hidden'); } catch(e){}
+          showOnlyScreenV3('pauseScreen');
+          return;
+        }
+        if (gameState==='paused') {
+          gameState='playing';
+          const ps=$('pauseScreen'); if(ps){ps.classList.add('hidden'); ps.style.display='none';}
+          try { if (typeof showScreen==='function') showScreen(null); } catch(e){}
+          try { if (typeof syncJoystickVisibility==='function') syncJoystickVisibility(); } catch(e){}
+          try { if (typeof lastTime!=='undefined') lastTime=performance.now(); } catch(e){}
+          try { if (typeof Sound!=='undefined' && Sound.startBGM) Sound.startBGM(); } catch(e){}
+          try { if (typeof animationId!=='undefined' && animationId) cancelAnimationFrame(animationId); if (typeof gameLoop==='function') animationId=requestAnimationFrame(gameLoop); } catch(e){}
+          return;
+        }
+      }
+    } catch(e) { console.warn('[NSV V3 pause]', e); }
+    // fallback: とにかく一時停止画面を開く
+    showOnlyScreenV3('pauseScreen');
+  }
+
+  function installHardButtonHandlers(){
+    const bind=(id,handler)=>{
+      const el=$(id); if(!el) return;
+      el.disabled=false; el.style.pointerEvents='auto'; el.style.zIndex='100000'; el.classList.add('nsv-menu-btn-fix');
+      if (!el.dataset.nsvV3HardBind){
+        el.dataset.nsvV3HardBind='1';
+        ['click','pointerup','touchend'].forEach(type=>{
+          el.addEventListener(type,(e)=>{ e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation) e.stopImmediatePropagation(); handler(e); },true);
+        });
+      }
+    };
+    bind('openLeaderboardBtn',openRankingV3);
+    bind('pauseBtn',togglePauseV3);
+    bind('resumeBtn',togglePauseV3);
+    bind('openWeaponCodexBtn',()=>{ try{ if(typeof renderWeaponCodexScreen==='function') renderWeaponCodexScreen(); }catch(e){} showOnlyScreenV3('weaponCodexScreen'); setTimeout(lockUnavailableWeaponToggles,0); });
+  }
+
+  function globalCaptureButtons(e){
+    const t=e.target && e.target.closest ? e.target.closest('#openLeaderboardBtn,#pauseBtn,#resumeBtn') : null;
+    if(!t) return;
+    e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+    if(t.id==='openLeaderboardBtn') openRankingV3();
+    else togglePauseV3();
+  }
+
+  function isWeaponActuallyUnlockedV3(id, card){
+    try { if (typeof isWeaponCodexUsed==='function' && isWeaponCodexUsed(id)) return true; } catch(e){}
+    try { if (userData && userData.unlocks && userData.unlocks.legendaryWeapons && userData.unlocks.legendaryWeapons[id]) return true; } catch(e){}
+    try { if (userData && userData.codex && userData.codex.weapons && userData.codex.weapons[id]) return true; } catch(e){}
+    const sectionTitle = card?.closest('section')?.querySelector('h3')?.textContent || '';
+    if (/BASIC/i.test(sectionTitle)) return true;
+    return false;
+  }
+
+  function lockUnavailableWeaponToggles(){
+    const box=$('weaponCodexListContainer'); if(!box) return;
+    box.querySelectorAll('input.weapon-spawn-toggle[data-id]').forEach(input=>{
+      const id=input.dataset.id;
+      const card=input.closest('.collection-card');
+      const badge=card?.querySelector('span')?.textContent || '';
+      const unlocked=isWeaponActuallyUnlockedV3(id,card);
+      const shouldLock = /未解放/.test(badge) || !unlocked;
+      if (shouldLock) {
+        input.checked=false;
+        input.disabled=true;
+        input.style.pointerEvents='none';
+        const label=input.closest('label');
+        if(label){ label.style.opacity='.65'; label.style.cursor='not-allowed'; }
+        const state=label?.querySelector('span');
+        if(state){ state.textContent='出現：LOCKED'; state.className='text-xs font-bold text-red-300'; }
+        if(card && !card.querySelector('.nsv-locked-toggle-note')){
+          const note=document.createElement('p');
+          note.className='nsv-locked-toggle-note';
+          note.textContent='未解放のため、出現ON/OFFはまだ変更できません。ミッションや報酬で解放すると切り替えできます。';
+          (input.closest('.mt-3')||card).appendChild(note);
+        }
+        try {
+          if (typeof userData!=='undefined') {
+            userData.settings=userData.settings||{};
+            userData.settings.disabledWeapons=userData.settings.disabledWeapons||{};
+            userData.settings.disabledWeapons[id]=true;
+          }
+        } catch(e){}
+      }
+    });
+  }
+
+  function patchRenderWeaponCodex(){
+    try {
+      if (typeof renderWeaponCodexScreen==='function' && !renderWeaponCodexScreen.__nsvV3LockedTogglePatch){
+        const old=renderWeaponCodexScreen;
+        renderWeaponCodexScreen=function(){ const r=old.apply(this,arguments); setTimeout(lockUnavailableWeaponToggles,0); return r; };
+        renderWeaponCodexScreen.__nsvV3LockedTogglePatch=true;
+      }
+    } catch(e){}
+  }
+
+  function bootV3(){
+    injectV3Style(); ensureV3Badge(); patchRenderWeaponCodex(); installHardButtonHandlers(); lockUnavailableWeaponToggles();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bootV3); else bootV3();
+  setTimeout(bootV3,300); setTimeout(bootV3,1200); setInterval(bootV3,1500);
+  ['click','pointerup','touchend'].forEach(type=>document.addEventListener(type,globalCaptureButtons,true));
+})();
+</script>
+
+
+
+<script>
+// ==========================================================
+// 2026-05-05 Patch V4: Map Event Warning cleanup fix
+// マップイベント警告がタイトル画面・ゲームオーバー後も残るバグを修正
+// ==========================================================
+(function nsvPatchV4MapEventWarningCleanup(){
+  try {
+    const PATCH_ID = 'nsvPatchV4MapEventWarningCleanup20260505';
+    if (window[PATCH_ID]) return;
+    window[PATCH_ID] = true;
+
+    function nsvHideMapEventWarningV4(resetEvent = true) {
+      try {
+        const hud = document.getElementById('mapEventForecastHud');
+        if (hud) {
+          hud.classList.add('hidden');
+          hud.style.display = 'none';
+        }
+        const title = document.getElementById('mapEventForecastTitle');
+        if (title) title.textContent = '';
+        const text = document.getElementById('mapEventForecastText');
+        if (text) text.textContent = '';
+
+        // ボス警告や演出警告も、タイトルに戻った時に残らないようにする
+        const bossWarning = document.getElementById('bossWarning');
+        if (bossWarning) bossWarning.classList.add('hidden');
+        const generalCutin = document.getElementById('generalCutin');
+        if (generalCutin) generalCutin.classList.add('hidden');
+
+        if (resetEvent) {
+          try { activeMapEvent = null; } catch(e) {}
+          try {
+            if (typeof frameCount !== 'undefined' && typeof MathUtils !== 'undefined') {
+              nextMapEventFrame = Number(frameCount || 0) + MathUtils.randomInt(60 * 120, 60 * 180);
+            }
+          } catch(e) {}
+        }
+      } catch(e) {}
+    }
+
+    // updateMapEventHud自体を安全化：playing以外では必ず非表示
+    try {
+      if (typeof updateMapEventHud === 'function' && !updateMapEventHud.__nsvV4Safe) {
+        const oldUpdateMapEventHud = updateMapEventHud;
+        updateMapEventHud = function() {
+          try {
+            if (typeof gameState !== 'undefined' && gameState !== 'playing') {
+              nsvHideMapEventWarningV4(true);
+              return;
+            }
+          } catch(e) {}
+          const ret = oldUpdateMapEventHud.apply(this, arguments);
+          try {
+            const hud = document.getElementById('mapEventForecastHud');
+            if (hud && typeof gameState !== 'undefined' && gameState === 'playing') {
+              hud.style.display = '';
+            }
+          } catch(e) {}
+          return ret;
+        };
+        updateMapEventHud.__nsvV4Safe = true;
+      }
+    } catch(e) {}
+
+    // updateMapEventも安全化：playing以外なら警告を消して終了
+    try {
+      if (typeof updateMapEvent === 'function' && !updateMapEvent.__nsvV4Safe) {
+        const oldUpdateMapEvent = updateMapEvent;
+        updateMapEvent = function() {
+          try {
+            if (typeof gameState !== 'undefined' && gameState !== 'playing') {
+              nsvHideMapEventWarningV4(true);
+              return;
+            }
+          } catch(e) {}
+          return oldUpdateMapEvent.apply(this, arguments);
+        };
+        updateMapEvent.__nsvV4Safe = true;
+      }
+    } catch(e) {}
+
+    // showScreenでタイトル・ゲームオーバー・メニュー系へ行く時に必ず消す
+    function nsvShouldHideForScreenV4(id) {
+      return id && id !== 'levelUpScreen' && id !== 'pauseScreen';
+    }
+
+    try {
+      if (typeof showScreen === 'function' && !showScreen.__nsvV4MapCleanup) {
+        const oldShowScreen = showScreen;
+        showScreen = function(id) {
+          if (nsvShouldHideForScreenV4(id)) nsvHideMapEventWarningV4(true);
+          return oldShowScreen.apply(this, arguments);
+        };
+        showScreen.__nsvV4MapCleanup = true;
+      }
+    } catch(e) {}
+
+    try {
+      if (typeof showScreenFinal === 'function' && !showScreenFinal.__nsvV4MapCleanup) {
+        const oldShowScreenFinal = showScreenFinal;
+        showScreenFinal = function(id) {
+          if (nsvShouldHideForScreenV4(id)) nsvHideMapEventWarningV4(true);
+          return oldShowScreenFinal.apply(this, arguments);
+        };
+        showScreenFinal.__nsvV4MapCleanup = true;
+      }
+    } catch(e) {}
+
+    try {
+      if (typeof showScreenSafe === 'function' && !showScreenSafe.__nsvV4MapCleanup) {
+        const oldShowScreenSafe = showScreenSafe;
+        showScreenSafe = function(id) {
+          if (nsvShouldHideForScreenV4(id)) nsvHideMapEventWarningV4(true);
+          return oldShowScreenSafe.apply(this, arguments);
+        };
+        showScreenSafe.__nsvV4MapCleanup = true;
+      }
+    } catch(e) {}
+
+    try {
+      if (typeof showOnlyScreenV3 === 'function' && !showOnlyScreenV3.__nsvV4MapCleanup) {
+        const oldShowOnlyScreenV3 = showOnlyScreenV3;
+        showOnlyScreenV3 = function(id) {
+          if (nsvShouldHideForScreenV4(id)) nsvHideMapEventWarningV4(true);
+          return oldShowOnlyScreenV3.apply(this, arguments);
+        };
+        showOnlyScreenV3.__nsvV4MapCleanup = true;
+      }
+    } catch(e) {}
+
+    // gameOver / initGameでも明示的に消す
+    try {
+      if (typeof gameOver === 'function' && !gameOver.__nsvV4MapCleanup) {
+        const oldGameOver = gameOver;
+        gameOver = function() {
+          nsvHideMapEventWarningV4(true);
+          return oldGameOver.apply(this, arguments);
+        };
+        gameOver.__nsvV4MapCleanup = true;
+      }
+    } catch(e) {}
+
+    try {
+      if (typeof initGame === 'function' && !initGame.__nsvV4MapCleanup) {
+        const oldInitGame = initGame;
+        initGame = function() {
+          nsvHideMapEventWarningV4(true);
+          const ret = oldInitGame.apply(this, arguments);
+          setTimeout(() => {
+            try {
+              const hud = document.getElementById('mapEventForecastHud');
+              if (hud && typeof gameState !== 'undefined' && gameState === 'playing') hud.style.display = '';
+            } catch(e) {}
+          }, 0);
+          return ret;
+        };
+        initGame.__nsvV4MapCleanup = true;
+      }
+    } catch(e) {}
+
+    // タイトル・ゲームオーバー・各メニューが表示された瞬間にも消す安全装置
+    setInterval(function(){
+      try {
+        const playing = (typeof gameState !== 'undefined' && gameState === 'playing');
+        const hud = document.getElementById('mapEventForecastHud');
+        if (!hud) return;
+        const startVisible = !document.getElementById('startScreen')?.classList.contains('hidden');
+        const gameOverVisible = !document.getElementById('gameOverScreen')?.classList.contains('hidden');
+        const menuVisible = ['upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','leaderboardScreen','shopScreen','battlePassScreen','eventModeScreen']
+          .some(id => { const el = document.getElementById(id); return el && !el.classList.contains('hidden'); });
+        if (!playing || startVisible || gameOverVisible || menuVisible) nsvHideMapEventWarningV4(true);
+      } catch(e) {}
+    }, 350);
+
+    // 右下の確認表示
+    function nsvShowV4Badge(){
+      if (document.getElementById('nsvPatchV4Badge')) return;
+      const b = document.createElement('div');
+      b.id = 'nsvPatchV4Badge';
+      b.textContent = 'PATCH V5 CHEAT FIX ON';
+      b.style.cssText = 'position:fixed;right:10px;bottom:54px;z-index:99999;background:rgba(0,0,0,.72);color:#f0abfc;border:1px solid #c084fc;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:900;pointer-events:none;box-shadow:0 0 12px rgba(192,132,252,.45);';
+      document.body.appendChild(b);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', nsvShowV4Badge);
+    else nsvShowV4Badge();
+
+    window.nsvHideMapEventWarningV4 = nsvHideMapEventWarningV4;
+  } catch(e) {
+    console.warn('Patch V4 map event cleanup skipped', e);
+  }
+})();
+</script>
+
+
+<!-- 2026-05-05 V6 PATCH: pause weapon levels + level x5 cheat -->
+<script>
+(function(){
+  'use strict';
+  const PATCH_ID = 'nsv_v6_pause_weapon_and_level5_cheat_final';
+  if (window[PATCH_ID]) return;
+  window[PATCH_ID] = true;
+
+  const CHEAT_V6 = {
+    '7429136': { title:'COIN BOOST 10K', effect:'コイン +10,000', kind:'coins', amount:10000 },
+    '6814297': { title:'COIN BOOST 100K', effect:'コイン +100,000', kind:'coins', amount:100000 },
+    '3947162': { title:'HP BOOST x2', effect:'最大体力 2倍', kind:'hpMult', mult:2 },
+    '8274613': { title:'HP BOOST x3', effect:'最大体力 3倍', kind:'hpMult', mult:3 },
+    '5192847': { title:'HP BOOST x5', effect:'最大体力 5倍', kind:'hpMult', mult:5 },
+    '6381974': { title:'UPGRADE STARTER', effect:'全アップグレード +5', kind:'upgradePlus', amount:5 },
+    '2967481': { title:'NEON PASS BOOST', effect:'バトルスター +25 / チケット +1', kind:'passBoost', stars:25, tickets:1 },
+    '4719368': { title:'ULTIMATE STARTER', effect:'主要アルティメット武器を解放', kind:'unlockWeapons', weapons:['hollowMurasaki','kamehameha','funnel','thor','shieldThrow'] },
+    '8531269': { title:'ULTIMATE MASTER', effect:'全アルティメット系武器を解放', kind:'unlockWeapons', weapons:['hollowMurasaki','kamehameha','vader','thor','muryoku','funnel','ironBlaster','disneyMagic','infinitySnap','infiniteBlade','shieldThrow','keraunos','phantomStep','neonLance','phoenixCore','starfallCrown','voidCollector','railCannon','blackholeEmperor','thunderAegis','solarDrill','chronoLotus'] },
+    '7293846': { title:'POWER MODE', effect:'攻撃力 2倍 / 移動速度 1.25倍', kind:'powerMode', damageMult:2, speedMult:1.25 },
+    '4862759': { title:'RECOVERY CORE', effect:'自動回復を強化', kind:'regen', regenBonus:4 },
+    '9176384': { title:'GOD RUN START', effect:'プレイ中に体力回復＋強武器を装備', kind:'runGod' },
+    '9285734': { title:'ULTRA COIN VAULT', effect:'コイン +9,999,999', kind:'coins', amount:9999999 },
+    '5739281': { title:'TITAN OVERDRIVE', effect:'体力50倍 / 攻撃12倍 / 速度2倍 / 自動回復+25', kind:'megaBuff', hpMult:50, damageMult:12, speedMult:2, regenBonus:25 },
+    '8463917': { title:'MAX NEON LAB', effect:'全アップグレード +50 / バトルスター +500 / チケット +10', kind:'megaUpgrade', amount:50, stars:500, tickets:10 },
+    '3918462': { title:'COSMIC ARSENAL', effect:'全伝説武器解放＋武器図鑑使用済み', kind:'megaUnlock' },
+    '7641928': { title:'TRUE GOD RUN', effect:'プレイ中に最強装備・全回復・超強化', kind:'trueGodRun' },
+    '2847396': { title:'QUINT LEVEL BOOST', effect:'1回のレベルアップで5レベル分上がる', kind:'levelFive' },
+    '0000000': { title:'CHEATS CANCELLED', effect:'倍率系チートと5倍レベルアップを解除', kind:'cancel' }
+  };
+  window.neonSurvivorV6CheatList = CHEAT_V6;
+
+  function $(id){ return document.getElementById(id); }
+  function getUD(){
+    try {
+      if (typeof userData !== 'undefined' && userData) {
+        userData.cheats = userData.cheats || {};
+        userData.unlocks = userData.unlocks || {};
+        userData.unlocks.legendaryWeapons = userData.unlocks.legendaryWeapons || {};
+        userData.upgrades = userData.upgrades || {};
+        return userData;
+      }
+    } catch(e) {}
+    let d = {};
+    try { d = JSON.parse(localStorage.getItem('neon_survivor_save') || '{}') || {}; } catch(e) {}
+    d.cheats = d.cheats || {};
+    d.unlocks = d.unlocks || {legendaryWeapons:{}};
+    d.unlocks.legendaryWeapons = d.unlocks.legendaryWeapons || {};
+    d.upgrades = d.upgrades || {};
+    return d;
+  }
+  function saveUD(){
+    try { if (typeof saveData === 'function') { saveData(); return; } } catch(e) {}
+    try { localStorage.setItem('neon_survivor_save', JSON.stringify(getUD())); } catch(e) {}
+  }
+  function toast(t, m){
+    try { if (typeof showMissionToast === 'function') showMissionToast(t, m); } catch(e) {}
+    try { alert(t + '\n' + m); } catch(e) {}
+  }
+  function allLegendIds(){
+    const fallback = ['hollowMurasaki','kamehameha','vader','thor','muryoku','funnel','ironBlaster','disneyMagic','infinitySnap','infiniteBlade','shieldThrow','keraunos','phantomStep','neonLance','phoenixCore','starfallCrown','voidCollector','railCannon','blackholeEmperor','thunderAegis','solarDrill','chronoLotus'];
+    try {
+      const ids = [];
+      try { (LEGENDARY_WEAPON_DEFS || []).forEach(w => w && w.id && ids.push(w.id)); } catch(e) {}
+      try { (WEAPON_CODEX_DEFS || []).forEach(w => w && w.id && ids.push(w.id)); } catch(e) {}
+      return Array.from(new Set(ids.length ? ids : fallback));
+    } catch(e) { return fallback; }
+  }
+  function rememberOriginal(){
+    try {
+      if (!player || player.__nsvV6OriginalStats) return;
+      player.__nsvV6OriginalStats = { maxHp:Number(player.maxHp||100), hp:Number(player.hp||player.maxHp||100), damage:Number(player.damage||30), speed:Number(player.speed||4), regenAmount:Number(player.regenAmount||1) };
+    } catch(e) {}
+  }
+  function applyBuffs(){
+    try {
+      if (!player) return;
+      rememberOriginal();
+      const u = getUD(); const c = u.cheats || {};
+      const o = player.__nsvV6OriginalStats || { maxHp:Number(player.maxHp||100), damage:Number(player.damage||30), speed:Number(player.speed||4), regenAmount:Number(player.regenAmount||1) };
+      const hpMult = Math.max(1, Number(c.hpMult || 1));
+      const dmgMult = Math.max(1, Number(c.damageMult || 1));
+      const spdMult = Math.max(1, Number(c.speedMult || 1));
+      const regenBonus = Math.max(0, Number(c.regenBonus || 0));
+      player.maxHp = Math.max(1, Math.round(o.maxHp * hpMult));
+      player.hp = Math.min(player.maxHp, Math.max(1, Number(player.hp || o.hp || player.maxHp)));
+      if (hpMult > 1 && player.hp < player.maxHp) player.hp = player.maxHp;
+      player.damage = Math.max(1, o.damage * dmgMult);
+      player.speed = Math.max(1, o.speed * spdMult);
+      player.regenAmount = Math.max(0, o.regenAmount + regenBonus);
+      player.__nsvCheatApplied20260505 = true;
+      try { updateUI(); } catch(e) {}
+    } catch(e) { console.warn('V6 buff skipped', e); }
+  }
+  function cancelCheats(){
+    const u = getUD(); const c = u.cheats = u.cheats || {};
+    c.hpMult = 1; c.damageMult = 1; c.speedMult = 1; c.regenBonus = 0; c.levelFive = false; c.usedCodes = {};
+    try {
+      if (player && player.__nsvV6OriginalStats) {
+        const o = player.__nsvV6OriginalStats;
+        player.maxHp = Math.max(1, Number(o.maxHp || 100));
+        player.hp = Math.min(player.maxHp, Math.max(1, Number(player.hp || o.hp || 100)));
+        player.damage = Math.max(1, Number(o.damage || 30));
+        player.speed = Math.max(1, Number(o.speed || 4));
+        player.regenAmount = Math.max(0, Number(o.regenAmount || 1));
+        player.__nsvCheatApplied20260505 = false;
+      }
+      try { updateUI(); } catch(e) {}
+    } catch(e) {}
+    saveUD();
+  }
+  function grantRunGod(strong){
+    try {
+      if (!player) return false;
+      applyBuffs();
+      player.hp = player.maxHp;
+      ['hollowMurasakiLevel','kamehamehaLevel','funnelLevel','keraunosLevel','shieldLevel','infiniteBladeLevel','vaderLevel','thorLevel','muryokuLevel','ironmanSuitLevel','disneyMagicLevel','infinitySnapLevel','phantomStepLevel','legendaryRailCannonLevel','legendaryBlackholeEmperorLevel','legendaryThunderAegisLevel','legendarySolarDrillLevel','legendaryChronoLotusLevel','legendaryPhoenixCoreLevel','legendaryStarfallLevel'].forEach(k => { player[k] = Math.max(Number(player[k]||0), strong ? 5 : 2); });
+      player.invincibleTimer = Math.max(Number(player.invincibleTimer || 0), strong ? 1200 : 360);
+      try { floatingTexts.push(new FloatingText(player.x, player.y - 70, strong ? 'TRUE GOD RUN!' : 'GOD RUN!', '#facc15', 24)); } catch(e) {}
+      updatePauseWeaponPanel();
+      return true;
+    } catch(e) { return false; }
+  }
+  function executeCheat(raw){
+    const code = String(raw || '').replace(/[^0-9]/g,'').slice(0,7);
+    if (!/^\d{7}$/.test(code)) { alert('7桁の数字を入力してください。'); return; }
+    const data = CHEAT_V6[code];
+    if (!data) { alert('このチートコードは存在しません。'); return; }
+    const u = getUD(); const c = u.cheats = u.cheats || {};
+    let message = data.effect;
+    if (data.kind === 'cancel') {
+      cancelCheats(); toast('CHEATS CANCELLED', '0000000 により、倍率系チートと5倍レベルアップを解除しました。コインや解放済みデータは残します。'); return;
+    }
+    if (data.kind === 'coins') {
+      u.coins = Number(u.coins || 0) + Number(data.amount || 0);
+      u.stats = u.stats || {}; u.stats.totalCoinsEarned = Number(u.stats.totalCoinsEarned || 0) + Number(data.amount || 0);
+    } else if (data.kind === 'hpMult') {
+      c.hpMult = Math.max(Number(c.hpMult || 1), Number(data.mult || 1)); applyBuffs();
+    } else if (data.kind === 'powerMode') {
+      c.damageMult = Math.max(Number(c.damageMult || 1), Number(data.damageMult || 1)); c.speedMult = Math.max(Number(c.speedMult || 1), Number(data.speedMult || 1)); applyBuffs();
+    } else if (data.kind === 'regen') {
+      c.regenBonus = Math.max(Number(c.regenBonus || 0), Number(data.regenBonus || 0)); applyBuffs();
+    } else if (data.kind === 'megaBuff') {
+      c.hpMult = Math.max(Number(c.hpMult || 1), Number(data.hpMult || 1)); c.damageMult = Math.max(Number(c.damageMult || 1), Number(data.damageMult || 1)); c.speedMult = Math.max(Number(c.speedMult || 1), Number(data.speedMult || 1)); c.regenBonus = Math.max(Number(c.regenBonus || 0), Number(data.regenBonus || 0)); applyBuffs();
+    } else if (data.kind === 'upgradePlus' || data.kind === 'megaUpgrade') {
+      try { (upgradeDef || []).forEach(x => { u.upgrades[x.id] = Number(u.upgrades[x.id] || 0) + Number(data.amount || 0); }); } catch(e) {}
+      if (data.kind === 'megaUpgrade') { u.passTickets = Number(u.passTickets || 0) + Number(data.tickets || 0); u.battlePassV2 = u.battlePassV2 || {}; u.battlePassV2.battleStars = Number(u.battlePassV2.battleStars || 0) + Number(data.stars || 0); u.battlePassV2.earnedStars = Number(u.battlePassV2.earnedStars || 0) + Number(data.stars || 0); }
+    } else if (data.kind === 'passBoost') {
+      u.passTickets = Number(u.passTickets || 0) + Number(data.tickets || 0); u.battlePassV2 = u.battlePassV2 || {}; u.battlePassV2.battleStars = Number(u.battlePassV2.battleStars || 0) + Number(data.stars || 0); u.battlePassV2.earnedStars = Number(u.battlePassV2.earnedStars || 0) + Number(data.stars || 0);
+    } else if (data.kind === 'unlockWeapons' || data.kind === 'megaUnlock') {
+      const ids = data.kind === 'megaUnlock' ? allLegendIds() : (data.weapons || []);
+      u.unlocks = u.unlocks || {}; u.unlocks.legendaryWeapons = u.unlocks.legendaryWeapons || {}; ids.forEach(id => { u.unlocks.legendaryWeapons[id] = true; });
+      if (data.kind === 'megaUnlock') { u.codex = u.codex || {}; u.codex.weapons = u.codex.weapons || {}; ids.forEach(id => { u.codex.weapons[id] = true; }); }
+      message = ids.length + '個の武器を解放しました。';
+    } else if (data.kind === 'runGod') {
+      if (!grantRunGod(false)) message = 'プレイ中に使うと反映されます。';
+    } else if (data.kind === 'trueGodRun') {
+      c.hpMult = Math.max(Number(c.hpMult || 1), 80); c.damageMult = Math.max(Number(c.damageMult || 1), 25); c.speedMult = Math.max(Number(c.speedMult || 1), 2.4); c.regenBonus = Math.max(Number(c.regenBonus || 0), 50);
+      if (!grantRunGod(true)) message = 'プレイ中に使うと反映されます。';
+    } else if (data.kind === 'levelFive') {
+      c.levelFive = true; message = 'これ以降、1回のレベルアップで5レベル分上がります。解除は 0000000 です。';
+    }
+    c.usedCodes = c.usedCodes || {}; c.usedCodes[code] = {title:data.title, at:Date.now()};
+    saveUD();
+    try { if (typeof renderUpgradeScreen === 'function') renderUpgradeScreen(); } catch(e) {}
+    try { if (typeof renderShopV2 === 'function') renderShopV2(); } catch(e) {}
+    toast('CHEAT ACTIVATED: ' + data.title, message);
+  }
+
+  function injectStyle(){
+    if ($('nsvV6Style')) return;
+    const st = document.createElement('style');
+    st.id = 'nsvV6Style';
+    st.textContent = `
+      #pauseWeaponLevelsV6{width:min(92vw,560px);max-height:28vh;overflow:auto;margin:10px 0 14px;padding:12px;border:1px solid rgba(34,211,238,.55);border-radius:16px;background:rgba(2,6,23,.86);box-shadow:0 0 16px rgba(34,211,238,.18);pointer-events:auto!important;}
+      #pauseWeaponLevelsV6 .v6-title{font-weight:900;color:#67e8f9;text-align:center;margin-bottom:8px;letter-spacing:.08em;}
+      #pauseWeaponLevelsV6 .v6-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
+      #pauseWeaponLevelsV6 .v6-item{display:flex;justify-content:space-between;gap:8px;padding:7px 9px;border:1px solid rgba(148,163,184,.25);border-radius:10px;background:rgba(15,23,42,.72);font-size:12px;}
+      #pauseWeaponLevelsV6 .v6-lv{color:#fde68a;font-weight:900;white-space:nowrap;}
+      #pauseWeaponLevelsV6 .v6-empty{text-align:center;color:#cbd5e1;font-size:13px;}
+      #cheatListV6{width:min(92vw,560px);margin-top:8px;padding:10px;border:1px solid rgba(244,114,182,.5);border-radius:14px;background:rgba(88,28,135,.18);font-size:11px;max-height:20vh;overflow:auto;pointer-events:auto!important;}
+      #cheatListV6 summary{cursor:pointer;color:#fbcfe8;font-weight:900;text-align:center;}
+      #cheatListV6 table{width:100%;border-collapse:collapse;margin-top:8px;}
+      #cheatListV6 td{border-top:1px solid rgba(244,114,182,.22);padding:5px;color:#fce7f3;vertical-align:top;}
+      #cheatListV6 code{color:#fde68a;font-weight:900;}
+      #nsvV6Badge{position:fixed;right:10px;bottom:42px;z-index:99999;background:rgba(2,6,23,.9);border:1px solid #a78bfa;color:#ddd6fe;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;pointer-events:none;}
+      @media(max-width:720px){#pauseWeaponLevelsV6 .v6-grid{grid-template-columns:1fr;}#pauseWeaponLevelsV6{max-height:26vh;}}
+    `;
+    document.head.appendChild(st);
+  }
+
+  const KNOWN_NAMES = {
+    bladeRingLevel:'円環の刃界', electricFieldLevel:'破滅の雷域', voidTempestLevel:'虚空次元の暴風', phantomStepLevel:'ファントムステップ', hollowMurasakiLevel:'虚式「茈」', kamehamehaLevel:'龍星・崩命破', infinitySnapLevel:'終焉の指弾', infiniteBladeLevel:'無限の剣陣', ironmanSuitLevel:'創世の光芒', keraunosLevel:'天帝の裁界・霹靂', funnelLevel:'星砕きの流星群', vaderLevel:'深淵の重力刃', thorLevel:'雷霆砕破・轟', disneyMagicLevel:'星夢の輪舞曲', muryokuLevel:'無量空処', shieldLevel:'絶対防壁の反響', recoveryMasteryLevel:'回復の極意', onlineShieldLevel:'蒼盾アイギス', onlineSniperLevel:'スナイパーライフル', onlineBounceBombLevel:'バウンスボム', onlinePoisonLevel:'トキシックトラップ', onlinePhantomLevel:'ファントムダガー', onlineGravityLevel:'グラビティ・パルサー', onlineBananaLevel:'バナナスリップ砲', onlineAstralLevel:'アストラル・ジャッジメント', onlineHarisenLevel:'ネビュラ・ハリセンノヴァ', onlineSushiLevel:'コズミック・スシレイン', legendaryNeonLanceLevel:'ネオンランス', legendaryPhoenixCoreLevel:'フェニックスコア', legendaryStarfallLevel:'星落としの王冠', legendaryVoidCollectorLevel:'虚空コレクター', legendaryRailCannonLevel:'レールキャノン', legendaryBlackholeEmperorLevel:'ブラックホールエンペラー', legendaryThunderAegisLevel:'サンダーイージス', legendarySolarDrillLevel:'ソーラードリル', legendaryChronoLotusLevel:'クロノロータス'
+  };
+  const EVO_NAMES = { evoBlackhole:'ブラックホール・ノヴァ', evoGravityBeam:'超重力・崩命破', evoThunderBlade:'雷鳴の剣域', evoRicochetSniper:'リコシェスナイパー', evoToxicAegis:'トキシックアイギス', evoGravitonDagger:'グラビトンダガー', evoSingularityBomb:'シンギュラリティボム', evoRailBurst:'星核レールバースト', evoEndBlackhole:'終焉ブラックホール' };
+  function levelNameFromProp(prop){ return KNOWN_NAMES[prop] || prop.replace(/^legendary/,'').replace(/^online/,'').replace(/Level$/,'').replace(/([A-Z])/g,' $1').trim(); }
+  function collectWeapons(){
+    const p = (typeof player !== 'undefined') ? player : null;
+    if (!p) return [];
+    const list = [];
+    Object.keys(KNOWN_NAMES).forEach(k => { const v = Number(p[k] || 0); if (v > 0) list.push({name: levelNameFromProp(k), lv: v}); });
+    Object.keys(p).forEach(k => { if (/Level$/.test(k) && !(k in KNOWN_NAMES)) { const v = Number(p[k] || 0); if (v > 0) list.push({name: levelNameFromProp(k), lv: v}); } });
+    Object.keys(EVO_NAMES).forEach(k => { if (p[k]) list.push({name:EVO_NAMES[k], lv:'進化'}); });
+    const seen = new Set();
+    return list.filter(x => { const key=x.name+'|'+x.lv; if(seen.has(key)) return false; seen.add(key); return true; });
+  }
+  function renderCheatTableHTML(){ return '<table>' + Object.entries(CHEAT_V6).map(([code, d]) => `<tr><td><code>${code}</code></td><td><b>${d.title}</b><br>${d.effect}</td></tr>`).join('') + '</table>'; }
+  function ensurePauseWeaponPanel(){
+    injectStyle();
+    const ps = $('pauseScreen'); if (!ps) return;
+    if (!$('pauseWeaponLevelsV6')) {
+      const panel = document.createElement('div'); panel.id = 'pauseWeaponLevelsV6'; panel.innerHTML = '<div class="v6-title">現在の武器レベル</div><div class="v6-empty">プレイ中に武器を取るとここに表示されます。</div>';
+      const resume = $('resumeBtn'); if (resume && resume.parentElement && resume.parentElement.parentElement === ps) ps.insertBefore(panel, resume.parentElement); else ps.appendChild(panel);
+    }
+    if (!$('cheatListV6')) {
+      const details = document.createElement('details'); details.id = 'cheatListV6'; details.innerHTML = '<summary>チートコード一覧を表示</summary>' + renderCheatTableHTML();
+      const cheatWrap = $('cheatCodePauseWrap'); if (cheatWrap && cheatWrap.parentElement) cheatWrap.parentElement.insertBefore(details, cheatWrap.nextSibling); else ps.appendChild(details);
+    }
+  }
+  function updatePauseWeaponPanel(){
+    ensurePauseWeaponPanel();
+    const panel = $('pauseWeaponLevelsV6'); if (!panel) return;
+    const weapons = collectWeapons();
+    if (!weapons.length) { panel.innerHTML = '<div class="v6-title">現在の武器レベル</div><div class="v6-empty">まだ武器を取得していません。</div>'; return; }
+    panel.innerHTML = `<div class="v6-title">現在の武器レベル</div><div class="v6-grid">${weapons.map(w => `<div class="v6-item"><span>${w.name}</span><span class="v6-lv">Lv ${w.lv}</span></div>`).join('')}</div>`;
+  }
+  function replaceCheatButtons(){
+    ['cheatCodeStartBtn','cheatCodePauseBtn'].forEach(id => {
+      const b = $(id); if (!b || b.__nsvV6Replaced) return;
+      const nb = b.cloneNode(true); nb.__nsvV6Replaced = true; nb.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); const code = prompt('7桁のチートコードを入力してください'); if (code != null) executeCheat(code); }, true);
+      b.parentNode.replaceChild(nb, b);
+    });
+  }
+  function patchLevelUpX5(){
+    try {
+      if (typeof Player === 'undefined' || !Player.prototype || Player.prototype.__nsvV6Level5Patched) return;
+      const old = Player.prototype.processLevelUp;
+      Player.prototype.processLevelUp = function(){
+        old.apply(this, arguments);
+        try {
+          const u = getUD();
+          if (u.cheats && u.cheats.levelFive && !this.__nsvV6AddingLevels) {
+            this.__nsvV6AddingLevels = true;
+            for (let i=0;i<4;i++) {
+              this.level++;
+              try { if (typeof recordLevelUp === 'function') recordLevelUp(this.level); } catch(e) {}
+              if (!isOnlineMode) {
+                if (this.level > 0 && this.level % 20 === 0) this.pendingOverlordBoss = true;
+                else if (this.level > 0 && this.level % 10 === 0) this.pendingMonkeyBoss = true;
+                else if (this.level > 3) { if (this.level % 3 === 0) this.pendingBossSpawn = true; else this.pendingMidBossSpawn = true; }
+              }
+              if (this.expToNext) this.expToNext = Math.floor(this.expToNext * (this.level > 15 ? 1.18 : 1.12));
+            }
+            this.exp = 0; try { updateUI(); } catch(e) {}
+            try { floatingTexts.push(new FloatingText(this.x, this.y - 70, '+4 BONUS LEVELS!', '#fde68a', 22)); } catch(e) {}
+            this.__nsvV6AddingLevels = false;
+          }
+        } catch(e) { this.__nsvV6AddingLevels = false; console.warn('V6 level x5 skipped', e); }
+      };
+      Player.prototype.__nsvV6Level5Patched = true;
+    } catch(e) { console.warn('V6 Player patch skipped', e); }
+  }
+  function patchPauseShow(){
+    try {
+      if (typeof showScreen === 'function' && !showScreen.__nsvV6Patched) {
+        const oldShow = showScreen;
+        showScreen = function(id){ const r = oldShow.apply(this, arguments); if (id === 'pauseScreen') setTimeout(updatePauseWeaponPanel, 0); return r; };
+        showScreen.__nsvV6Patched = true;
+      }
+    } catch(e) {}
+    const pb = $('pauseBtn');
+    if (pb && !pb.__nsvV6WeaponPanelBound) { pb.__nsvV6WeaponPanelBound = true; ['click','pointerup','touchend'].forEach(ev => pb.addEventListener(ev, () => setTimeout(updatePauseWeaponPanel, 60), true)); }
+  }
+  function badge(){ if ($('nsvV6Badge')) return; const b = document.createElement('div'); b.id = 'nsvV6Badge'; b.textContent = 'PATCH V6 WEAPON LEVEL ON + V7 PASS EQUIP'; document.body.appendChild(b); }
+  function boot(){ injectStyle(); ensurePauseWeaponPanel(); updatePauseWeaponPanel(); replaceCheatButtons(); patchLevelUpX5(); patchPauseShow(); badge(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  setInterval(() => { replaceCheatButtons(); patchLevelUpX5(); patchPauseShow(); try { if ($('pauseScreen') && !$('pauseScreen').classList.contains('hidden')) updatePauseWeaponPanel(); } catch(e) {} }, 1000);
+})();
+</script>
+
+
+<script>
+// ==========================================================
+// 2026-05-05 Patch V7: Battle Pass locker from Collection + no forced equip + ticket price x5
+// ==========================================================
+(function applyBattlePassCollectionEquipPatchV7(){
+  'use strict';
+  const PATCH_ID = 'nsvPatchV7BattlePassCollectionEquip20260505';
+  if (window[PATCH_ID]) return;
+  window[PATCH_ID] = true;
+
+  const V7_FIRST_TICKET_COST = 7500;
+  const V7_REPEAT_TICKET_COST = 75000;
+
+  function safeSave(){ try { saveData?.(); } catch(e) { try { localStorage.setItem('neon_survivor_save', JSON.stringify(userData)); } catch(_){} } }
+  function toast(t,m){ try { showMissionToast?.(t,m); } catch(e) { try { console.log(t,m); } catch(_){} } }
+  function ensureV7Data(){
+    try { ensureProgressionData?.(); } catch(e) {}
+    try { ensurePassV2Data?.(); } catch(e) {}
+    if (!window.userData && typeof userData === 'undefined') return false;
+    userData.unlocks = userData.unlocks || {};
+    userData.unlocks.skins = userData.unlocks.skins || { classic:true };
+    userData.unlocks.auras = userData.unlocks.auras || { none:true };
+    userData.unlocks.capes = userData.unlocks.capes || { none:true };
+    userData.cosmetics = userData.cosmetics || { unlocked:{}, equipped:{} };
+    userData.cosmetics.unlocked = userData.cosmetics.unlocked || {};
+    userData.cosmetics.equipped = userData.cosmetics.equipped || {};
+    userData.shop = userData.shop || {};
+    userData.passTickets = Number(userData.passTickets || 0);
+    if (!userData.equippedSkin) userData.equippedSkin = 'classic';
+    if (!userData.equippedAura) userData.equippedAura = 'none';
+    return true;
+  }
+
+  function typeLabel(t){
+    return ({skin:'スキン',aura:'オーラ',backpack:'背中アクセ',trail:'トレイル',emote:'エモート',pet:'ペット',intro:'登場演出',elimination:'撃破演出',bossFinish:'ボス撃破演出',nameplate:'ネームプレート',badge:'称号バッジ',box:'BOX'})[t] || t || 'アイテム';
+  }
+
+  function isEquipped(type,id){
+    ensureV7Data();
+    if (type === 'skin') return userData.equippedSkin === id;
+    if (type === 'aura') return userData.equippedAura === id;
+    return userData.cosmetics && userData.cosmetics.equipped && userData.cosmetics.equipped[type] === id;
+  }
+
+  function equipCosmeticV7(type,id){
+    if (!ensureV7Data()) return;
+    const item = userData.cosmetics.unlocked[id];
+    if (!item && !['classic','none'].includes(id)) return;
+    if (type === 'skin') {
+      userData.equippedSkin = id || 'classic';
+      userData.unlocks.skins[userData.equippedSkin] = true;
+    } else if (type === 'aura') {
+      userData.equippedAura = id || 'none';
+      userData.unlocks.auras[userData.equippedAura] = true;
+    } else {
+      userData.cosmetics.equipped[type] = id;
+    }
+    safeSave();
+    toast('EQUIPPED', `${typeLabel(type)}を装備しました`);
+    try { renderCollectionScreen?.(); } catch(e) {}
+  }
+
+  function unequipCosmeticV7(type){
+    if (!ensureV7Data()) return;
+    if (type === 'skin') userData.equippedSkin = 'classic';
+    else if (type === 'aura') userData.equippedAura = 'none';
+    else delete userData.cosmetics.equipped[type];
+    safeSave();
+    toast('UNEQUIPPED', `${typeLabel(type)}を外しました`);
+    try { renderCollectionScreen?.(); } catch(e) {}
+  }
+
+  window.nsvEquipCosmeticV7 = equipCosmeticV7;
+  window.nsvUnequipCosmeticV7 = unequipCosmeticV7;
+
+  function registerPassRewardAsOwned(r){
+    if (!r || !r.cosmeticId) return;
+    ensureV7Data();
+    let seasonInfo = null;
+    try { seasonInfo = fridaySeasonInfoV2?.(); } catch(e) {}
+    userData.cosmetics.unlocked[r.cosmeticId] = {
+      id: r.cosmeticId,
+      name: r.name || r.cosmeticId,
+      type: r.type || 'badge',
+      icon: r.icon || '🎁',
+      theme: seasonInfo?.theme?.name || 'NEON PASS',
+      source: 'battlePass',
+      seasonId: seasonInfo?.id || 1,
+      seasonName: 'Season 1 - NEON GENESIS',
+      seasonLabel: 'Season 1 / NEON GENESIS'
+    };
+    if (r.type === 'skin') {
+      userData.unlocks.skins[r.cosmeticId] = true;
+      // V7: 入手しても強制装備しない
+      if (!userData.equippedSkin) userData.equippedSkin = 'classic';
+    }
+    if (r.type === 'aura') {
+      userData.unlocks.auras[r.cosmeticId] = true;
+      // V7: 入手しても強制装備しない
+      if (!userData.equippedAura) userData.equippedAura = 'none';
+    }
+  }
+
+  // Future claims: do not force-equip battle pass rewards.
+  try {
+    const oldGrant = window.grantPassV2Reward || (typeof grantPassV2Reward === 'function' ? grantPassV2Reward : null);
+    window.grantPassV2Reward = function grantPassV2RewardV7(r){
+      ensureV7Data();
+      if (!r) return;
+      registerPassRewardAsOwned(r);
+      if (r.title) {
+        userData.titles = userData.titles || {};
+        userData.titles[r.title] = true;
+      }
+      if (r.coins) userData.coins = Number(userData.coins || 0) + Number(r.coins || 0);
+      // Any non-skin/aura cosmetic is owned only. It is NOT auto-equipped.
+    };
+    try { grantPassV2Reward = window.grantPassV2Reward; } catch(e) {}
+  } catch(e) { console.warn('V7 grant override skipped', e); }
+
+  function rebuildOwnedPassRewardsFromClaimed(){
+    try {
+      if (!ensureV7Data()) return;
+      const info = fridaySeasonInfoV2?.();
+      if (!info || !info.theme || !userData.battlePassV2) return;
+      const p = userData.battlePassV2;
+      [...(info.theme.rewards || []), ...(info.theme.special || [])].forEach(r => {
+        const owned = (p.claimed && p.claimed[r.id]) || (p.specialClaimed && p.specialClaimed[r.id]);
+        if (owned) registerPassRewardAsOwned(r);
+      });
+      safeSave();
+    } catch(e) { console.warn('V7 reward rebuild skipped', e); }
+  }
+
+  function injectCollectionV7Style(){
+    if (document.getElementById('nsvV7CollectionStyle')) return;
+    const st = document.createElement('style');
+    st.id = 'nsvV7CollectionStyle';
+    st.textContent = `
+      #nsvBattlePassCollectionPanel{border:1px solid rgba(34,211,238,.55);border-radius:18px;padding:14px;background:rgba(2,6,23,.78);box-shadow:0 0 18px rgba(34,211,238,.18)}
+      .nsv-v7-cos-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+      .nsv-v7-cos-card{border:1px solid rgba(148,163,184,.35);border-radius:14px;background:rgba(15,23,42,.82);padding:12px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+      .nsv-v7-cos-icon{font-size:2rem;line-height:1}.nsv-v7-cos-type{font-size:.72rem;color:#67e8f9;font-weight:900}.nsv-v7-cos-name{font-weight:900;color:white}.nsv-v7-cos-sub{font-size:.7rem;color:#94a3b8}
+      .nsv-v7-actions{display:flex;flex-direction:column;gap:6px;min-width:82px}.nsv-v7-eq{border-color:#22c55e!important;color:#86efac!important;box-shadow:0 0 12px rgba(34,197,94,.35)!important}
+      @media(max-width:720px){.nsv-v7-cos-grid{grid-template-columns:1fr}.nsv-v7-cos-card{align-items:flex-start}.nsv-v7-actions{min-width:74px}}
+    `;
+    document.head.appendChild(st);
+  }
+
+  function appendBattlePassItemsToCollection(){
+    try {
+      if (!ensureV7Data()) return;
+      injectCollectionV7Style();
+      rebuildOwnedPassRewardsFromClaimed();
+      const container = document.getElementById('collectionListContainer');
+      if (!container) return;
+      const old = document.getElementById('nsvBattlePassCollectionPanel');
+      if (old) old.remove();
+      const items = Object.values(userData.cosmetics.unlocked || {}).filter(x => x && x.source === 'battlePass');
+      const panel = document.createElement('div');
+      panel.id = 'nsvBattlePassCollectionPanel';
+      if (!items.length) {
+        panel.innerHTML = `<h3 class="text-2xl font-bold text-cyan-300">🎟️ バトルパス報酬</h3><p class="text-gray-300 text-sm mt-2">NEON PASSで入手したアイテムはここから装備・解除できます。</p><p class="text-gray-400 text-sm mt-3">まだバトルパス報酬を入手していません。</p>`;
+      } else {
+        const order = ['skin','aura','backpack','trail','pet','emote','intro','elimination','bossFinish','nameplate','badge'];
+        items.sort((a,b) => order.indexOf(a.type) - order.indexOf(b.type) || String(a.name).localeCompare(String(b.name),'ja'));
+        panel.innerHTML = `<h3 class="text-2xl font-bold text-cyan-300">🎟️ バトルパス報酬</h3><p class="text-gray-300 text-sm mt-2">入手しただけでは強制装備されません。使いたい物だけ装備できます。</p><div class="nsv-v7-cos-grid">${items.map(it => {
+          const eq = isEquipped(it.type,it.id);
+          return `<div class="nsv-v7-cos-card"><div class="flex items-center gap-3 min-w-0"><div class="nsv-v7-cos-icon">${it.icon || '🎁'}</div><div class="min-w-0"><div class="nsv-v7-cos-type">${typeLabel(it.type)}</div><div class="nsv-v7-cos-name truncate">${it.name || it.id}</div><div class="nsv-v7-cos-sub truncate">${it.seasonLabel || it.theme || 'NEON PASS'}</div></div></div><div class="nsv-v7-actions"><button class="nsv-v7-equip ${eq ? 'nsv-v7-eq' : ''} btn-neon px-3 py-1 rounded text-xs font-bold" data-type="${it.type}" data-id="${it.id}">${eq ? '装備中' : '装備'}</button><button class="nsv-v7-unequip btn-red px-3 py-1 rounded text-xs font-bold" data-type="${it.type}" ${eq ? '' : 'disabled style="opacity:.35"'}>外す</button></div></div>`;
+        }).join('')}</div>`;
+      }
+      container.prepend(panel);
+      panel.querySelectorAll('.nsv-v7-equip').forEach(btn => btn.addEventListener('click', () => equipCosmeticV7(btn.dataset.type, btn.dataset.id)));
+      panel.querySelectorAll('.nsv-v7-unequip').forEach(btn => btn.addEventListener('click', () => unequipCosmeticV7(btn.dataset.type)));
+    } catch(e) { console.warn('V7 collection append skipped', e); }
+  }
+
+  // Wrap collection renderer.
+  try {
+    const oldRenderCollection = window.renderCollectionScreen || (typeof renderCollectionScreen === 'function' ? renderCollectionScreen : null);
+    if (oldRenderCollection && !oldRenderCollection.__nsvV7Wrapped) {
+      const wrapped = function renderCollectionScreenV7(){
+        const result = oldRenderCollection.apply(this, arguments);
+        setTimeout(appendBattlePassItemsToCollection, 0);
+        return result;
+      };
+      wrapped.__nsvV7Wrapped = true;
+      window.renderCollectionScreen = wrapped;
+      try { renderCollectionScreen = wrapped; } catch(e) {}
+    }
+  } catch(e) { console.warn('V7 collection wrap skipped', e); }
+
+  // V7 shop: ticket price x5 and current coin display.
+  try {
+    window.renderShopV2 = function renderShopV2V7(){
+      ensureV7Data();
+      try { ensureShopV2?.(); } catch(e) {
+        let div = document.getElementById('shopScreen');
+        if (!div) { div = document.createElement('div'); div.id = 'shopScreen'; div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3'; document.body.appendChild(div); }
+        div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">GAME SHOP</h2><p class="text-gray-300 text-sm mt-2">銀コイン🪙をチケットに交換し、NEON PASSを購入できます。</p></div><button id="closeShopBtn" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div><div id="shopListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>`;
+        document.getElementById('closeShopBtn')?.addEventListener('click', () => showScreen('startScreen'));
+      }
+      const cost = userData.shop.firstPassTicketBought ? V7_REPEAT_TICKET_COST : V7_FIRST_TICKET_COST;
+      const canBuy = Number(userData.coins || 0) >= cost;
+      let s = { id:1, remain:'?', theme:{ icon:'⭐', name:'NEON PASS' } };
+      try { s = fridaySeasonInfoV2?.() || s; } catch(e) {}
+      const shopBox = document.getElementById('shopListContainer');
+      if (!shopBox) return;
+      shopBox.innerHTML = `<div class="nsv-shop-card premium"><div class="text-5xl mb-2">🎟️</div><h3 class="text-2xl font-bold text-yellow-300">バトルパスチケット交換</h3><p class="text-sm text-gray-300 mt-2">V7調整：チケット価格を今までの5倍にしました。</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-yellow-400/40"><p class="text-sm text-gray-300">現在の所持コイン🪙：<b class="text-yellow-300 text-xl">${Math.floor(userData.coins || 0)}</b></p><p class="text-sm text-gray-300">所持チケット：<b class="text-cyan-300">${Math.floor(userData.passTickets || 0)}</b></p><p class="text-xl font-black text-yellow-200 mt-2">必要：${cost.toLocaleString()} コイン</p></div><button id="buyPassTicketBtnV7" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${canBuy ? '' : 'opacity-40 cursor-not-allowed'}" ${canBuy ? '' : 'disabled'}>🎟️ チケットを1枚交換</button></div><div class="nsv-shop-card"><div class="text-5xl mb-2">⭐</div><h3 class="text-2xl font-bold text-cyan-300">${s.theme.icon} ${s.theme.name}</h3><p class="text-sm text-gray-300 mt-2">チケット1枚で購入できます。報酬はコレクション画面から装備・解除できます。</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-cyan-400/40"><p class="text-sm text-gray-300">シーズン：<b class="text-cyan-300">${s.id}</b></p><p class="text-sm text-gray-300">残り：約<b class="text-yellow-300">${s.remain}</b>日</p><p class="text-sm text-gray-300">状態：<b class="${userData.battlePassV2?.premium ? 'text-green-300':'text-gray-300'}">${userData.battlePassV2?.premium ? '購入済み':'未購入'}</b></p></div><button id="buyNeonPassBtnV7" class="btn-neon px-5 py-3 rounded font-bold mt-4 w-full ${(userData.passTickets > 0 && !userData.battlePassV2?.premium) ? '' : 'opacity-40 cursor-not-allowed'}" ${(userData.passTickets > 0 && !userData.battlePassV2?.premium) ? '' : 'disabled'}>NEON PASSを購入</button><button id="openPassFromShopBtnV7" class="btn-purple px-5 py-3 rounded font-bold mt-3 w-full">NEON PASSを見る</button></div>`;
+      document.getElementById('buyPassTicketBtnV7')?.addEventListener('click', () => {
+        ensureV7Data();
+        const price = userData.shop.firstPassTicketBought ? V7_REPEAT_TICKET_COST : V7_FIRST_TICKET_COST;
+        if (Number(userData.coins || 0) < price) return;
+        userData.coins -= price;
+        userData.passTickets = Number(userData.passTickets || 0) + 1;
+        userData.shop.firstPassTicketBought = true;
+        safeSave();
+        toast('TICKET GET!', 'バトルパスチケット +1');
+        renderShopV2();
+      });
+      document.getElementById('buyNeonPassBtnV7')?.addEventListener('click', () => { try { buyNeonPassV2?.(); } catch(e) {} });
+      document.getElementById('openPassFromShopBtnV7')?.addEventListener('click', () => { try { renderBattlePassV2?.('base'); showScreen('battlePassScreen'); } catch(e) {} });
+    };
+    try { renderShopV2 = window.renderShopV2; } catch(e) {}
+  } catch(e) { console.warn('V7 shop override skipped', e); }
+
+  // Add a clear patch badge and run boot.
+  function bootV7(){
+    try {
+      ensureV7Data();
+      rebuildOwnedPassRewardsFromClaimed();
+      appendBattlePassItemsToCollection();
+      let badge = document.getElementById('nsvPatchV7Badge');
+      if (!badge) {
+        badge = document.createElement('div');
+        badge.id = 'nsvPatchV7Badge';
+        badge.textContent = 'PATCH V7 PASS EQUIP ON';
+        badge.style.cssText = 'position:fixed;right:10px;bottom:66px;z-index:99999;background:rgba(8,47,73,.88);color:#a5f3fc;border:1px solid #22d3ee;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:900;box-shadow:0 0 14px rgba(34,211,238,.45);pointer-events:none;';
+        document.body.appendChild(badge);
+      }
+    } catch(e) { console.warn('V7 boot skipped', e); }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV7);
+  else bootV7();
+  setTimeout(bootV7, 700);
+  setTimeout(bootV7, 1800);
+})();
+</script>
+
+
+
+<script>
+// ==========================================================
+// PATCH V8: Boss scaling after Lv15 + GitHub-safe final marker
+// ==========================================================
+(function(){
+  'use strict';
+  const PATCH_ID = 'nsvPatchV8BossScaling20260506';
+  if (window[PATCH_ID]) return;
+  window[PATCH_ID] = true;
+
+  function safeNumber(v, fallback){
+    v = Number(v);
+    return Number.isFinite(v) ? v : fallback;
+  }
+
+  function getCurrentLevel(){
+    try {
+      if (typeof player !== 'undefined' && player) return Math.max(1, safeNumber(player.level, 1));
+    } catch(e) {}
+    return 1;
+  }
+
+  // Lv16〜20: 2倍、Lv21〜25: 4倍、Lv26〜30: 8倍 ...
+  function getBossScaleForLevel(level){
+    level = Math.max(1, Math.floor(safeNumber(level, 1)));
+    if (level <= 15) return { stage: 0, mult: 1 };
+    const stage = Math.floor((level - 16) / 5) + 1;
+    const cappedStage = Math.min(stage, 12); // 安全上限。Lv71以降は4096倍で止める。
+    return { stage: cappedStage, mult: Math.pow(2, cappedStage) };
+  }
+
+  function isBossLike(enemy){
+    return !!(enemy && (enemy.isBoss || enemy.isMidBoss || enemy.isMonkey || enemy.isApeOverlord));
+  }
+
+  function applyBossScaling(enemy, level){
+    try {
+      if (!isBossLike(enemy)) return enemy;
+      if (typeof isOnlineMode !== 'undefined' && isOnlineMode) return enemy;
+      level = level || getCurrentLevel();
+      const s = getBossScaleForLevel(level);
+      if (s.mult <= 1) return enemy;
+
+      const oldStage = safeNumber(enemy.__nsvV8BossScaleStage, 0);
+      if (oldStage >= s.stage) return enemy;
+
+      // すでに少し強化済みのボスにも、差分だけ乗せる。
+      const diffMult = Math.pow(2, s.stage - oldStage);
+      enemy.hp = Math.max(1, safeNumber(enemy.hp, 1) * diffMult);
+      enemy.maxHp = Math.max(enemy.hp, safeNumber(enemy.maxHp, enemy.hp) * diffMult);
+      enemy.damage = Math.max(1, safeNumber(enemy.damage, 1) * diffMult);
+
+      // 速くしすぎると避けられず重くなるので、速度は少しだけ。
+      const speedBoost = Math.min(2.2, 1 + s.stage * 0.08);
+      if (!enemy.__nsvV8BaseSpeed) enemy.__nsvV8BaseSpeed = safeNumber(enemy.speed, 1);
+      enemy.speed = Math.max(0.1, enemy.__nsvV8BaseSpeed * speedBoost);
+
+      enemy.__nsvV8BossScaleStage = s.stage;
+      enemy.__nsvV8BossScaleMult = s.mult;
+      enemy.__nsvV8BossScaled = true;
+      try {
+        if (Array.isArray(floatingTexts) && floatingTexts.length < 80 && typeof FloatingText === 'function') {
+          floatingTexts.push(new FloatingText(enemy.x, enemy.y - 60, 'BOSS x' + s.mult, '#f97316', 22));
+        }
+      } catch(_) {}
+    } catch(err) {
+      console.warn('V8 boss scaling skipped:', err);
+    }
+    return enemy;
+  }
+
+  function patchEnemyClass(){
+    try {
+      if (typeof Enemy === 'function' && !Enemy.__nsvV8Patched) {
+        const OriginalEnemy = Enemy;
+        Enemy = class NSVV8Enemy extends OriginalEnemy {
+          constructor(){
+            super(...arguments);
+            applyBossScaling(this, getCurrentLevel());
+          }
+        };
+        Enemy.__nsvV8Patched = true;
+        Enemy.__nsvV8Original = OriginalEnemy;
+      }
+    } catch(err) {
+      console.warn('V8 Enemy class patch skipped:', err);
+    }
+  }
+
+  function strengthenExistingBosses(){
+    try {
+      if (!Array.isArray(enemies)) return;
+      const level = getCurrentLevel();
+      enemies.forEach(function(e){ applyBossScaling(e, level); });
+    } catch(err) {}
+  }
+
+  function addPatchBadge(){
+    try {
+      let badge = document.getElementById('nsvPatchV8Badge');
+      if (!badge) {
+        badge = document.createElement('div');
+        badge.id = 'nsvPatchV8Badge';
+        badge.textContent = 'PATCH V8 BOSS SCALE ON';
+        badge.style.cssText = 'position:fixed;right:10px;bottom:70px;z-index:999999;padding:6px 9px;border-radius:999px;background:rgba(20,20,20,.84);color:#fed7aa;border:1px solid #fb923c;font-size:11px;font-weight:900;pointer-events:none;box-shadow:0 0 12px rgba(251,146,60,.45)';
+        document.body.appendChild(badge);
+      }
+    } catch(err) {}
+  }
+
+  function bootV8(){
+    patchEnemyClass();
+    strengthenExistingBosses();
+    addPatchBadge();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV8);
+  else bootV8();
+  setTimeout(bootV8, 300);
+  setTimeout(bootV8, 1200);
+  setInterval(strengthenExistingBosses, 1200);
+
+  window.nsvV8BossScaleInfo = function(level){
+    const s = getBossScaleForLevel(level || getCurrentLevel());
+    return { level: level || getCurrentLevel(), stage: s.stage, multiplier: s.mult };
+  };
+})();
+</script>
+
+
+
+<!-- ==========================================================
+  PATCH V9: Gravity wave event damage per second
+  - 重力異常イベント中、紫の範囲内にいると毎秒ダメージ
+  - 画面や基本内容は変えず、追加パッチだけで対応
+========================================================== -->
+<script>
+(function nsvPatchV9GravityWaveDamage(){
+  try {
+    const PATCH_ID = 'nsvPatchV9GravityWaveDamage20260506';
+    if (window[PATCH_ID]) return;
+    window[PATCH_ID] = true;
+
+    const GRAVITY_DAMAGE_BASE = 12;      // 基本ダメージ：毎秒12
+    const GRAVITY_DAMAGE_PER_10_LEVEL = 3; // 10レベルごとに+3
+
+    function nsvGetGravityWaveDamageV9() {
+      try {
+        const lv = Math.max(1, Number(player && player.level || 1));
+        return Math.max(8, Math.round(GRAVITY_DAMAGE_BASE + Math.floor(lv / 10) * GRAVITY_DAMAGE_PER_10_LEVEL));
+      } catch(e) {
+        return GRAVITY_DAMAGE_BASE;
+      }
+    }
+
+    function nsvApplyGravityWaveDamageV9() {
+      try {
+        if (typeof gameState === 'undefined' || gameState !== 'playing') return;
+        if (typeof isOnlineMode !== 'undefined' && isOnlineMode) return;
+        if (typeof player === 'undefined' || !player) return;
+        if (typeof activeMapEvent === 'undefined' || !activeMapEvent) return;
+        if (activeMapEvent.kind !== 'gravity' || activeMapEvent.state !== 'active') return;
+        if (typeof frameCount === 'undefined') return;
+        const now = Number(frameCount || 0);
+        if (now % 60 !== 0) return;
+
+        let inDanger = true;
+        try {
+          if (typeof MathUtils !== 'undefined' && activeMapEvent.radius) {
+            const d = MathUtils.distance(player.x, player.y, activeMapEvent.coreX, activeMapEvent.coreY);
+            inDanger = d < activeMapEvent.radius;
+          }
+        } catch(e) {
+          inDanger = true;
+        }
+        if (!inDanger) return;
+
+        const dmg = nsvGetGravityWaveDamageV9();
+        if (typeof player.takeDamage === 'function') player.takeDamage(dmg);
+        else player.hp = Math.max(0, Number(player.hp || 0) - dmg);
+
+        try {
+          if (typeof floatingTexts !== 'undefined' && typeof FloatingText !== 'undefined') {
+            floatingTexts.push(new FloatingText(player.x, player.y - 62, '重力波 -' + dmg, '#c084fc', 18));
+          }
+        } catch(e) {}
+        try {
+          if (typeof createParticles === 'function') createParticles(player.x, player.y, 8, '#a855f7', 4);
+        } catch(e) {}
+        try {
+          if (typeof addExtraStat === 'function') addExtraStat('totalGravityWaveDamageTaken', null, dmg);
+        } catch(e) {}
+      } catch(e) {}
+    }
+
+    function nsvPatchUpdateMapEventV9() {
+      try {
+        if (typeof updateMapEvent === 'function' && !updateMapEvent.__nsvV9GravityDamage) {
+          const oldUpdateMapEvent = updateMapEvent;
+          updateMapEvent = function() {
+            const ret = oldUpdateMapEvent.apply(this, arguments);
+            nsvApplyGravityWaveDamageV9();
+            return ret;
+          };
+          updateMapEvent.__nsvV9GravityDamage = true;
+        }
+      } catch(e) {}
+    }
+
+    function nsvPatchMapEventHudTextV9() {
+      try {
+        if (typeof updateMapEventHud === 'function' && !updateMapEventHud.__nsvV9GravityText) {
+          const oldUpdateMapEventHud = updateMapEventHud;
+          updateMapEventHud = function() {
+            const ret = oldUpdateMapEventHud.apply(this, arguments);
+            try {
+              const text = document.getElementById('mapEventForecastText');
+              if (text && typeof activeMapEvent !== 'undefined' && activeMapEvent && activeMapEvent.kind === 'gravity' && activeMapEvent.state === 'active') {
+                const dmg = nsvGetGravityWaveDamageV9();
+                const sec = Math.max(0, Math.ceil((activeMapEvent.endFrame - Number(frameCount || 0)) / 60));
+                text.textContent = '残り' + sec + '秒。紫の範囲内では毎秒' + dmg + 'ダメージ。外へ逃げると安全です。';
+              }
+            } catch(e) {}
+            return ret;
+          };
+          updateMapEventHud.__nsvV9GravityText = true;
+        }
+      } catch(e) {}
+    }
+
+    function nsvShowV9Badge() {
+      try {
+        if (document.getElementById('nsvPatchV9Badge')) return;
+        const b = document.createElement('div');
+        b.id = 'nsvPatchV9Badge';
+        b.textContent = 'PATCH V9 GRAVITY DAMAGE ON';
+        b.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;background:rgba(0,0,0,.72);color:#ddd6fe;border:1px solid #a855f7;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:900;pointer-events:none;box-shadow:0 0 12px rgba(168,85,247,.5);';
+        document.body.appendChild(b);
+      } catch(e) {}
+    }
+
+    function nsvBootV9() {
+      nsvPatchUpdateMapEventV9();
+      nsvPatchMapEventHudTextV9();
+      nsvShowV9Badge();
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', nsvBootV9);
+    else nsvBootV9();
+    setTimeout(nsvBootV9, 300);
+    setTimeout(nsvBootV9, 1200);
+    setInterval(function(){ try { nsvPatchUpdateMapEventV9(); nsvPatchMapEventHudTextV9(); } catch(e) {} }, 2000);
+  } catch(e) {
+    console.warn('V9 gravity wave damage patch skipped', e);
+  }
+})();
 </script>
 
 </body>
