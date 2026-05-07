@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V30 STABLE clean-bottom-performance-complete -->
+<!-- V33 STABLE master-button-screen-cheat-performance-complete -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -13979,6 +13979,336 @@
   requestAnimationFrame(fpsLoop);
 })();
 
+
+
+
+/* =========================================================
+   V33 STABLE: CRASH GUARD + PLAY STABILITY BOOST
+   - プレイ中に重くなった時だけ自動で描画量を落とす
+   - 配列が増えすぎる前に安全に整理
+   - 長時間プレイ用の軽量オートセーブ
+   - ゲーム内には長い説明を出さない
+========================================================= */
+(() => {
+  'use strict';
+  const V32_LABEL = 'V33 STABLE';
+  const now = () => (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
+  const safe = (fn, fallback) => { try { return fn(); } catch(e) { return fallback; } };
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, Number(n) || 0));
+  const arrLen = (a) => Array.isArray(a) ? a.length : 0;
+
+  const guard = {
+    level: 0,
+    lastFrame: 0,
+    lastTrim: 0,
+    lastSave: 0,
+    lastPanic: 0,
+    slowFrames: 0,
+    verySlowFrames: 0,
+    skipFlip: false,
+    booted: false
+  };
+
+  const capsByLevel = [
+    { particles: 420, floatingTexts: 70, bullets: 260, enemyBullets: 220, enemies: 260, gems: 420, effects: 140, special: 90 },
+    { particles: 260, floatingTexts: 45, bullets: 220, enemyBullets: 170, enemies: 220, gems: 320, effects: 90, special: 65 },
+    { particles: 150, floatingTexts: 28, bullets: 170, enemyBullets: 120, enemies: 175, gems: 230, effects: 55, special: 42 },
+    { particles: 70, floatingTexts: 12, bullets: 115, enemyBullets: 75, enemies: 130, gems: 150, effects: 25, special: 24 }
+  ];
+
+  function updateV32Label(){
+    safe(() => {
+      document.title = 'Neon Survivor';
+      const ids = ['nsvV13Badge','nsvV14Badge','nsvV15Badge','nsvV16Badge','nsvV17Badge','nsvV18Badge','nsvV19Badge','nsvV20Badge','nsvV21Badge','nsvV22Badge','nsvV23Badge','nsvV24Badge','nsvV25Badge','nsvV26Badge','nsvV27Badge','nsvV28Badge','nsvV29Badge','nsvV30Badge','nsvV31Badge'];
+      ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+      let badge = document.getElementById('nsvV32Badge');
+      const titleCard = document.querySelector('#startScreen .neon-title') || document.querySelector('#startScreen .menu-panel');
+      if (!badge && titleCard) {
+        badge = document.createElement('div');
+        badge.id = 'nsvV32Badge';
+        badge.textContent = V32_LABEL;
+        badge.style.cssText = 'display:inline-flex;margin-top:6px;padding:3px 10px;border:1px solid rgba(34,211,238,.65);border-radius:999px;color:#a5f3fc;background:rgba(2,6,23,.72);font:bold 12px Orbitron, sans-serif;letter-spacing:.08em;box-shadow:0 0 10px rgba(34,211,238,.2);';
+        titleCard.insertAdjacentElement('afterend', badge);
+      }
+      if (badge) badge.textContent = V32_LABEL;
+    });
+  }
+
+  function setGuardLevel(level, reason=''){
+    level = clamp(level, 0, 3);
+    if (level <= guard.level) return;
+    guard.level = level;
+    safe(() => {
+      document.body.dataset.nsvCrashGuard = String(level);
+      localStorage.setItem('neon_survivor_auto_lite_level_v32', String(level));
+      if (level > 0) {
+        if (typeof applyLightMode === 'function') applyLightMode(true);
+        else if (typeof window.toggleLightMode === 'function') window.toggleLightMode(true);
+        else {
+          isLightMode = true;
+          document.body.classList.add('light-mode');
+        }
+      }
+      if (typeof runStats !== 'undefined' && runStats) {
+        runStats.maxLightLevel = Math.max(Number(runStats.maxLightLevel || 0), level);
+      }
+    });
+  }
+
+  function distanceToPlayer(o){
+    if (!o || !player) return 0;
+    const x = Number(o.x ?? o.pos?.x ?? 0);
+    const y = Number(o.y ?? o.pos?.y ?? 0);
+    return Math.hypot(x - Number(player.x || 0), y - Number(player.y || 0));
+  }
+
+  function trimArrayOldest(arr, max){
+    if (!Array.isArray(arr) || arr.length <= max) return;
+    arr.splice(0, arr.length - max);
+  }
+
+  function trimArrayNearest(arr, max){
+    if (!Array.isArray(arr) || arr.length <= max) return;
+    safe(() => {
+      if (player) arr.sort((a,b) => distanceToPlayer(a) - distanceToPlayer(b));
+      arr.splice(max);
+    }, null);
+    if (arr.length > max) arr.length = max;
+  }
+
+  function totalRuntimeObjects(){
+    return safe(() => (
+      arrLen(particles) + arrLen(floatingTexts) + arrLen(bullets) + arrLen(enemyBullets) +
+      arrLen(enemies) + arrLen(gems) + arrLen(effects) + arrLen(ironBlasters) + arrLen(shields) +
+      arrLen(voidTempests) + arrLen(hollowMurasakis) + arrLen(kamehamehas) + arrLen(infinitySnaps) +
+      arrLen(infiniteBladeSwords) + arrLen(unibeams) + arrLen(keraunosStorms) + arrLen(vaderSkills) +
+      arrLen(stormbreakers) + arrLen(disneyMagics) + arrLen(muryokushos) + arrLen(bounceBombs) +
+      arrLen(poisonClouds) + arrLen(blackholes) + arrLen(sniperBullets) + arrLen(phantomDaggers) +
+      arrLen(gravityPulsars) + arrLen(bananaPeels) + arrLen(onlineLegendaryChests) + arrLen(astralJudgements) +
+      arrLen(harisenNovas) + arrLen(overlordFlames) + arrLen(cosmicSushiStorms)
+    ), 0);
+  }
+
+  function trimRuntimeObjects(force=false){
+    safe(() => {
+      if (typeof gameState !== 'undefined' && gameState !== 'playing' && !force) return;
+      const cap = capsByLevel[guard.level] || capsByLevel[0];
+
+      // 以前の要望を守るため、マップのブラックホールは常に消す
+      if (typeof mapBlackholes !== 'undefined' && Array.isArray(mapBlackholes)) mapBlackholes.length = 0;
+
+      trimArrayOldest(particles, cap.particles);
+      trimArrayOldest(floatingTexts, cap.floatingTexts);
+      trimArrayOldest(bullets, cap.bullets);
+      trimArrayOldest(enemyBullets, cap.enemyBullets);
+      trimArrayNearest(enemies, cap.enemies);
+      trimArrayNearest(gems, cap.gems);
+      trimArrayOldest(effects, cap.effects);
+
+      [
+        ironBlasters, shields, voidTempests, hollowMurasakis, orbitalStrikes,
+        kamehamehas, infinitySnaps, infiniteBladeSwords, unibeams, keraunosStorms,
+        vaderSkills, stormbreakers, disneyMagics, muryokushos, hollowMurasakiCharges,
+        infiniteBladeCharges, keraunosCharges, bounceBombs, poisonClouds, blackholes,
+        divineSwords, sniperBullets, phantomDaggers, gravityPulsars, bananaPeels,
+        onlineLegendaryChests, astralJudgements, harisenNovas, overlordFlames, cosmicSushiStorms
+      ].forEach(arr => trimArrayOldest(arr, cap.special));
+
+      // 緊急時は見た目用のものをさらに減らす
+      if (guard.level >= 3) {
+        if (Array.isArray(particles)) particles.length = Math.min(particles.length, 35);
+        if (Array.isArray(effects)) effects.length = Math.min(effects.length, 15);
+        if (Array.isArray(floatingTexts)) floatingTexts.length = Math.min(floatingTexts.length, 8);
+        if (Array.isArray(bgStars)) bgStars.length = Math.min(bgStars.length, 35);
+      }
+    });
+  }
+
+  function panicTrim(reason='panic'){
+    const t = now();
+    if (t - guard.lastPanic < 1200) return;
+    guard.lastPanic = t;
+    setGuardLevel(3, reason);
+    safe(() => {
+      if (Array.isArray(particles)) particles.length = 0;
+      if (Array.isArray(effects)) effects.length = 0;
+      if (Array.isArray(floatingTexts)) floatingTexts.length = 0;
+      if (Array.isArray(enemyBullets)) enemyBullets.length = Math.min(enemyBullets.length, 45);
+      if (Array.isArray(bullets)) bullets.length = Math.min(bullets.length, 75);
+      if (Array.isArray(gems)) trimArrayNearest(gems, 110);
+      if (Array.isArray(enemies)) trimArrayNearest(enemies, 105);
+      if (Array.isArray(mapBlackholes)) mapBlackholes.length = 0;
+      if (Array.isArray(bgStars)) bgStars.length = 20;
+      timeAccumulator = 0;
+    });
+    quickCrashSave();
+  }
+
+  function quickCrashSave(){
+    safe(() => {
+      if (typeof userData === 'undefined' || !userData) return;
+      const payload = {
+        version: V32_LABEL,
+        savedAt: Date.now(),
+        userData,
+        run: {
+          score: Math.floor(Number(typeof score !== 'undefined' ? score : 0) || 0),
+          time: Math.floor(Number(typeof gameTime !== 'undefined' ? gameTime : 0) || 0),
+          level: Math.floor(Number(player && player.level ? player.level : 1) || 1),
+          coins: Math.floor(Number(userData.coins || 0))
+        }
+      };
+      localStorage.setItem('neon_survivor_crash_guard_v32', JSON.stringify(payload));
+      localStorage.setItem('neon_survivor_last_safe_snapshot', JSON.stringify(payload));
+    });
+  }
+
+  function normalAutoSave(){
+    safe(() => {
+      if (typeof gameState === 'undefined' || gameState !== 'playing') return;
+      quickCrashSave();
+      // 重くなりすぎないように、本体セーブは低頻度だけ実行
+      if (typeof saveData === 'function') saveData();
+    });
+  }
+
+  function wrapMainFunctions(){
+    safe(() => {
+      if (typeof updateLogic === 'function' && !updateLogic.__nsvV32Wrapped) {
+        const oldUpdate = updateLogic;
+        updateLogic = function(){
+          try {
+            return oldUpdate.apply(this, arguments);
+          } catch(e) {
+            console.warn('V32 update guard:', e);
+            panicTrim('update-error');
+          } finally {
+            if ((typeof frameCount !== 'undefined' ? frameCount : 0) % 12 === 0) trimRuntimeObjects(false);
+          }
+        };
+        updateLogic.__nsvV32Wrapped = true;
+      }
+
+      if (typeof drawAll === 'function' && !drawAll.__nsvV32Wrapped) {
+        const oldDraw = drawAll;
+        drawAll = function(){
+          try {
+            if (guard.level >= 3) {
+              guard.skipFlip = !guard.skipFlip;
+              if (guard.skipFlip) {
+                trimRuntimeObjects(false);
+                return;
+              }
+            }
+            return oldDraw.apply(this, arguments);
+          } catch(e) {
+            console.warn('V32 draw guard:', e);
+            panicTrim('draw-error');
+          }
+        };
+        drawAll.__nsvV32Wrapped = true;
+      }
+
+      if (typeof initGame === 'function' && !initGame.__nsvV32Wrapped) {
+        const oldInit = initGame;
+        initGame = function(){
+          guard.level = 0;
+          guard.slowFrames = 0;
+          guard.verySlowFrames = 0;
+          guard.lastFrame = 0;
+          guard.skipFlip = false;
+          const ret = oldInit.apply(this, arguments);
+          trimRuntimeObjects(true);
+          quickCrashSave();
+          return ret;
+        };
+        initGame.__nsvV32Wrapped = true;
+      }
+    });
+  }
+
+  function watchdogLoop(t){
+    safe(() => {
+      updateV32Label();
+      wrapMainFunctions();
+
+      if (typeof gameState !== 'undefined' && gameState === 'playing') {
+        if (guard.lastFrame) {
+          const dt = t - guard.lastFrame;
+          if (dt > 260) {
+            guard.verySlowFrames++;
+            panicTrim('freeze-watchdog');
+          } else if (dt > 90) {
+            guard.slowFrames++;
+            if (guard.slowFrames > 4) setGuardLevel(Math.max(guard.level, 2), 'slow-frame');
+          } else if (dt > 55) {
+            guard.slowFrames++;
+            if (guard.slowFrames > 8) setGuardLevel(Math.max(guard.level, 1), 'fps-drop');
+          } else {
+            guard.slowFrames = Math.max(0, guard.slowFrames - 1);
+          }
+        }
+
+        const total = totalRuntimeObjects();
+        if (total > 1850) panicTrim('object-overflow');
+        else if (total > 1300) setGuardLevel(Math.max(guard.level, 2), 'many-objects');
+        else if (total > 950) setGuardLevel(Math.max(guard.level, 1), 'object-warning');
+
+        if (t - guard.lastTrim > 180) {
+          guard.lastTrim = t;
+          trimRuntimeObjects(false);
+        }
+        if (t - guard.lastSave > 15000) {
+          guard.lastSave = t;
+          quickCrashSave();
+        }
+        if (t - (window.__nsvV32FullSaveAt || 0) > 45000) {
+          window.__nsvV32FullSaveAt = t;
+          normalAutoSave();
+        }
+      } else {
+        guard.lastFrame = 0;
+        guard.slowFrames = 0;
+      }
+
+      guard.lastFrame = t;
+    });
+    requestAnimationFrame(watchdogLoop);
+  }
+
+  function installGlobalCrashHooks(){
+    if (window.__nsvV32CrashHooks) return;
+    window.__nsvV32CrashHooks = true;
+    window.addEventListener('error', () => panicTrim('global-error'), true);
+    window.addEventListener('unhandledrejection', () => panicTrim('promise-error'), true);
+    window.addEventListener('pagehide', () => quickCrashSave(), { passive:true });
+    window.addEventListener('beforeunload', () => quickCrashSave(), { passive:true });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) quickCrashSave();
+    }, { passive:true });
+  }
+
+  function bootV32(){
+    if (guard.booted) {
+      updateV32Label();
+      wrapMainFunctions();
+      return;
+    }
+    guard.booted = true;
+    updateV32Label();
+    wrapMainFunctions();
+    installGlobalCrashHooks();
+    setInterval(() => trimRuntimeObjects(false), 220);
+    setInterval(() => quickCrashSave(), 20000);
+    requestAnimationFrame(watchdogLoop);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV32, { once:true });
+  else bootV32();
+  window.addEventListener('load', bootV32, { passive:true });
+  window.addEventListener('pageshow', bootV32, { passive:true });
+})();
+
 </script>
 
 
@@ -16635,6 +16965,718 @@
 })();
 
 
+
+
+/* =========================================================
+   V33 STABLE: SETTINGS TOGGLES + SHOP OPEN SAFETY FIX
+   - SETTINGS内でジョイスティック/軽量モードをトグル操作
+   - SHOPボタンを押した時に必ずショップ画面を表示
+   - プレビューなし
+========================================================= */
+(() => {
+  'use strict';
+  const V31_LABEL = 'V33 STABLE';
+  const FIRST_TICKET_COST_V31 = 5000;
+  const REPEAT_TICKET_COST_V31 = 1000000;
+  const $ = (id) => document.getElementById(id);
+  const q = (sel, root = document) => root.querySelector(sel);
+  const qa = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const safe = (fn, fallback) => { try { return fn(); } catch(e) { console.warn('V31 patch skipped:', e); return fallback; } };
+  const num = (v, d = 0) => Number.isFinite(Number(v)) ? Number(v) : d;
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+  function injectStyleV31(){
+    if ($('nsvV31Style')) return;
+    const st = document.createElement('style');
+    st.id = 'nsvV31Style';
+    st.textContent = `
+      #nsvV31Badge{display:inline-flex;align-items:center;justify-content:center;width:max-content;margin-top:10px;padding:5px 10px;border-radius:999px;border:1px solid rgba(103,232,249,.62);background:rgba(2,6,23,.78);color:#67e8f9;font:900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif;letter-spacing:.08em;box-shadow:0 0 12px rgba(34,211,238,.22);pointer-events:none;}
+      #nsvV13Badge,#nsvV14Badge,#nsvV15Badge,#nsvV16Badge,#nsvV17Badge,#nsvV18Badge,#nsvV19Badge,#nsvV20Badge,#nsvV21Badge,#nsvV22Badge,#nsvV23Badge,#nsvV24Badge,#nsvV25Badge,#nsvV26Badge,#nsvV27Badge,#nsvV28Badge,#nsvV29Badge,#nsvV30Badge{display:none!important;}
+      #nsvV31SettingsSection{width:100%;border:1px solid rgba(34,211,238,.48);border-radius:22px;background:linear-gradient(180deg,rgba(15,23,42,.86),rgba(0,0,0,.62));padding:14px;box-shadow:0 0 18px rgba(34,211,238,.10), inset 0 0 18px rgba(255,255,255,.03);}
+      #nsvV31SettingsSection .nsv-v31-section-title{font-family:Orbitron,'Noto Sans JP',sans-serif;font-size:.82rem;letter-spacing:.16em;color:#a5f3fc;font-weight:1000;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+      #nsvV31SettingsSection .nsv-v31-section-sub{font-family:'Noto Sans JP',sans-serif;font-size:.72rem;letter-spacing:0;color:#94a3b8;font-weight:800;}
+      .nsv-v31-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%;}
+      .nsv-v31-toggle-card{border:1px solid rgba(148,163,184,.28);border-radius:18px;background:linear-gradient(180deg,rgba(2,6,23,.92),rgba(15,23,42,.70));padding:14px;min-height:96px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 0 14px rgba(6,182,212,.08);}
+      .nsv-v31-toggle-title{color:#e0f2fe;font-size:1rem;font-weight:1000;line-height:1.2;}
+      .nsv-v31-toggle-desc{color:#94a3b8;font-size:.76rem;font-weight:700;line-height:1.35;margin-top:4px;}
+      .nsv-v31-switch{position:relative;display:inline-flex;align-items:center;width:82px;height:42px;border-radius:999px;background:#334155;border:2px solid rgba(148,163,184,.55);box-shadow:inset 0 0 10px rgba(0,0,0,.45);cursor:pointer;flex:0 0 auto;touch-action:manipulation;user-select:none;-webkit-tap-highlight-color:transparent;}
+      .nsv-v31-switch input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;}
+      .nsv-v31-knob{position:absolute;left:4px;top:4px;width:30px;height:30px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.45);transition:transform .18s ease, background .18s ease;}
+      .nsv-v31-onoff{position:absolute;right:8px;color:#cbd5e1;font-weight:1000;font-size:.72rem;letter-spacing:.04em;}
+      .nsv-v31-switch input:checked ~ .nsv-v31-knob{transform:translateX(40px);background:#ecfeff;}
+      .nsv-v31-switch input:checked ~ .nsv-v31-onoff{left:9px;right:auto;color:#111827;}
+      .nsv-v31-switch:has(input:checked){background:#22d3ee;border-color:#a5f3fc;box-shadow:0 0 16px rgba(34,211,238,.46), inset 0 0 10px rgba(255,255,255,.18);}
+      #shopScreen.nsv-v31-shop-screen{overflow-y:auto!important;overflow-x:hidden!important;align-items:center!important;justify-content:flex-start!important;padding:18px 12px 90px!important;pointer-events:auto!important;z-index:78!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;}
+      #shopScreen.nsv-v31-shop-screen.hidden{display:none!important;}
+      .nsv-v31-shop-panel{width:min(96vw,980px)!important;max-height:none!important;overflow:visible!important;}
+      .nsv-v31-shop-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+      .nsv-v31-shop-stat{background:rgba(15,23,42,.8);border:1px solid rgba(148,163,184,.3);border-radius:16px;padding:12px;text-align:center;}
+      .nsv-v31-shop-stat small{display:block;color:#94a3b8;font-weight:900;font-size:.72rem;letter-spacing:.05em;}
+      .nsv-v31-shop-stat b{display:block;color:#fff;font-size:1.35rem;margin-top:5px;}
+      .nsv-v31-shop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+      .nsv-v31-shop-card{border:1px solid rgba(34,211,238,.45);border-radius:22px;background:linear-gradient(180deg,rgba(2,6,23,.94),rgba(15,23,42,.76));padding:18px;box-shadow:0 0 18px rgba(34,211,238,.13);}
+      .nsv-v31-shop-card.gold{border-color:rgba(250,204,21,.7);box-shadow:0 0 20px rgba(250,204,21,.20);}
+      .nsv-v31-shop-card h3{font-size:1.45rem;font-weight:1000;margin-top:8px;color:#fff;}
+      .nsv-v31-shop-card p{color:#cbd5e1;font-size:.9rem;margin-top:8px;line-height:1.5;}
+      .nsv-v31-price{margin-top:12px;border:1px solid rgba(148,163,184,.25);background:rgba(0,0,0,.34);border-radius:16px;padding:12px;color:#e5e7eb;}
+      #shopScreen button{pointer-events:auto!important;touch-action:manipulation!important;min-height:46px;}
+      @media(max-width:760px){.nsv-v31-settings-grid,.nsv-v31-shop-summary,.nsv-v31-shop-grid{grid-template-columns:1fr}.nsv-v31-toggle-card{min-height:86px}.nsv-v31-shop-panel{width:min(96vw,640px)!important;}}
+    `;
+    document.head.appendChild(st);
+  }
+
+  function updateLabelV31(){
+    safe(() => {
+      qa('[id*="Badge"],.nsv-version-badge').forEach(el => { if (el.id !== 'nsvV31Badge' && /V\d+\s+STABLE/i.test(el.textContent || '')) el.style.display = 'none'; });
+      const titleCard = q('#startScreen .nsv-v26-title-card') || q('#startScreen .nsv-v25-title-card') || q('#startScreen .menu-panel');
+      if (!titleCard) return;
+      let b = $('nsvV31Badge');
+      if (!b) { b = document.createElement('div'); b.id = 'nsvV31Badge'; }
+      b.textContent = V31_LABEL;
+      if (!titleCard.contains(b)) titleCard.appendChild(b);
+      b.style.display = 'inline-flex';
+    });
+  }
+
+  function saveMainData(){ safe(() => { if (typeof saveData === 'function') saveData(); }); }
+  function toast(title, msg){ safe(() => { if (typeof showMissionToast === 'function') showMissionToast(title, msg); else console.log(title, msg); }); }
+
+  function readJoy(){
+    return safe(() => {
+      if (typeof isJoystickEnabled !== 'undefined') return !!isJoystickEnabled;
+      const v = localStorage.getItem('neon_survivor_joystick_enabled');
+      if (v === '0') return false;
+      return $('joystickToggle') ? !!$('joystickToggle').checked : true;
+    }, true);
+  }
+  function readLight(){
+    return safe(() => {
+      if (typeof isLightMode !== 'undefined') return !!isLightMode;
+      return localStorage.getItem('neon_survivor_light_mode') === '1' || ($('lightModeToggle') ? !!$('lightModeToggle').checked : false);
+    }, false);
+  }
+  function setJoy(on){
+    on = !!on;
+    safe(() => { localStorage.setItem('neon_survivor_joystick_enabled', on ? '1' : '0'); });
+    safe(() => { if (typeof isJoystickEnabled !== 'undefined') isJoystickEnabled = on; });
+    safe(() => { if (typeof window.toggleJoystickFromPause === 'function') window.toggleJoystickFromPause(on); });
+    safe(() => { ['joystickToggle','pauseJoystickToggle','nsvV31JoystickToggle'].forEach(id => { const el=$(id); if (el) el.checked = on; }); });
+    safe(() => { if (typeof syncJoystickVisibility === 'function') syncJoystickVisibility(); });
+    safe(() => { if (typeof userData !== 'undefined' && userData) { userData.settings = userData.settings || {}; userData.settings.joystickEnabled = on; } });
+    saveMainData();
+  }
+  function setLight(on){
+    on = !!on;
+    safe(() => { localStorage.setItem('neon_survivor_light_mode', on ? '1' : '0'); });
+    safe(() => { if (typeof window.toggleLightMode === 'function') window.toggleLightMode(on); else if (typeof applyLightMode === 'function') applyLightMode(on); });
+    safe(() => { if (typeof isLightMode !== 'undefined') isLightMode = on; document.body.classList.toggle('light-mode', on); });
+    safe(() => { ['lightModeToggle','pauseLightModeToggle','nsvV31LightToggle'].forEach(id => { const el=$(id); if (el) el.checked = on; }); });
+    safe(() => { if (typeof userData !== 'undefined' && userData) { userData.settings = userData.settings || {}; userData.settings.lightMode = on; } });
+    saveMainData();
+  }
+
+  function findSaveSection(){
+    const exportBtn = $('exportBtn');
+    if (exportBtn) return exportBtn.closest('.nsv-v26-section') || exportBtn.closest('section') || exportBtn.closest('.nsv-v25-save-card') || exportBtn.closest('.bg-gray-900\/80') || exportBtn.parentElement;
+    const root = $('nsvCleanStartRoot20260504') || q('#startScreen .menu-panel');
+    return root ? qa('section,.nsv-v26-section,.nsv-v25-save-card,.bg-gray-900\/80', root).find(el => /データ引き継ぎ|EXPORT|IMPORT/.test(el.textContent || '')) : null;
+  }
+  function findCheatCard(){ return $('nsvV28HomeCheatCard') || $('nsvV26CheatCard') || $('nsvV13StartCheat'); }
+
+  function removeOldSettingBlocks(root){
+    if (!root) return;
+    qa('section,.nsv-v26-section,.nsv-v25-section,.nsv-clean-section,.bg-gray-900\/80', root).forEach(el => {
+      if (el.id === 'nsvV31SettingsSection') return;
+      const text = (el.textContent || '').replace(/\s+/g,'');
+      if (/SETTINGS|セッティング|ジョイスティック|軽量モード/.test(text) && !/データ引き継ぎ|チートコード/.test(text)) {
+        if (el.querySelector('#startBtn,#onlineStartBtn,#openShopBtn,#openRankViewBtnV26,#exportBtn,#importBtn')) return;
+        el.remove();
+      }
+    });
+  }
+
+  function makeToggle(id, title, desc, value, onChange){
+    const card = document.createElement('div');
+    card.className = 'nsv-v31-toggle-card';
+    card.innerHTML = `<div><div class="nsv-v31-toggle-title">${esc(title)}</div><div class="nsv-v31-toggle-desc">${esc(desc)}</div></div><label class="nsv-v31-switch" aria-label="${esc(title)}"><input id="${id}" type="checkbox"><span class="nsv-v31-knob"></span><span class="nsv-v31-onoff">OFF</span></label>`;
+    const input = card.querySelector('input');
+    const label = card.querySelector('.nsv-v31-switch');
+    input.checked = !!value;
+    const syncText = () => { const s = card.querySelector('.nsv-v31-onoff'); if (s) s.textContent = input.checked ? 'ON' : 'OFF'; };
+    syncText();
+    const handler = (e) => { e.stopPropagation(); const next = !!input.checked; syncText(); onChange(next); };
+    input.addEventListener('change', handler, { passive:false });
+    label.addEventListener('pointerup', (e) => { e.stopPropagation(); }, { passive:false });
+    label.addEventListener('click', (e) => { e.stopPropagation(); }, { passive:false });
+    return card;
+  }
+
+  function ensureSettingsPanel(){
+    safe(() => {
+      const start = $('startScreen');
+      const panel = q('#startScreen .menu-panel');
+      if (!start || !panel) return;
+      injectStyleV31();
+      const root = $('nsvCleanStartRoot20260504') || panel;
+      removeOldSettingBlocks(root);
+      let sec = $('nsvV31SettingsSection');
+      if (!sec) { sec = document.createElement('section'); sec.id = 'nsvV31SettingsSection'; }
+      sec.className = '';
+      sec.innerHTML = `<div class="nsv-v31-section-title"><span>SETTINGS</span><span class="nsv-v31-section-sub">トグルでON/OFF</span></div><div class="nsv-v31-settings-grid" id="nsvV31SettingsGrid"></div>`;
+      const grid = sec.querySelector('#nsvV31SettingsGrid');
+      grid.appendChild(makeToggle('nsvV31JoystickToggle','ジョイスティック','スマホ・iPadで右下の仮想スティックを使います。', readJoy(), setJoy));
+      grid.appendChild(makeToggle('nsvV31LightToggle','軽量モード','エフェクト量を減らして、重い時に落ちにくくします。', readLight(), setLight));
+      const saveSec = findSaveSection();
+      const cheat = findCheatCard();
+      const anchor = cheat || saveSec;
+      if (anchor && anchor.parentElement) {
+        if (sec.parentElement !== anchor.parentElement || sec.nextElementSibling !== anchor) anchor.parentElement.insertBefore(sec, anchor);
+      } else if (root && sec.parentElement !== root) root.appendChild(sec);
+      sec.style.pointerEvents = 'auto';
+      syncTogglesV31();
+    });
+  }
+
+  function syncTogglesV31(){
+    safe(() => {
+      const j = $('nsvV31JoystickToggle'); if (j && j.checked !== readJoy()) j.checked = readJoy();
+      const l = $('nsvV31LightToggle'); if (l && l.checked !== readLight()) l.checked = readLight();
+      qa('.nsv-v31-switch').forEach(sw => { const i = sw.querySelector('input'); const t = sw.querySelector('.nsv-v31-onoff'); if (i && t) t.textContent = i.checked ? 'ON' : 'OFF'; });
+    });
+  }
+
+  function ensureShopData(){
+    return safe(() => {
+      if (typeof userData === 'undefined' || !userData) return { coins:0, passTickets:0, shop:{firstPassTicketBought:false}, battlePassV2:{premium:false} };
+      userData.shop = userData.shop || {};
+      userData.shop.firstPassTicketBought = !!userData.shop.firstPassTicketBought;
+      userData.passTickets = Math.max(0, Math.floor(num(userData.passTickets, 0)));
+      userData.battlePassV2 = userData.battlePassV2 || {};
+      userData.battlePassV2.premium = !!userData.battlePassV2.premium;
+      userData.coins = Math.max(0, Math.floor(num(userData.coins, 0)));
+      return userData;
+    }, { coins:0, passTickets:0, shop:{firstPassTicketBought:false}, battlePassV2:{premium:false} });
+  }
+  function seasonInfo(){
+    return safe(() => typeof fridaySeasonInfoV2 === 'function' ? fridaySeasonInfoV2() : null, null) || { id:1, remain:'--', theme:{ icon:'⭐', name:'NEON GENESIS' } };
+  }
+  function passBought(){ const u = ensureShopData(); return !!(u.battlePassV2 && u.battlePassV2.premium); }
+  function setPassBought(){ const u = ensureShopData(); u.battlePassV2.premium = true; saveMainData(); }
+
+  function hardShowScreen(id){
+    safe(() => {
+      const screens = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen','shopScreen','battlePassScreen','leaderboardScreen'];
+      screens.forEach(sid => { const el = $(sid); if (!el) return; if (sid === id) { el.classList.remove('hidden'); el.style.display = 'flex'; el.style.pointerEvents = 'auto'; } else { el.classList.add('hidden'); el.style.display = 'none'; } });
+      if (typeof gameState !== 'undefined' && id !== 'startScreen' && id !== 'levelUpScreen' && id !== 'pauseScreen' && id !== 'gameOverScreen') gameState = 'menu';
+    });
+  }
+
+  function ensureShopScreen(){
+    injectStyleV31();
+    let div = $('shopScreen');
+    if (!div) { div = document.createElement('div'); div.id = 'shopScreen'; document.body.appendChild(div); }
+    div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center backdrop-blur-md hidden p-3 nsv-v31-shop-screen';
+    div.style.pointerEvents = 'auto';
+    div.innerHTML = `<div class="menu-panel nsv-v31-shop-panel flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,'Noto Sans JP',sans-serif;text-shadow:0 0 15px #facc15;">SHOP</h2><p class="text-gray-300 text-sm mt-2">コインでネオンパスチケットを買い、チケットでNEON PASSに引き換えます。</p></div><button id="closeShopBtnV31" class="btn-neon px-5 py-3 rounded font-bold">BACK</button></div><div id="shopListContainer" class="flex flex-col gap-4"></div></div>`;
+    $('closeShopBtnV31')?.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); hardShowScreen('startScreen'); }, { passive:false });
+    return div;
+  }
+
+  function renderShopV31(){
+    const div = ensureShopScreen();
+    const u = ensureShopData();
+    const s = seasonInfo();
+    const cost = u.shop.firstPassTicketBought ? REPEAT_TICKET_COST_V31 : FIRST_TICKET_COST_V31;
+    const coins = Math.floor(num(u.coins, 0));
+    const tickets = Math.floor(num(u.passTickets, 0));
+    const bought = passBought();
+    const canBuy = coins >= cost;
+    const canExchange = tickets > 0 && !bought;
+    const box = $('shopListContainer');
+    if (!box) return div;
+    box.innerHTML = `<div class="nsv-v31-shop-summary"><div class="nsv-v31-shop-stat"><small>所持コイン</small><b>🪙 ${coins.toLocaleString()}</b></div><div class="nsv-v31-shop-stat"><small>チケット</small><b>🎟️ ${tickets}</b></div><div class="nsv-v31-shop-stat"><small>NEON PASS</small><b>${bought ? '解放済み' : '未解放'}</b></div></div><div class="nsv-v31-shop-grid"><div class="nsv-v31-shop-card gold"><div class="text-5xl">🎟️</div><h3>ネオンパスチケット購入</h3><p>初回だけ5,000コイン。2回目以降は1,000,000コインでチケットを1枚買えます。</p><div class="nsv-v31-price"><div>必要コイン：<b>${cost.toLocaleString()}</b></div><div class="text-xs text-gray-400 mt-1">${u.shop.firstPassTicketBought ? '2回目以降の価格です。' : '初回割引価格です。'}</div></div><button id="buyPassTicketBtnV31" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${canBuy ? '' : 'opacity-40 cursor-not-allowed'}" ${canBuy ? '' : 'disabled'}>🎟️ チケットを買う</button></div><div class="nsv-v31-shop-card"><div class="text-5xl">${esc(s.theme?.icon || '⭐')}</div><h3>NEON PASSに引き換え</h3><p>ネオンパスチケット1枚を使って、今のシーズンのNEON PASSを解放します。</p><div class="nsv-v31-price"><div>シーズン：<b>${esc(s.id)}</b></div><div>テーマ：<b>${esc(s.theme?.name || 'NEON GENESIS')}</b></div><div>必要：<b>チケット1枚</b></div></div><button id="exchangeNeonPassBtnV31" class="btn-neon px-5 py-3 rounded font-bold mt-4 w-full ${canExchange ? '' : 'opacity-40 cursor-not-allowed'}" ${canExchange ? '' : 'disabled'}>${bought ? '購入済み' : 'NEON PASSに引き換え'}</button><button id="openPassFromShopBtnV31" class="btn-purple px-5 py-3 rounded font-bold mt-3 w-full">NEON PASSを見る</button></div></div>`;
+    $('buyPassTicketBtnV31')?.addEventListener('click', buyTicketV31, { passive:false });
+    $('exchangeNeonPassBtnV31')?.addEventListener('click', exchangePassV31, { passive:false });
+    $('openPassFromShopBtnV31')?.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); safe(() => { if (typeof renderBattlePassV2 === 'function') renderBattlePassV2('base'); }); hardShowScreen('battlePassScreen'); }, { passive:false });
+    return div;
+  }
+
+  function buyTicketV31(e){
+    e?.preventDefault?.(); e?.stopPropagation?.();
+    const u = ensureShopData();
+    const price = u.shop.firstPassTicketBought ? REPEAT_TICKET_COST_V31 : FIRST_TICKET_COST_V31;
+    if (num(u.coins, 0) < price) { toast('SHOP', 'コインが足りません。'); return; }
+    u.coins = Math.max(0, Math.floor(num(u.coins, 0) - price));
+    u.passTickets = Math.floor(num(u.passTickets, 0)) + 1;
+    u.shop.firstPassTicketBought = true;
+    saveMainData();
+    toast('TICKET GET!', 'ネオンパスチケット +1');
+    renderShopV31();
+  }
+  function exchangePassV31(e){
+    e?.preventDefault?.(); e?.stopPropagation?.();
+    const u = ensureShopData();
+    if (passBought()) { toast('NEON PASS', 'すでに購入済みです。'); return; }
+    if (num(u.passTickets, 0) <= 0) { toast('NEON PASS', 'チケットがありません。SHOPで購入してください。'); return; }
+    u.passTickets = Math.max(0, Math.floor(num(u.passTickets, 0)) - 1);
+    setPassBought();
+    saveMainData();
+    toast('NEON PASS UNLOCKED!', 'チケット1枚でNEON PASSを解放しました。');
+    renderShopV31();
+  }
+
+  function ensureShopButton(){
+    safe(() => {
+      const grid = q('#startScreen .nsv-v26-button-grid') || q('#startScreen .nsv-v25-button-grid') || q('#startScreen .menu-grid') || q('#startScreen .menu-panel');
+      let btn = $('openShopBtn') || $('openShopHeroBtn');
+      if (!btn && grid) { btn = document.createElement('button'); btn.id = 'openShopBtn'; btn.className = 'btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer'; grid.appendChild(btn); }
+      if (!btn) return;
+      if (btn.id !== 'openShopBtn') btn.id = 'openShopBtn';
+      btn.className = (btn.className || 'btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer');
+      btn.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">チケット購入</span>';
+      btn.disabled = false;
+      btn.style.pointerEvents = 'auto';
+      btn.style.touchAction = 'manipulation';
+    });
+  }
+
+  function openShopV31(e){
+    if (e) { e.preventDefault(); e.stopPropagation(); if (e.stopImmediatePropagation) e.stopImmediatePropagation(); }
+    renderShopV31();
+    hardShowScreen('shopScreen');
+  }
+
+  function installShopRoute(){
+    if (window.__nsvV31ShopRoute) return;
+    window.__nsvV31ShopRoute = true;
+    ['pointerup','click'].forEach(type => {
+      window.addEventListener(type, function(ev){
+        const target = ev.target && ev.target.closest ? ev.target.closest('button,a') : null;
+        if (!target) return;
+        const text = (target.textContent || '').toUpperCase();
+        if (target.id === 'openShopBtn' || target.id === 'openShopHeroBtn' || (target.tagName === 'BUTTON' && /SHOP|ショップ/.test(text))) {
+          openShopV31(ev);
+        }
+      }, true);
+    });
+  }
+
+  function bootV31(){
+    injectStyleV31();
+    updateLabelV31();
+    ensureSettingsPanel();
+    ensureShopButton();
+    ensureShopScreen();
+    installShopRoute();
+    syncTogglesV31();
+    if ($('shopScreen') && !$('shopScreen').classList.contains('hidden')) renderShopV31();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV31, { once:true });
+  else bootV31();
+  window.addEventListener('load', bootV31, { passive:true });
+  window.addEventListener('pageshow', bootV31, { passive:true });
+  window.addEventListener('orientationchange', () => setTimeout(bootV31, 220), { passive:true });
+  setInterval(bootV31, 1200);
+})();
+
+
+/* ==========================================================
+   V33 STABLE: MASTER BUTTON / SCREEN / CHEAT / PERFORMANCE PATCH
+   - 最後に読み込まれる安全パッチ。ゲーム内に長い説明は出さない。
+   ========================================================== */
+(() => {
+  'use strict';
+  if (window.__nsvV33StableInstalled) return;
+  window.__nsvV33StableInstalled = true;
+
+  const V33_LABEL = 'V33 STABLE';
+  const ADMIN_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
+  const FIRST_TICKET_COST_V33 = 5000;
+  const REPEAT_TICKET_COST_V33 = 1000000;
+
+  const $ = (id) => document.getElementById(id);
+  const qa = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const safe = (fn, fallback) => { try { return fn(); } catch (e) { console.warn('V33 guard:', e); return fallback; } };
+  const n = (v, d = 0) => Number.isFinite(Number(v)) ? Number(v) : d;
+
+  function saveNow(){ safe(() => { if (typeof saveData === 'function') saveData(); else localStorage.setItem('neonSurvivorUserData', JSON.stringify(userData)); }); }
+  function toast(title, body = ''){
+    safe(() => {
+      if (typeof showMissionToast === 'function') showMissionToast(title, body);
+      else console.log('[NEON]', title, body);
+    });
+  }
+
+  function ensureData(){
+    if (typeof userData === 'undefined' || !userData) return {};
+    userData.nickname = userData.nickname || localStorage.getItem('neonSurvivorNickname') || '';
+    userData.coins = Math.floor(n(userData.coins, 0));
+    userData.passTickets = Math.floor(n(userData.passTickets, 0));
+    userData.shop = userData.shop || {};
+    userData.friends = Array.isArray(userData.friends) ? userData.friends : [];
+    userData.missions = userData.missions || { completed:{}, claimed:{} };
+    userData.missions.completed = userData.missions.completed || {};
+    userData.missions.claimed = userData.missions.claimed || {};
+    userData.unlocks = userData.unlocks || { legendaryWeapons:{}, skins:{ classic:true }, auras:{ none:true } };
+    userData.unlocks.legendaryWeapons = userData.unlocks.legendaryWeapons || {};
+    userData.unlocks.skins = userData.unlocks.skins || { classic:true };
+    userData.unlocks.auras = userData.unlocks.auras || { none:true };
+    userData.stats = userData.stats || {};
+    userData.cheats = userData.cheats || {};
+    userData.cheats.flags = userData.cheats.flags || {};
+    return userData;
+  }
+
+  function injectStyle(){
+    if ($('nsvV33Style')) return;
+    const st = document.createElement('style');
+    st.id = 'nsvV33Style';
+    st.textContent = `
+      #nsvV33Badge{position:fixed;left:8px;bottom:8px;z-index:120;color:#67e8f9;background:rgba(0,0,0,.62);border:1px solid rgba(34,211,238,.65);border-radius:999px;padding:4px 9px;font:800 11px Orbitron,monospace;letter-spacing:.08em;box-shadow:0 0 12px rgba(34,211,238,.28);pointer-events:none}
+      .nsv-v33-screen{position:absolute;inset:0;background:rgba(0,0,0,.92);z-index:61;display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto;-webkit-overflow-scrolling:touch;backdrop-filter:blur(8px)}
+      .nsv-v33-panel{width:min(94vw,980px);max-height:92vh;overflow:auto;border:1px solid rgba(34,211,238,.55);border-radius:24px;background:linear-gradient(180deg,rgba(2,6,23,.96),rgba(0,0,0,.9));box-shadow:0 0 32px rgba(34,211,238,.22);padding:18px;color:#fff}
+      .nsv-v33-title{font-family:Orbitron,monospace;font-weight:900;font-size:clamp(1.7rem,4vw,3rem);color:#67e8f9;text-shadow:0 0 14px #0891b2;margin:0 0 8px}
+      .nsv-v33-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.nsv-v33-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+      .nsv-v33-card{border:1px solid rgba(148,163,184,.35);background:rgba(15,23,42,.78);border-radius:18px;padding:14px;box-shadow:inset 0 0 12px rgba(34,211,238,.08)}
+      .nsv-v33-btn{min-height:48px;border-radius:14px;border:2px solid #22d3ee;color:#cffafe;background:rgba(8,47,73,.45);font-weight:900;box-shadow:0 0 12px rgba(34,211,238,.28);padding:10px 14px;touch-action:manipulation;pointer-events:auto;cursor:pointer}.nsv-v33-btn:active{transform:scale(.985)}
+      .nsv-v33-gold{border-color:#facc15;color:#fef3c7;background:rgba(113,63,18,.35);box-shadow:0 0 12px rgba(250,204,21,.25)}.nsv-v33-red{border-color:#fb7185;color:#ffe4e6;background:rgba(127,29,29,.3)}
+      .nsv-v33-input{width:100%;background:rgba(0,0,0,.65);border:1px solid rgba(34,211,238,.65);border-radius:12px;color:#fff;padding:11px 12px;font-weight:900;outline:none;letter-spacing:.12em;text-align:center}
+      .nsv-v33-rank-row{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;padding:12px;border:1px solid rgba(34,211,238,.28);border-radius:14px;background:rgba(0,0,0,.28);font-size:1rem}.nsv-v33-rank-row b{font-size:1.15rem;color:#facc15}
+      .nsv-v33-cheat{border:1px solid rgba(250,204,21,.55);background:rgba(15,23,42,.88);border-radius:18px;padding:14px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;width:100%}
+      .nsv-v33-cheat small{grid-column:1/-1;color:#fde68a}.nsv-v33-hidden{display:none!important}
+      #pauseScreen,#gameOverScreen{overflow:auto!important;-webkit-overflow-scrolling:touch;align-items:flex-start!important;padding-top:24px!important;padding-bottom:44px!important}
+      #startScreen button,#pauseScreen button,#gameOverScreen button,#shopScreen button,#leaderboardScreen button,#rankingScreenV33 button,#missionsScreen button,#collectionScreen button,#weaponCodexScreen button,#bossCodexScreen button,#battlePassScreen button{pointer-events:auto!important;touch-action:manipulation!important;user-select:none!important;position:relative}
+      #uiLayer{pointer-events:none}.pointer-events-auto,#pauseBtn{pointer-events:auto!important}
+      @media(max-width:720px){.nsv-v33-grid,.nsv-v33-grid3{grid-template-columns:1fr}.nsv-v33-cheat{grid-template-columns:1fr}.nsv-v33-panel{padding:14px}.nsv-v33-rank-row{font-size:1.05rem}}
+    `;
+    document.head.appendChild(st);
+  }
+
+  function updateBadge(){
+    safe(() => {
+      document.documentElement.setAttribute('data-nsv-version', V33_LABEL);
+      let b = $('nsvV33Badge');
+      if (!b) { b = document.createElement('div'); b.id = 'nsvV33Badge'; document.body.appendChild(b); }
+      b.textContent = V33_LABEL;
+      qa('[id^="nsvV32Badge"],[id^="nsvV31Badge"],[id^="nsvV30Badge"],[id^="nsvV29Badge"],[id^="nsvV28Badge"],[id^="nsvV27Badge"],[id^="nsvV26Badge"],[id^="nsvV25Badge"],[id^="nsvV24Badge"],[id^="nsvV23Badge"],[id^="nsvV22Badge"],[id^="nsvV21Badge"],[id^="nsvV20Badge"],[id^="nsvV19Badge"],[id^="nsvV18Badge"],[id^="nsvV17Badge"]').forEach(el => { if (el.id !== 'nsvV33Badge') el.classList.add('nsv-v33-hidden'); });
+    });
+  }
+
+  const screenIds = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen','shopScreen','battlePassScreen','leaderboardScreen','rankingScreenV33','eventModeScreen','dailyEventScreenV33'];
+  function hideScreen(el){ if (!el) return; el.classList.add('hidden'); if (el.classList.contains('nsv-v33-screen')) el.style.display = 'none'; }
+  function showScreenV33(id){
+    safe(() => {
+      screenIds.forEach(sid => { const el = $(sid); if (sid !== id) hideScreen(el); });
+      const target = id ? $(id) : null;
+      if (target) { target.classList.remove('hidden'); if (target.classList.contains('nsv-v33-screen')) target.style.display = 'flex'; }
+      if (id === 'startScreen') { safe(() => { gameState = 'start'; }); clearGameplayOverlays(); }
+      if (id === 'pauseScreen') { ensurePauseCheat(); safe(() => { if (typeof renderPauseWeaponStatusV13 === 'function') renderPauseWeaponStatusV13(); }); }
+    });
+  }
+  function clearGameplayOverlays(){
+    safe(() => {
+      ['bossWarning','generalCutin','mapEventForecastHud','tutorialOverlay','shatterEffect'].forEach(id => { const el = $(id); if (el) el.classList.add('hidden'); });
+      const mt = $('missionToast'); if (mt && typeof gameState !== 'undefined' && gameState !== 'playing') mt.innerHTML = '';
+      const ui = $('uiLayer'); if (ui && typeof gameState !== 'undefined' && gameState !== 'playing' && gameState !== 'paused') ui.classList.add('hidden');
+      const boss = $('bossHpContainer'); if (boss && typeof gameState !== 'undefined' && gameState !== 'playing') boss.classList.add('hidden');
+      const joy = $('joystickZone'); if (joy && typeof gameState !== 'undefined' && gameState !== 'playing') joy.classList.add('hidden');
+    });
+  }
+
+  function makeScreen(id){
+    let d = $(id);
+    if (!d) { d = document.createElement('div'); d.id = id; d.className = 'nsv-v33-screen hidden'; d.style.display = 'none'; document.body.appendChild(d); }
+    return d;
+  }
+
+  function getFriendCode(){
+    const u = ensureData();
+    if (!u.friendCodeV33) {
+      const base = String(u.nickname || 'PLAYER') + ':' + Date.now() + ':' + Math.random();
+      let hash = 2166136261;
+      for (let i = 0; i < base.length; i++) { hash ^= base.charCodeAt(i); hash = Math.imul(hash, 16777619); }
+      u.friendCodeV33 = ('NS' + Math.abs(hash >>> 0).toString(36).toUpperCase()).slice(0,10);
+      saveNow();
+    }
+    return u.friendCodeV33;
+  }
+  function copyText(text){
+    safe(async () => {
+      if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(text);
+      else { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+      toast('COPY', 'フレンドコードをコピーしました。');
+    });
+  }
+
+  function renderRankingV33(){
+    const u = ensureData();
+    const div = makeScreen('leaderboardScreen');
+    const code = getFriendCode();
+    const cats = [
+      ['score','SCORE','スコア', n(u.score,0)],
+      ['time','TIME','生存時間', n(u.stats.bestTime || u.bestTime || 0,0)],
+      ['coin','COIN','所持コイン', n(u.coins,0)],
+      ['level','LEVEL','最高レベル', n(u.stats.bestLevel || u.bestLevel || 0,0)],
+      ['boss','BOSS','ボス撃破', n(u.stats.bossKills || u.bossKills || 0,0)],
+      ['mission','MISSION','ミッション', Object.keys(u.missions.completed || {}).length]
+    ];
+    const friends = Array.isArray(u.friends) ? u.friends : [];
+    const cards = cats.map(([key,en,jp,my]) => {
+      const rows = [{ name: u.nickname || 'YOU', value: my, mine:true }].concat(friends.map((f,i) => ({ name: f.name || ('FRIEND ' + (i+1)), value: n((f.records && f.records[key]) || 0,0), mine:false })));
+      rows.sort((a,b) => b.value - a.value);
+      while (rows.length < 3) rows.push({ name:'記録なし', value:0, empty:true });
+      return `<div class="nsv-v33-card"><div class="text-cyan-200 font-black text-lg mb-2">${en}<span class="text-gray-300 text-sm ml-2">${jp}</span></div>${rows.slice(0,3).map((r,i)=>`<div class="nsv-v33-rank-row"><b>${i+1}位</b><span>${r.empty ? '記録なし' : (r.mine ? '⭐ ' : '') + escapeHtml(r.name)}</span><strong>${Math.floor(r.value).toLocaleString()}</strong></div>`).join('')}</div>`;
+    }).join('');
+    div.innerHTML = `<div class="nsv-v33-panel"><div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3"><div><h2 class="nsv-v33-title">RANKING</h2><p class="text-gray-300 text-sm">全ての部門を3位まで表示します。</p></div><button id="closeRankingBtnV33" class="nsv-v33-btn">BACK</button></div><div class="nsv-v33-card mb-4"><div class="text-yellow-200 font-black mb-2">FRIEND CODE</div><div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2"><button id="copyFriendCodeBtnV33" class="nsv-v33-btn nsv-v33-gold text-xl tracking-widest">${code}</button><button id="copyFriendCodeBtnV33b" class="nsv-v33-btn">COPY</button></div><div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2 mt-3"><input id="friendCodePasteInputV33" class="nsv-v33-input" placeholder="友達コードを貼り付け"><button id="addFriendBtnV33" class="nsv-v33-btn nsv-v33-gold">ADD FRIEND</button></div></div><div class="nsv-v33-grid">${cards}</div></div>`;
+    $('copyFriendCodeBtnV33')?.addEventListener('click', () => copyText(code));
+    $('copyFriendCodeBtnV33b')?.addEventListener('click', () => copyText(code));
+    $('addFriendBtnV33')?.addEventListener('click', () => {
+      const inp = $('friendCodePasteInputV33');
+      const val = String(inp?.value || '').trim().toUpperCase();
+      if (!val) return toast('FRIEND', 'コードを入力してください。');
+      if (val === code) return toast('FRIEND', '自分のコードです。');
+      if (u.friends.some(f => String(f.code).toUpperCase() === val)) return toast('FRIEND', 'すでに追加済みです。');
+      u.friends.push({ code: val, name: 'FRIEND ' + (u.friends.length + 1), records:{} }); saveNow(); toast('FRIEND ADDED', val); renderRankingV33();
+    });
+    $('closeRankingBtnV33')?.addEventListener('click', () => showScreenV33('startScreen'));
+  }
+
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function passBought(){ const u = ensureData(); return !!(u.neonPassOwned || u.battlePassPremium || (u.battlePass && u.battlePass.premium) || (u.battlePassV2 && u.battlePassV2.premium)); }
+  function setPassBought(){ const u = ensureData(); u.neonPassOwned = true; u.battlePassPremium = true; u.battlePass = u.battlePass || {}; u.battlePass.premium = true; u.battlePassV2 = u.battlePassV2 || {}; u.battlePassV2.premium = true; }
+  function renderShopV33(){
+    const u = ensureData();
+    const div = makeScreen('shopScreen');
+    const price = u.shop.firstPassTicketBought ? REPEAT_TICKET_COST_V33 : FIRST_TICKET_COST_V33;
+    div.innerHTML = `<div class="nsv-v33-panel"><div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3"><div><h2 class="nsv-v33-title">SHOP</h2><p class="text-gray-300 text-sm">ネオンパスチケットを購入して、NEON PASSに交換できます。</p></div><button id="closeShopBtn" class="nsv-v33-btn">BACK</button></div><div class="nsv-v33-grid3 mb-4"><div class="nsv-v33-card"><div class="text-gray-300 text-sm">COIN</div><div class="text-2xl font-black text-yellow-300">🪙 ${Math.floor(n(u.coins,0)).toLocaleString()}</div></div><div class="nsv-v33-card"><div class="text-gray-300 text-sm">TICKET</div><div class="text-2xl font-black text-cyan-300">🎟️ ${Math.floor(n(u.passTickets,0)).toLocaleString()}</div></div><div class="nsv-v33-card"><div class="text-gray-300 text-sm">NEON PASS</div><div class="text-2xl font-black ${passBought() ? 'text-green-300' : 'text-red-300'}">${passBought() ? '購入済み' : '未購入'}</div></div></div><div class="nsv-v33-grid"><div class="nsv-v33-card"><h3 class="text-xl font-black text-yellow-200 mb-2">🎟️ ネオンパスチケット</h3><p class="text-gray-300 mb-3">価格：${price.toLocaleString()} コイン${u.shop.firstPassTicketBought ? '' : '（初回限定）'}</p><button id="buyPassTicketBtnV33" class="nsv-v33-btn nsv-v33-gold w-full">BUY TICKET</button></div><div class="nsv-v33-card"><h3 class="text-xl font-black text-cyan-200 mb-2">⚡ NEON PASS</h3><p class="text-gray-300 mb-3">チケット1枚でネオンパスに引き換えできます。</p><button id="exchangeNeonPassBtnV33" class="nsv-v33-btn w-full">チケットで交換</button></div></div></div>`;
+    $('closeShopBtn')?.addEventListener('click', () => showScreenV33('startScreen'));
+    $('buyPassTicketBtnV33')?.addEventListener('click', () => { const d = ensureData(); const cost = d.shop.firstPassTicketBought ? REPEAT_TICKET_COST_V33 : FIRST_TICKET_COST_V33; if (n(d.coins,0) < cost) return toast('SHOP', 'コインが足りません。'); d.coins = Math.max(0, Math.floor(n(d.coins,0) - cost)); d.passTickets = Math.floor(n(d.passTickets,0)) + 1; d.shop.firstPassTicketBought = true; saveNow(); toast('TICKET GET', 'ネオンパスチケット +1'); renderShopV33(); });
+    $('exchangeNeonPassBtnV33')?.addEventListener('click', () => { const d = ensureData(); if (passBought()) return toast('NEON PASS', 'すでに購入済みです。'); if (n(d.passTickets,0) <= 0) return toast('NEON PASS', 'チケットがありません。'); d.passTickets = Math.max(0, Math.floor(n(d.passTickets,0)-1)); setPassBought(); saveNow(); toast('NEON PASS', '解放しました。'); renderShopV33(); });
+  }
+
+  const CHEATS_V33 = {
+    '0000000': ['全チート効果をキャンセル', () => { const u=ensureData(); u.cheats.flags = {}; saveNow(); if (typeof player !== 'undefined' && player) player.__v33Base = null; }],
+    '9184726': ['コイン +50,000', () => { ensureData().coins += 50000; saveNow(); }],
+    '4729368': ['コイン +500,000', () => { ensureData().coins += 500000; saveNow(); }],
+    '8391647': ['コイン +5,000,000', () => { ensureData().coins += 5000000; saveNow(); }],
+    '2638479': ['最大HP 3倍', () => setFlag('hpMult', 3)],
+    '7195846': ['最大HP 10倍', () => setFlag('hpMult', 10)],
+    '5483927': ['攻撃力 5倍', () => setFlag('damageMult', 5)],
+    '3917628': ['ワンパンモード', () => setFlag('oneHit', true)],
+    '6829471': ['無敵モード', () => setFlag('invincible', true)],
+    '9473182': ['経験値 20倍', () => setFlag('expMult', 20)],
+    '8246139': ['ジェム磁力MAX', () => setFlag('magnetMax', true)],
+    '7359841': ['移動速度 2倍', () => setFlag('speedMult', 2)],
+    '5862419': ['超連射モード', () => setFlag('rapidFire', true)],
+    '4297816': ['強武器スターター', () => setFlag('starterKit', true)],
+    '9672483': ['全アルティメット解放', () => unlockAllUltimate()],
+    '3186794': ['全アップグレード +20', () => addAllUpgrades(20)],
+    '7561938': ['全アップグレードMAX', () => addAllUpgrades(999)],
+    '6847319': ['ネオンパス解放 + チケット3枚', () => { const u=ensureData(); u.passTickets += 3; setPassBought(); saveNow(); }],
+    '2936817': ['全コレクション解放', () => unlockAllCollection()],
+    '5198472': ['レベルアップ 5倍', () => setFlag('levelBoost', 5)],
+    '8369274': ['レベルアップ 10倍', () => setFlag('levelBoost', 10)],
+    '4716298': ['伝説宝箱ブースト', () => setFlag('legendaryBoost', true)],
+    '6925814': ['ボスキラーモード', () => setFlag('bossKiller', true)],
+    '3847169': ['ネオン神モード', () => { setFlag('hpMult', 15, false); setFlag('damageMult', 15, false); setFlag('expMult', 30, false); setFlag('speedMult', 2.5, false); setFlag('magnetMax', true); setFlag('rapidFire', true); setFlag('invincible', true); saveNow(); }],
+    '8962741': ['全部入り最強セット', () => { const u=ensureData(); u.coins += 9999999; setPassBought(); unlockAllUltimate(); unlockAllCollection(); addAllUpgrades(999); setFlag('hpMult', 20, false); setFlag('damageMult', 20, false); setFlag('expMult', 50, false); setFlag('levelBoost', 10, false); setFlag('magnetMax', true, false); setFlag('rapidFire', true, false); setFlag('invincible', true, false); saveNow(); }]
+  };
+  window.NEON_SURVIVOR_V33_CHEATS = CHEATS_V33;
+
+  function setFlag(k,v,doSave=true){ ensureData().cheats.flags[k] = v; if (doSave) saveNow(); applyCheatsToPlayer(); }
+  function addAllUpgrades(amount){ const u=ensureData(); u.upgrades = u.upgrades || {}; ['hp','damage','speed','exp','armor','magnet','rapid','pierce'].forEach(k => { u.upgrades[k] = Math.max(n(u.upgrades[k],0), amount >= 999 ? 99 : n(u.upgrades[k],0) + amount); }); saveNow(); }
+  function unlockAllUltimate(){ const u=ensureData(); u.unlocks.legendaryWeapons = u.unlocks.legendaryWeapons || {}; safe(() => { if (Array.isArray(LEGENDARY_WEAPON_DEFS)) LEGENDARY_WEAPON_DEFS.forEach(w => { if (w.id) u.unlocks.legendaryWeapons[w.id] = true; }); }); ['neonLance','phoenixCore','starfallCrown','voidCollector','hollowMurasaki','infiniteBlade','keraunos','disneyMagic','muryoku','blackholeEmperor'].forEach(id => u.unlocks.legendaryWeapons[id] = true); saveNow(); }
+  function unlockAllCollection(){ const u=ensureData(); u.unlocks.skins = u.unlocks.skins || {}; u.unlocks.auras = u.unlocks.auras || {}; safe(() => { if (Array.isArray(SKIN_DEFS)) SKIN_DEFS.forEach(x => { if (x.id) u.unlocks.skins[x.id] = true; }); if (Array.isArray(AURA_DEFS)) AURA_DEFS.forEach(x => { if (x.id) u.unlocks.auras[x.id] = true; }); }); ['classic','ruby','gold','void','emerald','angel','obsidian','solar','sapphire','phantomSkin','infernoSkin','galaxyKnight','monkeySlayer','blackholeCore'].forEach(id => u.unlocks.skins[id] = true); ['none','cyanFlame','goldSpark','voidMist','toxicPulse','royalHalo','solarFlare','stormKing','crownBurst','galaxyTrail','infernoRing','phantomAfterimage','blackholeAura','thunderCrown'].forEach(id => u.unlocks.auras[id] = true); saveNow(); }
+
+  window.nsvApplyCheatCodeV33 = function(code){
+    const raw = String(code || '').replace(/\D/g,'').slice(0,7);
+    if (raw.length !== 7) { toast('CHEAT CODE', '7桁の数字を入力してください。'); return false; }
+    const item = CHEATS_V33[raw];
+    if (!item) { toast('CHEAT CODE', 'このコードは使えません。'); return false; }
+    safe(() => { item[1](); toast('CHEAT OK', item[0]); }, false);
+    return true;
+  };
+  window.nsvApplyCheatCodeV26 = window.nsvApplyCheatCodeV33;
+
+  function cheatBox(id){
+    const box = document.createElement('div');
+    box.id = id;
+    box.className = 'nsv-v33-cheat';
+    box.innerHTML = `<input id="${id}Input" class="nsv-v33-input" inputmode="numeric" maxlength="7" placeholder="7桁チートコード"><button id="${id}Btn" class="nsv-v33-btn nsv-v33-gold">USE</button><small>0000000でチート効果をキャンセル</small>`;
+    const apply = () => { const inp = $(`${id}Input`); if (window.nsvApplyCheatCodeV33(inp?.value || '')) inp.value = ''; };
+    box.querySelector('button')?.addEventListener('click', apply);
+    box.querySelector('input')?.addEventListener('keydown', e => { if (e.key === 'Enter') apply(); });
+    return box;
+  }
+  function findSaveSection(){
+    return $('exportBtn')?.closest?.('section') || $('exportBtn')?.closest?.('.nsv-v26-section') || $('exportBtn')?.closest?.('.nsv-v25-save-card') || $('exportBtn')?.closest?.('.bg-gray-900\/80') || $('exportBtn')?.parentElement || null;
+  }
+  function ensureHomeCheat(){
+    const start = $('startScreen'); if (!start) return;
+    qa('#nsvV13StartCheat,#nsvV26CheatCard,#nsvV28HomeCheatCard,#nsvV33HomeCheatOld').forEach(el => { if (el.id !== 'nsvV33HomeCheat') el.classList.add('nsv-v33-hidden'); });
+    let box = $('nsvV33HomeCheat'); if (!box) box = cheatBox('nsvV33HomeCheat');
+    const save = findSaveSection();
+    if (save && save.parentElement && box.nextElementSibling !== save) save.parentElement.insertBefore(box, save);
+    else if (!box.parentElement) (start.querySelector('.menu-panel') || start).appendChild(box);
+  }
+  function ensurePauseCheat(){
+    const pause = $('pauseScreen'); if (!pause) return;
+    let box = $('nsvV33PauseCheat'); if (!box) box = cheatBox('nsvV33PauseCheat');
+    const resume = $('resumeBtn');
+    if (resume && resume.parentElement && box.nextElementSibling !== resume.parentElement) resume.parentElement.parentElement?.insertBefore(box, resume.parentElement);
+    else if (!box.parentElement) pause.appendChild(box);
+  }
+
+  function applyCheatsToPlayer(){
+    safe(() => {
+      if (typeof player === 'undefined' || !player) return;
+      const flags = ensureData().cheats.flags || {};
+      player.__v33Base = player.__v33Base || { maxHp: Math.max(1, n(player.maxHp || player.hp,100)), speed: Math.max(.1, n(player.speed,4)), damage: Math.max(1, n(player.damage,10)), fireRate: Math.max(1, n(player.fireRate || player.shootCooldown || 20,20)), magnet: Math.max(80, n(player.magnetRange || 120,120)) };
+      if (flags.hpMult) { player.maxHp = Math.max(player.maxHp || 0, player.__v33Base.maxHp * n(flags.hpMult,1)); player.hp = Math.max(player.hp || 0, player.maxHp); }
+      if (flags.speedMult) player.speed = Math.max(player.speed || 0, player.__v33Base.speed * n(flags.speedMult,1));
+      if (flags.damageMult) player.damage = Math.max(player.damage || 0, player.__v33Base.damage * n(flags.damageMult,1));
+      if (flags.rapidFire) { if ('fireRate' in player) player.fireRate = Math.min(player.fireRate || 999, Math.max(1, player.__v33Base.fireRate * .25)); if ('shootCooldown' in player) player.shootCooldown = Math.min(player.shootCooldown || 999, 4); }
+      if (flags.magnetMax) player.magnetRange = Math.max(player.magnetRange || 0, 2200);
+      if (flags.invincible) { player.invincible = Math.max(n(player.invincible,0), 999999); player.damageReduction = 1; }
+      if (flags.levelBoost && player.pendingLevelUps !== undefined && player.pendingLevelUps > 0) player.pendingLevelUps = Math.max(player.pendingLevelUps, n(flags.levelBoost,1));
+      if (flags.oneHit || flags.bossKiller) {
+        if (Array.isArray(enemies)) enemies.forEach(en => { if (!en || en.markedForDeletion) return; if (flags.oneHit) en.hp = Math.min(en.hp || 1, 1); else if (en.isBoss || en.type === 3) en.hp = Math.min(en.hp || 1, Math.max(1, n(en.maxHp || en.hp,100) * .08)); });
+      }
+    });
+  }
+
+  function openExistingOrFallback(id, renderName){
+    safe(() => {
+      const fn = (typeof renderName === 'string') ? safe(() => eval(renderName), null) : null;
+      if (typeof fn === 'function') fn();
+      showScreenV33(id);
+    });
+  }
+
+  function doAction(btn, ev){
+    if (!btn) return false;
+    const id = btn.id || '';
+    const text = (btn.textContent || '').trim().toUpperCase();
+    const act = btn.dataset?.nsvAction || '';
+    const stop = () => { if (ev) { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); } };
+    switch (id || act) {
+      case 'startBtn': stop(); safe(() => { if (typeof gameState === 'undefined' || gameState === 'start' || gameState === 'gameover' || !$('startScreen')?.classList.contains('hidden')) initGame('solo'); }); return true;
+      case 'onlineStartBtn': stop(); safe(() => { if (typeof openOnlineRoleSelect === 'function') openOnlineRoleSelect(); else showScreenV33('onlineRoleScreen'); }); return true;
+      case 'pauseBtn': stop(); togglePauseV33(false); return true;
+      case 'resumeBtn': stop(); togglePauseV33(true); return true;
+      case 'restartBtn': case 'titleFromPauseBtn': stop(); safe(() => { gameState='start'; if (typeof stopOnlineMode === 'function') stopOnlineMode(); showScreenV33('startScreen'); if (typeof loadData === 'function') loadData(); }); return true;
+      case 'openUpgradeBtn': stop(); openExistingOrFallback('upgradeScreen','renderUpgradeScreen'); return true;
+      case 'openMissionBtn': stop(); openExistingOrFallback('missionsScreen','renderMissionScreen'); return true;
+      case 'openCollectionBtn': stop(); openExistingOrFallback('collectionScreen','renderCollectionScreen'); return true;
+      case 'openWeaponCodexBtn': stop(); openExistingOrFallback('weaponCodexScreen','renderWeaponCodexScreen'); return true;
+      case 'openBossCodexBtn': stop(); openExistingOrFallback('bossCodexScreen','renderBossCodexScreen'); return true;
+      case 'openLeaderboardBtn': case 'openLeaderboardBtnV13': case 'openRankViewBtnV26': case 'openRankingBtn': stop(); renderRankingV33(); showScreenV33('leaderboardScreen'); return true;
+      case 'openShopBtn': case 'openShopHeroBtn': stop(); renderShopV33(); showScreenV33('shopScreen'); return true;
+      case 'openBattlePassBtn': case 'openBattlePassHeroBtn': stop(); safe(() => { if (typeof renderBattlePassV2 === 'function') renderBattlePassV2(); else if (typeof renderBattlePassScreen20260504 === 'function') renderBattlePassScreen20260504(); showScreenV33('battlePassScreen'); }); return true;
+      case 'exportBtn': stop(); safe(() => exportSaveCode()); return true;
+      case 'importBtn': stop(); safe(() => importSaveCode()); return true;
+      case 'adminContactBtn': stop(); window.open(ADMIN_FORM_URL, '_blank', 'noopener'); return true;
+      case 'closeShopBtn': case 'closeRankingBtnV33': case 'closeMissionsBtn': case 'closeCollectionBtn': case 'closeWeaponCodexBtn': case 'closeBossCodexBtn': case 'closeOnlineRoleBtn': case 'closeBattlePassBtn': stop(); showScreenV33('startScreen'); return true;
+    }
+    if (/RANKING|ランキング/.test(text)) { stop(); renderRankingV33(); showScreenV33('leaderboardScreen'); return true; }
+    if (/SHOP|ショップ/.test(text)) { stop(); renderShopV33(); showScreenV33('shopScreen'); return true; }
+    if (/BACK|戻る/.test(text)) { stop(); showScreenV33('startScreen'); return true; }
+    return false;
+  }
+
+  function togglePauseV33(forceResume){
+    safe(() => {
+      if (forceResume || gameState === 'paused') {
+        gameState = 'playing';
+        showScreenV33(null);
+        if (typeof syncJoystickVisibility === 'function') syncJoystickVisibility();
+        if (typeof lastTime !== 'undefined') lastTime = performance.now();
+        if (typeof animationId !== 'undefined' && animationId) cancelAnimationFrame(animationId);
+        if (typeof gameLoop === 'function') animationId = requestAnimationFrame(gameLoop);
+        if (typeof Sound !== 'undefined' && Sound?.startBGM) Sound.startBGM();
+      } else if (typeof gameState === 'undefined' || gameState === 'playing') {
+        gameState = 'paused';
+        if (typeof syncJoystickVisibility === 'function') syncJoystickVisibility();
+        showScreenV33('pauseScreen');
+        if (typeof Sound !== 'undefined' && Sound?.stopBGM) Sound.stopBGM();
+      }
+    });
+  }
+
+  let tap = {x:0,y:0,t:0,moved:false,insideHome:false,lastAction:0};
+  function installButtonRouter(){
+    if (window.__nsvV33ButtonRouter) return; window.__nsvV33ButtonRouter = true;
+    window.addEventListener('pointerdown', ev => {
+      tap = { x: ev.clientX || 0, y: ev.clientY || 0, t: performance.now(), moved:false, insideHome: !!ev.target?.closest?.('#startScreen'), lastAction: tap.lastAction || 0 };
+    }, true);
+    window.addEventListener('pointermove', ev => {
+      if (Math.hypot((ev.clientX||0)-tap.x, (ev.clientY||0)-tap.y) > 4) tap.moved = true;
+    }, true);
+    window.addEventListener('pointerup', ev => {
+      if (tap.insideHome && tap.moved) { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); tap.lastAction = performance.now(); return; }
+      const btn = ev.target?.closest?.('button,a,[role="button"]');
+      if (btn && doAction(btn, ev)) tap.lastAction = performance.now();
+    }, true);
+    window.addEventListener('click', ev => {
+      if (performance.now() - tap.lastAction < 360) { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); return; }
+      if (tap.insideHome && tap.moved) { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); return; }
+      const btn = ev.target?.closest?.('button,a,[role="button"]');
+      if (btn && doAction(btn, ev)) tap.lastAction = performance.now();
+    }, true);
+  }
+
+  function makeButton(id, html, cls='btn-neon menu-secondary px-6 py-3 font-bold rounded cursor-pointer'){
+    let b = $(id);
+    if (!b) { b = document.createElement('button'); b.id = id; const grid = $('startBtn')?.parentElement || document.querySelector('#startScreen .menu-grid') || document.querySelector('#startScreen .menu-panel'); grid?.appendChild(b); }
+    b.innerHTML = html; b.className = b.className || cls; b.disabled = false; b.style.pointerEvents = 'auto'; b.style.touchAction = 'manipulation'; return b;
+  }
+  function ensureHomeButtons(){
+    safe(() => {
+      makeButton('openShopBtn','SHOP<br><span class="text-xs text-yellow-100 font-bold">チケット購入</span>','btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer');
+      makeButton('openLeaderboardBtn','RANKING<br><span class="text-xs text-cyan-100 font-bold">友達と記録勝負</span>');
+      makeButton('adminContactBtn','管理者へ連絡<br><span class="text-xs text-cyan-100 font-bold">フォームを開く</span>');
+      qa('#startScreen button,#pauseScreen button,#gameOverScreen button').forEach(b => { b.disabled = false; b.style.pointerEvents='auto'; b.style.touchAction='manipulation'; });
+      ensureHomeCheat(); ensurePauseCheat();
+    });
+  }
+
+  let fps = {last:performance.now(), value:60, lowCount:0};
+  function pruneArray(name, limit){
+    safe(() => { const arr = eval(name); if (Array.isArray(arr) && arr.length > limit) arr.splice(0, arr.length - limit); });
+  }
+  function performanceGuard(){
+    const level = Math.max(n(window.__nsvAutoLightLevel || 0,0), n(window.__nsvV32LightLevel || 0,0));
+    const cap = level >= 3 ? 120 : level >= 2 ? 200 : level >= 1 ? 340 : 520;
+    ['particles','floatingTexts','effects'].forEach(k => pruneArray(k, cap));
+    pruneArray('bullets', level >= 2 ? 180 : 260);
+    pruneArray('enemyBullets', level >= 2 ? 120 : 220);
+    pruneArray('gems', level >= 2 ? 220 : 420);
+    pruneArray('mapBlackholes', 0);
+    applyCheatsToPlayer();
+    safe(() => { if (typeof gameState !== 'undefined' && gameState === 'playing' && performance.now() - (window.__nsvV33SaveAt || 0) > 15000) { window.__nsvV33SaveAt = performance.now(); saveNow(); } });
+  }
+  function fpsLoop(t){
+    const dt = Math.max(1, t - fps.last); fps.last = t; const instant = 1000 / dt; fps.value = fps.value * .92 + instant * .08;
+    if (fps.value < 38) fps.lowCount++; else fps.lowCount = Math.max(0, fps.lowCount - 1);
+    if (fps.lowCount > 60) { window.__nsvAutoLightLevel = Math.min(3, n(window.__nsvAutoLightLevel,0) + 1); fps.lowCount = 0; safe(() => { isLightMode = true; document.body.classList.add('light-mode'); }); }
+    requestAnimationFrame(fpsLoop);
+  }
+
+  function boot(){
+    injectStyle(); updateBadge(); ensureData(); ensureHomeButtons(); installButtonRouter(); clearGameplayOverlays();
+    safe(() => { if ($('shopScreen') && !$('shopScreen').classList.contains('hidden')) renderShopV33(); });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true}); else boot();
+  window.addEventListener('load', boot, {passive:true});
+  window.addEventListener('pageshow', boot, {passive:true});
+  window.addEventListener('orientationchange', () => setTimeout(boot, 180), {passive:true});
+  setInterval(boot, 1600);
+  setInterval(performanceGuard, 700);
+  requestAnimationFrame(fpsLoop);
+})();
 </script>
 
 </body>
