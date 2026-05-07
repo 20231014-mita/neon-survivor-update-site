@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V33 UTF8 ROOM DAILY STABLE / no-preview build -->
+<!-- V35 ULTIMATE DAILY SAVE STABLE / no-preview build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -1049,7 +1049,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         );
 
         MISSION_DEFS.push(
-            { id:'m212', cat:'HARD', title:'虚式解放試練', desc:'最高レベル45に到達して、虚式「茈」を解放する', metric:'bestLevel', target:45, reward:{coins:18000, weapon:'hollowMurasaki'} },
+            { id:'m212', cat:'HARD', title:'虚式解放試練', desc:'最高レベル18に到達して、虚式「茈」を解放する', metric:'bestLevel', target:18, reward:{coins:18000, weapon:'hollowMurasaki'} },
             { id:'m213', cat:'HARD', title:'崩命破の継承', desc:'1回のプレイで敵を2200体倒して、龍星・崩命破を解放する', metric:'bestRunKills', target:2200, reward:{coins:20000, weapon:'kamehameha'} },
             { id:'m214', cat:'BOSS', title:'暗黒卿の試練', desc:'ボス系の敵を合計70体倒して、深淵の重力刃を解放する', metric:'totalBossLikeKills', target:70, reward:{coins:16000, weapon:'vader'} },
             { id:'m215', cat:'BOSS', title:'轟のハンマー', desc:'MONKEY KINGを合計7体倒して、雷霆砕破・轟を解放する', metric:'totalMonkeyKills', target:7, reward:{coins:17000, weapon:'thor'} },
@@ -1058,7 +1058,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             { id:'m218', cat:'SCORE', title:'機神起動', desc:'自己ベスト250000点を超えて、創世の光芒を解放する', metric:'bestScore', target:250000, reward:{coins:14000, weapon:'ironBlaster'} },
             { id:'m219', cat:'GEM', title:'星夢のステージ', desc:'ジェムを合計12000個集めて、星夢の輪舞曲を解放する', metric:'totalGems', target:12000, reward:{coins:15000, weapon:'disneyMagic'} },
             { id:'m220', cat:'HARD', title:'終焉の合図', desc:'自己ベスト700000点を超えて、終焉の指弾を解放する', metric:'bestScore', target:700000, reward:{coins:32000, weapon:'infinitySnap'} },
-            { id:'m221', cat:'KILL', title:'無限剣の契約', desc:'敵を合計16000体倒して、無限の剣陣を解放する', metric:'totalKills', target:16000, reward:{coins:18000, weapon:'infiniteBlade'} },
+            { id:'m221', cat:'HARD', title:'無限剣の契約', desc:'最高レベル15に到達して、無限の剣陣を解放する', metric:'bestLevel', target:15, reward:{coins:18000, weapon:'infiniteBlade'} },
             { id:'m222', cat:'BOSS', title:'不壊の守り', desc:'ボス系の敵を合計120体倒して、絶対防壁の反響を解放する', metric:'totalBossLikeKills', target:120, reward:{coins:19000, weapon:'shieldThrow'} },
             { id:'m223', cat:'HARD', title:'天帝の雷', desc:'最高レベル80に到達して、天帝の裁界・霹靂を解放する', metric:'bestLevel', target:80, reward:{coins:40000, weapon:'keraunos'} }
         );
@@ -12046,7 +12046,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             const V30_ID = 'nsvV30DirectStableFinal20260507';
             if (window[V30_ID]) return;
             window[V30_ID] = true;
-            const V30_VERSION_TEXT = 'V33 UTF8 ROOM DAILY STABLE';
+            const V30_VERSION_TEXT = 'V34 BUTTON SCREEN STABLE';
             const ADMIN_FORM_URL_V30 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
             const FRIEND_KEY_V30 = 'neon_survivor_friend_rows_v30';
             const ULTIMATE_IDS_V30 = new Set([
@@ -12062,9 +12062,9 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 { id:'disneyMagic', title:'星夢輪舞の試練', desc:'ジェムを合計1200個集めて、星夢の輪舞曲を解放する', metric:'totalGems', target:1200, coins:8200 },
                 { id:'muryoku', title:'領域展開の試練', desc:'1回のプレイで420秒生き残り、無量空処を解放する', metric:'bestTime', target:420, coins:9000 },
                 { id:'infinitySnap', title:'終焉指弾の試練', desc:'1回のプレイで500体倒して、終焉の指弾を解放する', metric:'bestRunKills', target:500, coins:10000 },
-                { id:'infiniteBlade', title:'無限剣陣の試練', desc:'最高レベル30に到達して、無限の剣陣を解放する', metric:'bestLevel', target:30, coins:12000 },
+                { id:'infiniteBlade', title:'無限剣陣の試練', desc:'最高レベル15に到達して、無限の剣陣を解放する', metric:'bestLevel', target:15, coins:12000 },
                 { id:'keraunos', title:'天帝雷鳴の試練', desc:'ボス系を合計12体倒して、天帝の裁界・霹靂を解放する', metric:'totalBossLikeKills', target:12, coins:14000 },
-                { id:'hollowMurasaki', title:'虚式解放試練', desc:'最高レベル35に到達して、虚式「茈」を解放する', metric:'bestLevel', target:35, coins:16000 },
+                { id:'hollowMurasaki', title:'虚式解放試練', desc:'最高レベル18に到達して、虚式「茈」を解放する', metric:'bestLevel', target:18, coins:16000 },
                 { id:'vader', title:'深淵重力刃の試練', desc:'合計1500体倒して、深淵の重力刃を解放する', metric:'totalKills', target:1500, coins:15000 },
                 { id:'phantomStep', title:'幻影歩法の試練', desc:'敵を合計300体倒して、ファントムステップを解放する', metric:'totalKills', target:300, coins:2200 },
                 { id:'neonLance', title:'ネオンランスの試練', desc:'最高レベル15に到達して、ネオンランスを解放する', metric:'bestLevel', target:15, coins:4000 },
@@ -12333,7 +12333,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
 
         (() => {
-            const V31_VERSION_TEXT = 'V33 UTF8 ROOM DAILY STABLE';
+            const V31_VERSION_TEXT = 'V34 BUTTON SCREEN STABLE';
             const V31_SAVE_VERSION = '2026-05-07-v31-safe-migration';
             const $v31 = (id) => document.getElementById(id);
             const n31 = (v, fallback = 0) => { const x = Number(v); return Number.isFinite(x) ? x : fallback; };
@@ -12920,7 +12920,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
 
         ;(() => {
-            const V33_TAG = 'V33 UTF8 ROOM DAILY STABLE';
+            const V33_TAG = 'V34 BUTTON SCREEN STABLE';
             const ROOM_STORAGE_KEY = 'neon_survivor_online_room_v33';
             let nsvV33OnlineRoomCode = String(localStorage.getItem(ROOM_STORAGE_KEY) || 'PUBLIC');
             let nsvV33FirebaseReadyPromise = null;
@@ -13181,6 +13181,651 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             window.addEventListener('pageshow', bootV33, {passive:true});
             window.addEventListener('resize', () => setTimeout(bootV33, 120), {passive:true});
             setInterval(bootV33, 1200);
+        })();
+
+        ;(() => {
+            const V34_TAG = 'V34 BUTTON SCREEN STABLE';
+            const ADMIN_FORM_URL_V34 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
+            const q34 = (id) => document.getElementById(id);
+            const esc34 = (v) => String(v ?? '').replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c] || c));
+            const ALL_SCREENS_V34 = [
+                'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen',
+                'onlineRoomScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen','shopScreen','battlePassScreen',
+                'leaderboardScreen','eventModeScreen','tutorialOverlay'
+            ];
+            let scrollGuardV34 = { downX:0, downY:0, moved:false, lockedUntil:0, timer:null };
+
+            function installV34Style() {
+                if (q34('nsvV34Style')) return;
+                const st = document.createElement('style');
+                st.id = 'nsvV34Style';
+                st.textContent = `
+                    #nsvV30Badge,#nsvV31Badge,#nsvV33Badge{display:none!important}
+                    #nsvV34Badge{position:fixed;left:10px;bottom:8px;z-index:980;pointer-events:none;color:#67e8f9;background:rgba(2,6,23,.78);border:1px solid rgba(103,232,249,.55);border-radius:999px;padding:4px 9px;font:900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif;letter-spacing:.08em;box-shadow:0 0 12px rgba(34,211,238,.28)}
+                    #startScreen,.menu-panel,#pauseScreen,#gameOverScreen,#shopScreen,#battlePassScreen,#leaderboardScreen,#eventModeScreen,#onlineRoomScreen,#onlineRoleScreen{overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important}
+                    #startScreen .nsv-v30-grid button,#startScreen .menu-grid button,#startScreen .nsv-v30-play button{min-height:66px!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;white-space:normal!important;line-height:1.1!important}
+                    #adminContactBtn,#openLeaderboardBtn{width:100%!important;min-height:66px!important}
+                    body.nsv-scroll-guard button, body.nsv-scroll-guard a, body.nsv-scroll-guard label{pointer-events:none!important}
+                    body.nsv-scroll-guard input, body.nsv-scroll-guard textarea{pointer-events:auto!important}
+                `;
+                document.head.appendChild(st);
+            }
+
+            function badgeV34() {
+                installV34Style();
+                let b = q34('nsvV34Badge');
+                if (!b) { b = document.createElement('div'); b.id = 'nsvV34Badge'; document.body.appendChild(b); }
+                b.textContent = V34_TAG;
+            }
+
+            function patchShowScreenV34() {
+                if (typeof showScreen !== 'function' || showScreen.__v34) return;
+                const oldShow = showScreen;
+                showScreen = function(screenId) {
+                    try {
+                        ALL_SCREENS_V34.forEach(id => {
+                            const el = q34(id);
+                            if (!el) return;
+                            if (id === screenId) {
+                                el.classList.remove('hidden');
+                                el.style.pointerEvents = 'auto';
+                            } else {
+                                el.classList.add('hidden');
+                            }
+                        });
+                        if (screenId === 'startScreen') {
+                            if (typeof gameState !== 'undefined') gameState = 'start';
+                            q34('uiLayer')?.classList.add('hidden');
+                            q34('bossHpContainer')?.classList.add('hidden');
+                            q34('mapEventForecastHud')?.classList.add('hidden');
+                            q34('mapEventForecastHud')?.classList.add('force-hidden');
+                            q34('bossWarning')?.classList.add('hidden');
+                        } else if (screenId === 'pauseScreen' || (typeof gameState !== 'undefined' && (gameState === 'playing' || gameState === 'paused'))) {
+                            q34('uiLayer')?.classList.remove('hidden');
+                        }
+                        return true;
+                    } catch(e) {
+                        try { return oldShow.apply(this, arguments); } catch(_) {}
+                    }
+                };
+                showScreen.__v34 = true;
+            }
+
+            function showScreenV34(id) {
+                try { if (typeof showScreen === 'function') showScreen(id); else q34(id)?.classList.remove('hidden'); } catch(e) { q34(id)?.classList.remove('hidden'); }
+                setTimeout(() => {
+                    try {
+                        if (id === 'leaderboardScreen' && typeof renderRankingV30 === 'function') renderRankingV30();
+                        if (id === 'shopScreen') {
+                            if (typeof renderShopV2 === 'function') renderShopV2();
+                            else if (typeof renderShopScreen20260504 === 'function') renderShopScreen20260504();
+                            if (typeof patchShopCoin === 'function') patchShopCoin();
+                        }
+                        if (id === 'pauseScreen' && typeof ensurePausePanel === 'function') ensurePausePanel();
+                    } catch(e) {}
+                }, 30);
+            }
+
+            function setButton(btn, id, cls, html) {
+                if (!btn) btn = document.createElement('button');
+                btn.id = id;
+                btn.className = `${cls} menu-secondary px-4 py-3 font-bold rounded cursor-pointer`;
+                btn.innerHTML = html;
+                btn.disabled = false;
+                btn.style.pointerEvents = 'auto';
+                btn.style.touchAction = 'manipulation';
+                return btn;
+            }
+
+            function ensureHomeButtonsV34() {
+                try {
+                    const start = q34('startScreen'); if (!start) return;
+                    const grid = start.querySelector('.nsv-v30-grid') || start.querySelector('.menu-grid');
+                    if (!grid) return;
+                    let rank = q34('openLeaderboardBtn');
+                    rank = setButton(rank, 'openLeaderboardBtn', 'btn-neon', 'RANKING<br><span class="text-xs text-cyan-100 font-bold">友達と勝負</span>');
+                    let admin = q34('adminContactBtn');
+                    admin = setButton(admin, 'adminContactBtn', 'btn-green', '管理者へ連絡<br><span class="text-xs text-green-100 font-bold">FORM</span>');
+                    const desired = ['openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn','openBattlePassBtn','openShopBtn','openLeaderboardBtn','openDailyEventBtnV33','openDailyEventBtnV30','adminContactBtn'];
+                    if (!grid.contains(rank)) grid.appendChild(rank);
+                    if (!grid.contains(admin)) grid.appendChild(admin);
+                    desired.forEach(id => {
+                        const el = q34(id);
+                        if (el && grid.contains(el)) grid.appendChild(el);
+                    });
+                    ['openLeaderboardBtn','adminContactBtn','onlineStartBtn','pauseBtn','resumeBtn'].forEach(id => {
+                        const el = q34(id); if (!el) return;
+                        el.disabled = false; el.style.pointerEvents = 'auto'; el.style.touchAction = 'manipulation';
+                    });
+                } catch(e) {}
+            }
+
+            function installScrollGuardV34() {
+                if (window.__nsvV34ScrollGuard) return;
+                window.__nsvV34ScrollGuard = true;
+                const lock = () => {
+                    scrollGuardV34.lockedUntil = Date.now() + 260;
+                    document.body.classList.add('nsv-scroll-guard');
+                    clearTimeout(scrollGuardV34.timer);
+                    scrollGuardV34.timer = setTimeout(() => {
+                        if (Date.now() >= scrollGuardV34.lockedUntil) document.body.classList.remove('nsv-scroll-guard');
+                    }, 280);
+                };
+                window.addEventListener('pointerdown', (ev) => {
+                    scrollGuardV34.downX = ev.clientX || 0;
+                    scrollGuardV34.downY = ev.clientY || 0;
+                    scrollGuardV34.moved = false;
+                }, true);
+                window.addEventListener('pointermove', (ev) => {
+                    const dx = Math.abs((ev.clientX || 0) - scrollGuardV34.downX);
+                    const dy = Math.abs((ev.clientY || 0) - scrollGuardV34.downY);
+                    if (dx > 10 || dy > 10) { scrollGuardV34.moved = true; lock(); }
+                }, {capture:true, passive:true});
+                window.addEventListener('scroll', lock, {capture:true, passive:true});
+                window.addEventListener('click', (ev) => {
+                    if (scrollGuardV34.moved || Date.now() < scrollGuardV34.lockedUntil) {
+                        ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.();
+                    }
+                }, true);
+            }
+
+            function openOnlineRoomV34() {
+                try { if (typeof requireNickname === 'function' && !requireNickname()) return; } catch(e) {}
+                try {
+                    if (typeof openOnlineRoomScreenV33 === 'function') { openOnlineRoomScreenV33(); return; }
+                } catch(e) {}
+                let div = q34('onlineRoomScreen');
+                if (!div) {
+                    div = document.createElement('div');
+                    div.id = 'onlineRoomScreen';
+                    div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[58] hidden p-3';
+                    document.body.appendChild(div);
+                }
+                div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">オンラインルーム</h2><p class="text-gray-300 text-sm mt-2">友達と同じルームコードを入れてください。</p></div><button id="closeOnlineRoomBtn" class="btn-neon px-4 py-2 rounded font-bold">戻る</button></div><input id="onlineRoomInput" maxlength="7" class="menu-input text-center tracking-[.25em] font-black" placeholder="例: 1234" value="PUBLIC"><button id="confirmOnlineRoomBtn" class="btn-gold px-6 py-4 rounded font-bold text-xl">このルームで進む</button></div>`;
+                q34('closeOnlineRoomBtn')?.addEventListener('click', () => showScreenV34('startScreen'));
+                q34('confirmOnlineRoomBtn')?.addEventListener('click', () => { try { renderOnlineRoleScreen(); showScreenV34('onlineRoleScreen'); } catch(e) { try { initGame('online'); } catch(_) {} } });
+                showScreenV34('onlineRoomScreen');
+            }
+
+            function installButtonFallbackV34() {
+                if (window.__nsvV34ButtonFallback) return;
+                window.__nsvV34ButtonFallback = true;
+                window.addEventListener('click', (ev) => {
+                    if (scrollGuardV34.moved || Date.now() < scrollGuardV34.lockedUntil) return;
+                    const btn = ev.target?.closest?.('button'); if (!btn) return;
+                    const id = btn.id;
+                    if (id === 'adminContactBtn') { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); window.open(ADMIN_FORM_URL_V34, '_blank', 'noopener,noreferrer'); return; }
+                    if (id === 'onlineStartBtn') { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); openOnlineRoomV34(); return; }
+                    if (id === 'openLeaderboardBtn') { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); try { if (typeof renderRankingV30 === 'function') renderRankingV30(); } catch(e) {} showScreenV34('leaderboardScreen'); return; }
+                    if (id === 'openShopBtn') { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); showScreenV34('shopScreen'); return; }
+                    if (id === 'openBattlePassBtn') { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); try { if (typeof renderBattlePassV2 === 'function') renderBattlePassV2('base'); else if (typeof renderBattlePassScreen20260504 === 'function') renderBattlePassScreen20260504(); } catch(e) {} showScreenV34('battlePassScreen'); return; }
+                }, true);
+            }
+
+            function checkScreensV34() {
+                const missing = [];
+                ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','onlineRoleScreen','pauseScreen','gameOverScreen'].forEach(id => { if (!q34(id)) missing.push(id); });
+                try { window.__nsvV34ButtonCheck = { checkedAt: new Date().toISOString(), missingScreens: missing }; } catch(e) {}
+            }
+
+            function bootV34() {
+                installV34Style(); badgeV34(); patchShowScreenV34(); installScrollGuardV34(); ensureHomeButtonsV34(); installButtonFallbackV34(); checkScreensV34();
+                try { if (typeof gameState !== 'undefined' && gameState === 'start') showScreenV34('startScreen'); } catch(e) {}
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV34, {once:true}); else bootV34();
+            window.addEventListener('pageshow', bootV34, {passive:true});
+            window.addEventListener('resize', () => setTimeout(bootV34, 120), {passive:true});
+            setInterval(() => { try { ensureHomeButtonsV34(); badgeV34(); } catch(e) {} }, 1500);
+        })();
+
+
+
+        ;(() => {
+            const V35_TAG = 'V36 ULTIMATE EASIER STABLE';
+            const PASS_TICKET_COST_V35 = 100000;
+            const q35 = (id) => document.getElementById(id);
+            const n35 = (v, d = 0) => { const x = Number(v); return Number.isFinite(x) ? x : d; };
+            const esc35 = (v) => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+            const key35 = (offset = 0) => {
+                const d = new Date();
+                d.setDate(d.getDate() + offset);
+                return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            };
+            const call35 = (fn, ...args) => { try { if (typeof fn === 'function') return fn(...args); } catch(e) { console.warn('V35 skipped:', e); } };
+
+            const ULTIMATE_REQUIREMENTS_V35 = [
+                { id:'shieldThrow', name:'絶対防壁の反響', metric:'bestLevel', target:10, cat:'ULTIMATE', title:'不壊の守り', desc:'最高レベル10に到達する', rewardCoins:2500, rank:1 },
+                { id:'phantomStep', name:'ファントムステップ', metric:'totalKills', target:300, cat:'ULTIMATE', title:'幻影歩法の試練', desc:'敵を合計300体倒す', rewardCoins:2600, rank:1 },
+                { id:'thor', name:'雷霆砕破・轟', metric:'totalBossLikeKills', target:3, cat:'ULTIMATE', title:'轟のハンマー', desc:'ボス系の敵を合計3体倒す', rewardCoins:3000, rank:2 },
+                { id:'kamehameha', name:'龍星・崩命破', metric:'bestLevel', target:18, cat:'ULTIMATE', title:'崩命破の継承', desc:'最高レベル18に到達する', rewardCoins:3500, rank:2 },
+                { id:'ironBlaster', name:'創世の光芒', metric:'bestScore', target:30000, cat:'ULTIMATE', title:'機神起動', desc:'自己ベスト30000点に到達する', rewardCoins:4200, rank:2 },
+                { id:'funnel', name:'星砕きの流星群', metric:'totalKills', target:900, cat:'ULTIMATE', title:'流星群観測', desc:'敵を合計900体倒す', rewardCoins:4500, rank:3 },
+                { id:'disneyMagic', name:'星夢の輪舞曲', metric:'totalGems', target:1200, cat:'ULTIMATE', title:'星夢のステージ', desc:'ジェムを合計1200個集める', rewardCoins:4800, rank:3 },
+                { id:'muryoku', name:'無量空処', metric:'bestTime', target:420, cat:'ULTIMATE', title:'領域到達', desc:'1回のプレイで420秒生存する', rewardCoins:5600, rank:4 },
+                { id:'infinitySnap', name:'終焉の指弾', metric:'bestRunKills', target:500, cat:'ULTIMATE', title:'終焉の合図', desc:'1回のプレイで500体倒す', rewardCoins:6000, rank:4 },
+                { id:'infiniteBlade', name:'無限の剣陣', metric:'bestLevel', target:15, cat:'ULTIMATE', title:'無限剣の契約', desc:'最高レベル15に到達する', rewardCoins:6500, rank:4 },
+                { id:'keraunos', name:'天帝の裁界・霹靂', metric:'totalBossLikeKills', target:12, cat:'ULTIMATE', title:'天帝の雷', desc:'ボス系の敵を合計12体倒す', rewardCoins:7600, rank:5 },
+                { id:'hollowMurasaki', name:'虚式「茈」', metric:'bestLevel', target:18, cat:'ULTIMATE', title:'虚式解放試練', desc:'最高レベル18に到達する', rewardCoins:8500, rank:5 },
+                { id:'vader', name:'深淵の重力刃', metric:'totalKills', target:1500, cat:'ULTIMATE', title:'暗黒卿の試練', desc:'敵を合計1500体倒す', rewardCoins:9000, rank:5 }
+            ];
+            const ULTIMATE_IDS_V35 = new Set(ULTIMATE_REQUIREMENTS_V35.map(x => x.id));
+            const ULTIMATE_NAME_TO_ID_V35 = (() => {
+                const m = new Map();
+                const add = (txt, id) => { if (txt) m.set(String(txt).replace(/[【】「」『』・\s]/g,'').toLowerCase(), id); };
+                ULTIMATE_REQUIREMENTS_V35.forEach(r => { add(r.id, r.id); add(r.name, r.id); add(r.title, r.id); });
+                add('アイアンマン','ironBlaster'); add('創世の光','ironBlaster'); add('星砕き','funnel'); add('流星群','funnel'); add('星無の輪舞曲','disneyMagic'); add('ディズニーマジック','disneyMagic'); add('無量空所','muryoku'); add('無料空所','muryoku'); add('サノス','infinitySnap'); add('終焉','infinitySnap'); add('王の財宝','infiniteBlade'); add('虚式紫','hollowMurasaki'); add('茈','hollowMurasaki'); add('雷霆砕破','thor'); add('轟','thor'); add('龍星崩命破','kamehameha'); add('かめはめ波','kamehameha'); add('深淵の重力刃','vader'); add('絶対防壁','shieldThrow');
+                return m;
+            })();
+
+            const DAILY_EVENTS_V35 = [
+                { id:'coinrush', icon:'🪙', name:'コインラッシュ', sub:'獲得コインが大きく増える', detail:'終了時に追加コイン。短時間でも稼ぎやすい。', bonus:'コイン追加' },
+                { id:'gemstorm', icon:'💎', name:'ジェムストーム', sub:'経験値と磁力が強くなる', detail:'ジェムを集めやすく、レベルアップしやすい。', bonus:'経験値・磁力UP' },
+                { id:'bossrush', icon:'👹', name:'ボスラッシュ', sub:'強敵が出やすくなる', detail:'ボス討伐ミッションを進めたい日におすすめ。', bonus:'ボス出現UP' },
+                { id:'speedtrial', icon:'💨', name:'スピードトライアル', sub:'移動と連射が速くなる', detail:'回避重視でテンポよく遊べる。', bonus:'速度・連射UP' },
+                { id:'treasure', icon:'🎁', name:'トレジャーデイ', sub:'報酬が増えやすい', detail:'終了時に小さな報酬ボーナスが入る。', bonus:'報酬UP' },
+                { id:'ultimate', icon:'⚔️', name:'アルティメット修行', sub:'強武器の練習日', detail:'攻撃力が少し上がり、強敵にも挑みやすい。', bonus:'攻撃UP' },
+                { id:'survival', icon:'🛡️', name:'サバイバルデイ', sub:'HPと防御が上がる', detail:'長く生き残る練習に向いている。', bonus:'HP・防御UP' },
+                { id:'neonfever', icon:'🌈', name:'ネオンフィーバー', sub:'スコアとコインのバランス型', detail:'スコアを伸ばしながらコインも狙える。', bonus:'スコア・コインUP' },
+                { id:'hunter', icon:'🎯', name:'ハンターデイ', sub:'討伐数を伸ばしやすい', detail:'敵を倒す系のミッションを進めたい日におすすめ。', bonus:'攻撃範囲UP' },
+                { id:'growth', icon:'⭐', name:'成長ブースト', sub:'序盤から育ちやすい', detail:'低レベルでも成長が速い。初心者にもおすすめ。', bonus:'成長UP' }
+            ];
+            let activeDailyEventV35 = null;
+            let dailyBossTimerV35 = 0;
+
+            function ensureUserV35() {
+                try { call35(ensureProgressionData); } catch(e) {}
+                userData = userData || {};
+                userData.stats = userData.stats || {};
+                userData.missions = userData.missions || { completed:{}, claimed:{} };
+                userData.missions.completed = userData.missions.completed || {};
+                userData.missions.claimed = userData.missions.claimed || {};
+                userData.unlocks = userData.unlocks || { legendaryWeapons:{}, skins:{classic:true}, auras:{none:true} };
+                userData.unlocks.legendaryWeapons = userData.unlocks.legendaryWeapons || {};
+                userData.unlocks.skins = Object.assign({classic:true}, userData.unlocks.skins || {});
+                userData.unlocks.auras = Object.assign({none:true}, userData.unlocks.auras || {});
+                userData.settings = userData.settings || {};
+                userData.settings.disabledWeapons = userData.settings.disabledWeapons || {};
+                userData.settings.disabledLegendaryWeapons = userData.settings.disabledLegendaryWeapons || {};
+                userData.codex = userData.codex || { weapons:{base_0_通常弾:true} };
+                userData.codex.weapons = userData.codex.weapons || {base_0_通常弾:true};
+                userData.shop = userData.shop || {};
+                userData.passTickets = Math.max(0, Math.floor(n35(userData.passTickets)));
+                userData.dailyEventsV35 = userData.dailyEventsV35 || {};
+                userData.friendBook = userData.friendBook || { friends:[] };
+                userData.leaderboards = userData.leaderboards || { friends:[] };
+                userData.cosmetics = userData.cosmetics || { unlocked:{}, equipped:{} };
+                userData.cosmetics.unlocked = userData.cosmetics.unlocked || {};
+                userData.cosmetics.equipped = userData.cosmetics.equipped || {};
+                return userData;
+            }
+            function saveNowV35() { try { ensureUserV35(); if (typeof saveData === 'function') saveData(); else localStorage.setItem('neon_survivor_save', JSON.stringify(userData)); } catch(e) {} }
+            function metricValueV35(metric) {
+                ensureUserV35();
+                const st = userData.stats || {};
+                const rs = (typeof runStats !== 'undefined' && runStats) ? runStats : {};
+                switch(metric) {
+                    case 'bestLevel': return Math.max(n35(st.bestLevel), (typeof player !== 'undefined' && player) ? n35(player.level) : 0);
+                    case 'totalKills': return n35(st.totalKills);
+                    case 'totalBossLikeKills': return n35(st.totalBossLikeKills) + n35(st.totalBossKills);
+                    case 'bestRunKills': return Math.max(n35(st.bestRunKills), n35(rs.kills));
+                    case 'bestTime': return Math.max(n35(st.bestTime), Math.floor(typeof gameTime !== 'undefined' ? n35(gameTime) : 0));
+                    case 'bestScore': return Math.max(n35(userData.score), Math.floor(typeof score !== 'undefined' ? n35(score) : 0));
+                    case 'totalGems': return n35(st.totalGems) + n35(st.totalGemsCollected);
+                    case 'completedMissionCount': return Object.keys(userData.missions.completed || {}).length;
+                    default: return n35(st[metric]);
+                }
+            }
+            function missionIdForUltimateV35(id) { return 'unlock_v35_' + id; }
+            function requirementForUltimateV35(id) { return ULTIMATE_REQUIREMENTS_V35.find(x => x.id === id) || null; }
+            function ultimateMissionDoneV35(id) {
+                ensureUserV35();
+                const req = requirementForUltimateV35(id);
+                if (!req) return true;
+                const mid = missionIdForUltimateV35(id);
+                return !!(userData.missions.completed[mid] || userData.missions.claimed[mid] || metricValueV35(req.metric) >= req.target);
+            }
+            function ultimateUnlockedV35(id) {
+                if (!ULTIMATE_IDS_V35.has(id)) return true;
+                return ultimateMissionDoneV35(id);
+            }
+            function weaponIdFromTextV35(txt) {
+                const norm = String(txt || '').replace(/[【】「」『』・\s]/g,'').toLowerCase();
+                if (ULTIMATE_NAME_TO_ID_V35.has(norm)) return ULTIMATE_NAME_TO_ID_V35.get(norm);
+                for (const [key, id] of ULTIMATE_NAME_TO_ID_V35.entries()) if (norm.includes(key) || key.includes(norm)) return id;
+                return '';
+            }
+
+            function ensureUltimateMissionsV35() {
+                ensureUserV35();
+                try {
+                    ULTIMATE_REQUIREMENTS_V35.forEach(req => {
+                        const mid = missionIdForUltimateV35(req.id);
+                        if (Array.isArray(MISSION_DEFS) && !MISSION_DEFS.some(m => m.id === mid)) {
+                            MISSION_DEFS.push({ id: mid, cat:'ULTIMATE', title:req.title, desc:req.desc, metric:req.metric, target:req.target, reward:{ coins:req.rewardCoins, weapon:req.id } });
+                        }
+                        if (typeof MISSION_LOCKED_WEAPON_IDS_20260504 !== 'undefined') MISSION_LOCKED_WEAPON_IDS_20260504.add(req.id);
+                        if (userData.unlocks.legendaryWeapons[req.id] && !userData.missions.completed[mid] && !userData.missions.claimed[mid]) {
+                            userData.missions.completed[mid] = true;
+                        }
+                        if (metricValueV35(req.metric) >= req.target) userData.missions.completed[mid] = true;
+                        if (!ultimateMissionDoneV35(req.id)) {
+                            delete userData.unlocks.legendaryWeapons[req.id];
+                            userData.settings.disabledLegendaryWeapons[req.id] = true;
+                        } else {
+                            userData.unlocks.legendaryWeapons[req.id] = true;
+                            if (userData.settings.disabledLegendaryWeapons[req.id] === true && !userData.settings.disabledWeapons[req.id]) delete userData.settings.disabledLegendaryWeapons[req.id];
+                        }
+                    });
+                } catch(e) { console.warn('V35 ultimate mission setup skipped', e); }
+            }
+
+            function patchUltimateLocksV35() {
+                ensureUltimateMissionsV35();
+                try {
+                    const oldLocked = typeof isWeaponMissionLocked20260504 === 'function' ? isWeaponMissionLocked20260504 : null;
+                    isWeaponMissionLocked20260504 = function(id) {
+                        if (ULTIMATE_IDS_V35.has(id)) return !ultimateUnlockedV35(id);
+                        return oldLocked ? oldLocked.apply(this, arguments) : false;
+                    };
+                } catch(e) {}
+                try {
+                    const oldSpawn = typeof isWeaponSpawnEnabled20260504 === 'function' ? isWeaponSpawnEnabled20260504 : null;
+                    isWeaponSpawnEnabled20260504 = function(id) {
+                        if (ULTIMATE_IDS_V35.has(id) && !ultimateUnlockedV35(id)) return false;
+                        return oldSpawn ? oldSpawn.apply(this, arguments) : true;
+                    };
+                } catch(e) {}
+                try {
+                    const oldSet = typeof setWeaponSpawnEnabled20260504 === 'function' ? setWeaponSpawnEnabled20260504 : null;
+                    setWeaponSpawnEnabled20260504 = function(id, enabled) {
+                        if (enabled && ULTIMATE_IDS_V35.has(id) && !ultimateUnlockedV35(id)) {
+                            call35(renderWeaponCodexScreen); return;
+                        }
+                        return oldSet ? oldSet.apply(this, arguments) : undefined;
+                    };
+                } catch(e) {}
+                try {
+                    const oldShould = typeof shouldOfferWeaponUpgrade20260504 === 'function' ? shouldOfferWeaponUpgrade20260504 : null;
+                    shouldOfferWeaponUpgrade20260504 = function(upgrade) {
+                        const id = weaponIdFromTextV35(upgrade?.name || upgrade?.id || '');
+                        if (id && ULTIMATE_IDS_V35.has(id) && !ultimateUnlockedV35(id)) return false;
+                        return oldShould ? oldShould.apply(this, arguments) : true;
+                    };
+                } catch(e) {}
+                try {
+                    const oldFilter = typeof filterSpawnEnabledItems20260504 === 'function' ? filterSpawnEnabledItems20260504 : null;
+                    filterSpawnEnabledItems20260504 = function(items) {
+                        let list = Array.isArray(items) ? items.filter(it => {
+                            const id = weaponIdFromTextV35(it?.name || it?.id || '');
+                            return !(id && ULTIMATE_IDS_V35.has(id) && !ultimateUnlockedV35(id));
+                        }) : [];
+                        return oldFilter ? oldFilter.call(this, list) : list;
+                    };
+                } catch(e) {}
+                try {
+                    const oldCard = typeof makeWeaponCodexCard === 'function' ? makeWeaponCodexCard : null;
+                    makeWeaponCodexCard = function(w) {
+                        const id = w?.id || weaponIdFromTextV35(w?.name || '');
+                        if (!oldCard) return '';
+                        let html = oldCard.apply(this, arguments);
+                        if (id && ULTIMATE_IDS_V35.has(id) && !ultimateUnlockedV35(id)) {
+                            const req = requirementForUltimateV35(id);
+                            const progress = req ? Math.min(req.target, Math.floor(metricValueV35(req.metric))) : 0;
+                            const lockedBox = `<div class="mt-3 border-t border-slate-700 pt-3"><p class="text-xs text-red-200 font-bold">未解放</p><p class="text-[11px] text-gray-300 mt-1">解放条件：${esc35(req?.desc || 'ミッション達成')}（${progress}/${req?.target || 1}）</p></div>`;
+                            html = html.replace(/<span class="text-\[11px\][\s\S]*?<\/span>/, '<span class="text-[11px] font-bold px-2 py-1 rounded bg-red-950/80 text-red-200 border border-red-400/50">未解放</span>');
+                            html = html.replace(/<div class="mt-3 border-t border-slate-700 pt-3">[\s\S]*?<\/div>\s*<\/div>$/, lockedBox + '</div>');
+                            html = html.replace(/<input[^>]*weapon-spawn-toggle[^>]*>/g, '');
+                        }
+                        return html;
+                    };
+                } catch(e) {}
+            }
+
+            function eventForV35(offset = 0) {
+                const d = new Date();
+                const k = Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate() + offset) / 86400000);
+                return DAILY_EVENTS_V35[Math.abs(k) % DAILY_EVENTS_V35.length];
+            }
+            function ensureDailyEventStateV35() {
+                ensureUserV35();
+                const k = key35(0);
+                userData.dailyEventsV35[k] = userData.dailyEventsV35[k] || { count:0, max:5, rewards:0 };
+                userData.dailyEventsV35[k].max = 5;
+                userData.dailyEventsV35[k].count = Math.max(0, Math.floor(n35(userData.dailyEventsV35[k].count)));
+                return userData.dailyEventsV35[k];
+            }
+            function ensureDailyEventScreenV35() {
+                let div = q35('eventModeScreen');
+                if (!div) {
+                    div = document.createElement('div'); div.id = 'eventModeScreen'; div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3'; document.body.appendChild(div);
+                }
+                div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">DAILY EVENT</h2><p class="text-gray-300 text-sm mt-2">今日のイベントと、4日後までの予定を確認できます。</p></div><button id="closeEventModeBtn" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div><div id="eventModeListContainer" class="grid grid-cols-1 md:grid-cols-5 gap-3"></div></div>`;
+                q35('closeEventModeBtn')?.addEventListener('click', () => call35(showScreen, 'startScreen'));
+            }
+            function renderDailyEventV35() {
+                ensureDailyEventScreenV35();
+                const state = ensureDailyEventStateV35();
+                const remain = Math.max(0, 5 - state.count);
+                const box = q35('eventModeListContainer'); if (!box) return;
+                box.innerHTML = [0,1,2,3,4].map(offset => {
+                    const ev = eventForV35(offset);
+                    const active = offset === 0;
+                    return `<div class="bg-slate-900/85 border ${active ? 'border-yellow-400 shadow-[0_0_22px_rgba(250,204,21,.25)]' : 'border-cyan-400/35'} rounded-2xl p-4 ${active ? '' : 'opacity-80'}">
+                        <div class="text-xs font-black ${active ? 'text-yellow-200' : 'text-cyan-200'}">${active ? 'TODAY' : '+' + offset + ' DAY'} ${esc35(key35(offset))}</div>
+                        <div class="text-4xl mt-3">${ev.icon}</div>
+                        <h3 class="text-lg font-black text-white mt-2 leading-tight">${esc35(ev.name)}</h3>
+                        <p class="text-gray-300 text-sm mt-2 font-bold">${esc35(ev.sub)}</p>
+                        <p class="text-gray-400 text-xs mt-2 leading-relaxed">${esc35(ev.detail)}</p>
+                        <div class="mt-3 text-xs text-yellow-200 font-black border border-yellow-400/40 rounded-full px-2 py-1 inline-block">${esc35(ev.bonus)}</div>
+                        ${active ? `<button id="startDailyEventV35" class="btn-gold px-4 py-3 rounded font-bold mt-4 w-full ${remain > 0 ? '' : 'opacity-40 cursor-not-allowed'}" ${remain > 0 ? '' : 'disabled'}>START ${remain}/5</button>` : '<div class="mt-4 text-xs text-gray-500 font-bold">予定のみ</div>'}
+                    </div>`;
+                }).join('');
+                q35('startDailyEventV35')?.addEventListener('click', () => {
+                    const st = ensureDailyEventStateV35();
+                    if (st.count >= 5) return;
+                    st.count++;
+                    activeDailyEventV35 = eventForV35(0).id;
+                    saveNowV35();
+                    call35(initGame, 'solo');
+                });
+            }
+            function openDailyEventV35() { renderDailyEventV35(); call35(showScreen, 'eventModeScreen'); }
+            function patchDailyButtonsV35() {
+                try {
+                    const ids = ['openDailyEventBtnV35','openDailyEventBtnV33','openDailyEventBtnV31','openDailyEventBtnV30','openDailyEventBtnV13','openEventModeBtn'];
+                    let keep = null;
+                    ids.forEach(id => { const el = q35(id); if (el && !keep) keep = el; else if (el) el.remove(); });
+                    const grid = document.querySelector('.nsv-v30-grid') || document.querySelector('#startScreen .menu-grid') || document.querySelector('.menu-grid');
+                    if (!keep && grid) { keep = document.createElement('button'); grid.appendChild(keep); }
+                    if (!keep) return;
+                    keep.id = 'openDailyEventBtnV35'; keep.className = 'btn-purple px-4 py-3 font-bold rounded cursor-pointer'; keep.innerHTML = 'DAILY EVENT<br><span class="text-xs text-purple-100 font-bold">5回/日</span>';
+                    const fresh = keep.cloneNode(true); keep.replaceWith(fresh);
+                    fresh.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); openDailyEventV35(); });
+                } catch(e) {}
+            }
+            function applyDailyStartV35() {
+                if (!activeDailyEventV35 || typeof player === 'undefined' || !player) return;
+                const id = activeDailyEventV35;
+                if (id === 'gemstorm') { player.expBoost = n35(player.expBoost,1) * 1.4; player.magnetBonus = n35(player.magnetBonus) + 380; }
+                if (id === 'speedtrial') { player.speed = n35(player.speed,5) * 1.18; player.fireRate = Math.max(8, n35(player.fireRate,30) * 0.8); }
+                if (id === 'survival') { player.maxHp = Math.round(n35(player.maxHp,100) * 1.35); player.hp = player.maxHp; player.armorRate = Math.min(0.75, n35(player.armorRate) + 0.13); }
+                if (id === 'ultimate') { player.damage = n35(player.damage,10) * 1.22; player.attackRange = Math.max(n35(player.attackRange), 700); }
+                if (id === 'hunter') { player.damage = n35(player.damage,10) * 1.12; player.attackRange = Math.max(n35(player.attackRange), 640); }
+                if (id === 'growth') { player.expBoost = n35(player.expBoost,1) * 1.55; }
+                if (id === 'neonfever') { player.damage = n35(player.damage,10) * 1.08; player.expBoost = n35(player.expBoost,1) * 1.15; }
+                if (id === 'treasure') { player.magnetBonus = n35(player.magnetBonus) + 170; }
+            }
+            function updateDailyRuntimeV35() {
+                try {
+                    if (!activeDailyEventV35 || typeof gameState === 'undefined' || gameState !== 'playing' || !player) return;
+                    if (activeDailyEventV35 === 'bossrush') {
+                        const bosses = (enemies || []).filter(e => e && !e.markedForDeletion && (e.isBoss || e.isMonkey || e.isMidBoss)).length;
+                        if (typeof frameCount !== 'undefined' && frameCount - dailyBossTimerV35 > 60 * 75 && bosses < 2 && enemies.length < 420) {
+                            const a = Math.random() * Math.PI * 2, d = 950;
+                            try { enemies.push(new Enemy(player.x + Math.cos(a)*d, player.y + Math.sin(a)*d, 3)); dailyBossTimerV35 = frameCount; } catch(e) {}
+                        }
+                    }
+                    if (activeDailyEventV35 === 'neonfever' && typeof score !== 'undefined' && typeof frameCount !== 'undefined' && frameCount % 120 === 0) score += 35;
+                } catch(e) {}
+            }
+            function finishDailyEventV35() {
+                try {
+                    if (!activeDailyEventV35) return;
+                    ensureUserV35();
+                    const state = ensureDailyEventStateV35();
+                    let bonus = 0;
+                    if (activeDailyEventV35 === 'coinrush') bonus = Math.max(250, Math.floor(n35(score) * 0.018));
+                    if (activeDailyEventV35 === 'treasure') bonus = Math.max(180, Math.floor(n35(score) * 0.01 + 300));
+                    if (activeDailyEventV35 === 'neonfever') bonus = Math.max(120, Math.floor(n35(score) * 0.006));
+                    if (bonus > 0) { userData.coins = n35(userData.coins) + bonus; userData.stats.totalCoinsEarned = n35(userData.stats.totalCoinsEarned) + bonus; state.rewards = n35(state.rewards) + bonus; }
+                    activeDailyEventV35 = null; saveNowV35();
+                } catch(e) {}
+            }
+            function patchDailyRuntimeV35() {
+                try {
+                    const oldInit = initGame;
+                    if (typeof oldInit === 'function' && !oldInit.__v35Daily) {
+                        initGame = function() { const ret = oldInit.apply(this, arguments); try { applyDailyStartV35(); } catch(e) {} return ret; };
+                        initGame.__v35Daily = true;
+                    }
+                } catch(e) {}
+                try {
+                    const oldUpdate = updateLogic;
+                    if (typeof oldUpdate === 'function' && !oldUpdate.__v35Daily) {
+                        updateLogic = function() { const ret = oldUpdate.apply(this, arguments); updateDailyRuntimeV35(); return ret; };
+                        updateLogic.__v35Daily = true;
+                    }
+                } catch(e) {}
+                try {
+                    const oldGameOver = gameOver;
+                    if (typeof oldGameOver === 'function' && !oldGameOver.__v35Daily) {
+                        gameOver = function() { finishDailyEventV35(); return oldGameOver.apply(this, arguments); };
+                        gameOver.__v35Daily = true;
+                    }
+                } catch(e) {}
+            }
+
+            function patchPassTicketCostV35() {
+                const renderShopHtml = () => {
+                    ensureUserV35();
+                    try { if (typeof ensurePassV2Data === 'function') ensurePassV2Data(); } catch(e) {}
+                    const s = (typeof fridaySeasonInfoV2 === 'function') ? fridaySeasonInfoV2() : {id:'SEASON', remain:'?', theme:{icon:'⭐', name:'NEON PASS'}};
+                    const canBuy = n35(userData.coins) >= PASS_TICKET_COST_V35;
+                    const premium = !!(userData.battlePassV2?.premium || userData.battlePass?.premium);
+                    return `<div class="nsv-shop-card premium"><div class="text-5xl mb-2">🎟️</div><h3 class="text-2xl font-bold text-yellow-300">バトルパスチケット交換</h3><p class="text-sm text-gray-300 mt-2">チケットは常に100000コインです。</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-yellow-400/40"><p class="text-sm text-gray-300">所持銀コイン：<b class="text-yellow-300">${Math.floor(n35(userData.coins)).toLocaleString()}</b></p><p class="text-sm text-gray-300">所持チケット：<b class="text-cyan-300">${Math.floor(n35(userData.passTickets))}</b></p><p class="text-xl font-black text-yellow-200 mt-2">必要：${PASS_TICKET_COST_V35.toLocaleString()} コイン</p></div><button id="buyPassTicketBtnV35" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${canBuy?'':'opacity-40 cursor-not-allowed'}" ${canBuy?'':'disabled'}>🎟️ チケットを1枚交換</button></div><div class="nsv-shop-card"><div class="text-5xl mb-2">⭐</div><h3 class="text-2xl font-bold text-cyan-300">${esc35(s.theme?.icon || '⭐')} ${esc35(s.theme?.name || 'NEON PASS')}</h3><p class="text-sm text-gray-300 mt-2">チケット1枚で現在シーズンのパスを購入できます。</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-cyan-400/40"><p class="text-sm text-gray-300">シーズン：<b class="text-cyan-300">${esc35(s.id)}</b></p><p class="text-sm text-gray-300">残り：約<b class="text-yellow-300">${esc35(s.remain)}</b>日</p><p class="text-sm text-gray-300">状態：<b class="${premium?'text-green-300':'text-gray-300'}">${premium?'購入済み':'未購入'}</b></p></div><button id="buyNeonPassBtnV35" class="btn-neon px-5 py-3 rounded font-bold mt-4 w-full ${(userData.passTickets > 0 && !premium)?'':'opacity-40 cursor-not-allowed'}" ${(userData.passTickets > 0 && !premium)?'':'disabled'}>NEON PASSを購入</button><button id="openPassFromShopBtnV35" class="btn-purple px-5 py-3 rounded font-bold mt-3 w-full">NEON PASSを見る</button></div>`;
+                };
+                const render = () => {
+                    try { if (typeof ensureShopV2 === 'function') ensureShopV2(); else if (typeof ensureShopScreen20260504 === 'function') ensureShopScreen20260504(); } catch(e) {}
+                    const box = q35('shopListContainer'); if (!box) return;
+                    box.innerHTML = renderShopHtml();
+                    q35('buyPassTicketBtnV35')?.addEventListener('click', () => { ensureUserV35(); if (n35(userData.coins) < PASS_TICKET_COST_V35) return; userData.coins = n35(userData.coins) - PASS_TICKET_COST_V35; userData.passTickets = n35(userData.passTickets) + 1; userData.shop.firstPassTicketBought = true; saveNowV35(); call35(showMissionToast, 'TICKET GET!', 'バトルパスチケット +1'); render(); });
+                    q35('buyNeonPassBtnV35')?.addEventListener('click', () => { ensureUserV35(); if (n35(userData.passTickets) <= 0) return; if (userData.battlePassV2) userData.battlePassV2.premium = true; else { userData.battlePass = userData.battlePass || {}; userData.battlePass.premium = true; } userData.passTickets = n35(userData.passTickets) - 1; saveNowV35(); call35(showMissionToast, 'NEON PASS UNLOCKED!', 'チケット1枚で購入しました。'); render(); });
+                    q35('openPassFromShopBtnV35')?.addEventListener('click', () => { call35(renderBattlePassV2, 'base'); call35(showScreen, 'battlePassScreen'); });
+                };
+                try { renderShopV2 = render; } catch(e) {}
+                try { renderShopScreen20260504 = render; } catch(e) {}
+            }
+
+            function cloneV35(v) { try { return JSON.parse(JSON.stringify(v || {})); } catch(e) { return {}; } }
+            function compactSaveV35() {
+                ensureUserV35();
+                return { v:5, n:userData.nickname || (typeof getNickname === 'function' ? getNickname() : ''), userData: cloneV35(userData), savedAt: Date.now() };
+            }
+            function expandSaveV35(parsed) {
+                if (!parsed || typeof parsed !== 'object') return null;
+                if (parsed.v === 5 && parsed.userData) return parsed.userData;
+                if (parsed.v === 4) {
+                    return { score:parsed.s, coins:parsed.c, nickname:parsed.n, upgrades:parsed.u, stats:parsed.st, missions:parsed.m, daily:parsed.d, unlocks:parsed.l, codex:parsed.x, settings:parsed.set, equippedSkin:parsed.sk, equippedAura:parsed.au, leaderboards:parsed.f, friendBook:parsed.f, battlePassV2:parsed.bp, battlePass:parsed.bp, cosmetics:parsed.cos, passTickets:parsed.pt };
+                }
+                return parsed.userData || parsed.u || parsed;
+            }
+            function mergeSaveV35(raw, nick = '') {
+                raw = expandSaveV35(raw);
+                const base = (typeof createFreshUserData === 'function') ? createFreshUserData(nick || raw?.nickname || '') : {};
+                const old = cloneV35(raw || {});
+                const out = Object.assign({}, base, old);
+                out.nickname = (typeof normalizeNickname === 'function') ? normalizeNickname(out.nickname || nick || '') : String(out.nickname || nick || '').slice(0,12);
+                out.score = Math.max(n35(base.score), n35(old.score));
+                out.coins = Math.max(0, Math.floor(n35(old.coins)));
+                out.passTickets = Math.max(0, Math.floor(n35(old.passTickets)));
+                out.upgrades = Object.assign({}, base.upgrades || {}, old.upgrades || {});
+                out.stats = Object.assign({}, base.stats || {}, old.stats || {});
+                out.missions = Object.assign({completed:{},claimed:{}}, old.missions || {}); out.missions.completed = Object.assign({}, old.missions?.completed || {}); out.missions.claimed = Object.assign({}, old.missions?.claimed || {});
+                out.unlocks = Object.assign({legendaryWeapons:{},skins:{classic:true},auras:{none:true}}, old.unlocks || {}); out.unlocks.legendaryWeapons = Object.assign({}, old.unlocks?.legendaryWeapons || {}); out.unlocks.skins = Object.assign({classic:true}, old.unlocks?.skins || {}); out.unlocks.auras = Object.assign({none:true}, old.unlocks?.auras || {});
+                out.codex = Object.assign({weapons:{base_0_通常弾:true}}, old.codex || {}); out.codex.weapons = Object.assign({base_0_通常弾:true}, old.codex?.weapons || {});
+                out.settings = Object.assign({disabledWeapons:{},disabledLegendaryWeapons:{}}, old.settings || {}); out.settings.disabledWeapons = Object.assign({}, old.settings?.disabledWeapons || {}); out.settings.disabledLegendaryWeapons = Object.assign({}, old.settings?.disabledLegendaryWeapons || {});
+                out.battlePassV2 = old.battlePassV2 || old.battlePass || out.battlePassV2 || null;
+                out.battlePass = old.battlePass || out.battlePass || null;
+                out.cosmetics = Object.assign({unlocked:{},equipped:{}}, old.cosmetics || {}); out.cosmetics.unlocked = Object.assign({}, old.cosmetics?.unlocked || {}); out.cosmetics.equipped = Object.assign({}, old.cosmetics?.equipped || {});
+                out.dailyEventsV35 = Object.assign({}, old.dailyEventsV35 || {});
+                out.dailyEvents = Object.assign({}, old.dailyEvents || {});
+                out.friendBook = Object.assign({friends:[]}, old.friendBook || old.leaderboards || {});
+                out.leaderboards = Object.assign({friends:[]}, old.leaderboards || old.friendBook || {});
+                out.shop = Object.assign({}, old.shop || {}); out.shop.firstPassTicketBought = true;
+                out.saveVersion = '2026-05-08-v35-full-safe-save';
+                return out;
+            }
+            function patchSaveV35() {
+                try { makeCompactSavePayload = compactSaveV35; } catch(e) {}
+                try { expandCompactSavePayloadV14 = expandSaveV35; } catch(e) {}
+                try {
+                    const oldMigrate = typeof migrateSaveDataV14 === 'function' ? migrateSaveDataV14 : null;
+                    migrateSaveDataV14 = function(raw, nick = '') { try { return mergeSaveV35(raw, nick); } catch(e) { return oldMigrate ? oldMigrate.apply(this, arguments) : raw; } };
+                } catch(e) {}
+                try {
+                    const oldSave = typeof saveData === 'function' ? saveData : null;
+                    if (oldSave && !oldSave.__v35) {
+                        saveData = function() {
+                            ensureUserV35();
+                            const txt = JSON.stringify(userData);
+                            try { localStorage.setItem('neon_survivor_save', txt); localStorage.setItem('neon_survivor_save_backup_v14', txt); localStorage.setItem('neon_survivor_save_backup_v35', txt); localStorage.setItem('neon_survivor_save_last_saved_at', String(Date.now())); } catch(e) {}
+                            try { if (userData.nickname) localStorage.setItem('neon_survivor_nickname', userData.nickname); } catch(e) {}
+                            try { if (typeof saveDataToCloud === 'function') saveDataToCloud(); } catch(e) {}
+                            return true;
+                        };
+                        saveData.__v35 = true;
+                    }
+                } catch(e) {}
+                try {
+                    importSaveCode = async function() {
+                        const code = prompt('セーブコードを入力してください'); if (!code) return;
+                        try {
+                            const parsed = await decodeShortSaveCode(String(code).trim());
+                            userData = mergeSaveV35(parsed, parsed?.n || parsed?.nickname || '');
+                            ensureUltimateMissionsV35(); saveNowV35();
+                            try { const input = q35('nicknameInput'); if (input && userData.nickname) input.value = userData.nickname; } catch(e) {}
+                            call35(renderUpgradeScreen); call35(renderMissionScreen); call35(renderCollectionScreen); call35(renderWeaponCodexScreen);
+                            alert('セーブデータを復元しました。');
+                        } catch(e) { console.warn('V35 import failed', e); alert('コードが正しくありません。'); }
+                    };
+                    const exp = q35('exportBtn'); if (exp && !exp.__v35) { exp.addEventListener('click', (ev)=>{ ev.preventDefault(); ev.stopPropagation(); call35(exportSaveCode); }, true); exp.__v35 = true; }
+                    const imp = q35('importBtn'); if (imp && !imp.__v35) { imp.addEventListener('click', (ev)=>{ ev.preventDefault(); ev.stopPropagation(); call35(importSaveCode); }, true); imp.__v35 = true; }
+                } catch(e) {}
+            }
+
+            function badgeV35() {
+                try {
+                    let b = q35('nsvV31Badge') || q35('nsvV34Badge') || q35('nsvV35Badge');
+                    if (!b) { b = document.createElement('div'); b.id = 'nsvV35Badge'; b.style.cssText = 'position:fixed;left:10px;bottom:8px;z-index:930;pointer-events:none;color:#a7f3d0;background:rgba(2,6,23,.82);border:1px solid rgba(52,211,153,.58);border-radius:999px;padding:4px 9px;font:900 11px/1.2 Orbitron, sans-serif;letter-spacing:.08em;box-shadow:0 0 13px rgba(16,185,129,.3)'; document.body.appendChild(b); }
+                    b.textContent = V35_TAG;
+                } catch(e) {}
+            }
+            function patchButtonsV35() {
+                patchDailyButtonsV35();
+                try {
+                    window.addEventListener('click', (ev) => {
+                        const btn = ev.target?.closest?.('button'); if (!btn) return;
+                        if (btn.id === 'openDailyEventBtnV35') { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); openDailyEventV35(); }
+                        if (btn.id === 'openShopBtn') { setTimeout(() => { try { renderShopV2(); } catch(e) {} }, 0); }
+                    }, true);
+                } catch(e) {}
+            }
+            function bootV35() {
+                try { patchSaveV35(); ensureUserV35(); ensureUltimateMissionsV35(); patchUltimateLocksV35(); patchPassTicketCostV35(); patchDailyRuntimeV35(); patchButtonsV35(); badgeV35(); saveNowV35(); } catch(e) { console.warn('V35 boot skipped', e); }
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV35, {once:true}); else bootV35();
+            window.addEventListener('pageshow', bootV35, {passive:true});
+            setInterval(() => { try { ensureUltimateMissionsV35(); patchDailyButtonsV35(); badgeV35(); if (q35('eventModeScreen') && !q35('eventModeScreen').classList.contains('hidden')) renderDailyEventV35(); } catch(e) {} }, 1500);
         })();
 
 </script>
