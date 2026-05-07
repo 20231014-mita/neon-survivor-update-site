@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V27 STABLE home-settings-ranking-clean-complete -->
+<!-- V29 STABLE neon-pass-ticket-price-complete -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -10481,8 +10481,8 @@
 // ===== 2026-05-04 Add-on: GAME SHOP + NEON PASS =====
 (() => {
     const NSV_PASS_PATCH_VERSION = '2026-05-04-shop-pass-v1';
-    const PASS_FIRST_TICKET_COST = 7500;
-    const PASS_REPEAT_TICKET_COST = 75000;
+    const PASS_FIRST_TICKET_COST = 5000;
+    const PASS_REPEAT_TICKET_COST = 1000000;
     const PASS_LEVELS = [50, 150, 300, 500, 750, 1050, 1400, 1800, 2250, 2750, 3300, 3900, 4550, 5250, 6000, 6800, 7650, 8550, 9500, 10500];
     const PASS_REWARDS = [
         { free:{ coins:120 }, premium:{ coins:300, title:'NEON PASS入門者' } },
@@ -10663,8 +10663,8 @@
                 <div class="mt-4 bg-black/40 rounded-xl p-3 border border-yellow-400/40">
                     <p class="text-sm text-gray-300">所持銀コイン：<b class="text-yellow-300">${Math.floor(userData.coins || 0)}</b></p>
                     <p class="text-sm text-gray-300">所持チケット：<b class="text-cyan-300">${Math.floor(userData.passTickets || 0)}</b></p>
-                    <p class="text-xl font-black text-yellow-200 mt-2">必要：${cost} コイン</p>
-                    <p class="text-xs text-gray-400 mt-1">${userData.shop.firstPassTicketBought ? '2回目以降は75000コインです。' : '初回だけ7500コインです。'}</p>
+                    <p class="text-xl font-black text-yellow-200 mt-2">必要：${Number(cost).toLocaleString()} コイン</p>
+                    <p class="text-xs text-gray-400 mt-1">${userData.shop.firstPassTicketBought ? '2回目以降は1,000,000コインです。' : '初回だけ5,000コインです。'}</p>
                 </div>
                 <button id="buyPassTicketBtn" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${canBuy ? '' : 'opacity-40 cursor-not-allowed'}" ${canBuy ? '' : 'disabled'}>🎟️ チケットを1枚交換</button>
             </div>
@@ -10811,8 +10811,8 @@
     // Season 1 reset: the first important season is NEON.
     // Changing this version forces old battle-pass progress/rewards to reset safely.
     const NSV_PASS_V2_VERSION = '2026-05-04-neon-season-1-keep-best-reset-v5';
-    const PASS_FIRST_TICKET_COST = 7500;
-    const PASS_REPEAT_TICKET_COST = 75000;
+    const PASS_FIRST_TICKET_COST = 5000;
+    const PASS_REPEAT_TICKET_COST = 1000000;
     const FRIDAY_SEASON_ANCHOR = new Date(2026, 4, 8, 0, 0, 0); // 2026-05-08 Friday / Season 1 display anchor. Next season starts 2026-05-22.
 
     const PASS_THEMES = [
@@ -11073,7 +11073,7 @@
         const cost = userData.shop.firstPassTicketBought ? PASS_REPEAT_TICKET_COST : PASS_FIRST_TICKET_COST;
         const canBuy = Number(userData.coins || 0) >= cost;
         const s = fridaySeasonInfoV2();
-        document.getElementById('shopListContainer').innerHTML = `<div class="nsv-shop-card premium"><div class="text-5xl mb-2">🎟️</div><h3 class="text-2xl font-bold text-yellow-300">バトルパスチケット交換</h3><p class="text-sm text-gray-300 mt-2">初回だけ7500コイン。その後は75000コインで交換。</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-yellow-400/40"><p class="text-sm text-gray-300">所持銀コイン：<b class="text-yellow-300">${Math.floor(userData.coins || 0)}</b></p><p class="text-sm text-gray-300">所持チケット：<b class="text-cyan-300">${Math.floor(userData.passTickets || 0)}</b></p><p class="text-xl font-black text-yellow-200 mt-2">必要：${cost} コイン</p></div><button id="buyPassTicketBtnV2" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${canBuy ? '' : 'opacity-40 cursor-not-allowed'}" ${canBuy ? '' : 'disabled'}>🎟️ チケットを1枚交換</button></div><div class="nsv-shop-card"><div class="text-5xl mb-2">⭐</div><h3 class="text-2xl font-bold text-cyan-300">${s.theme.icon} ${s.theme.name}</h3><p class="text-sm text-gray-300 mt-2">金曜日更新の2週間シーズン。チケット1枚で購入できます。</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-cyan-400/40"><p class="text-sm text-gray-300">シーズン：<b class="text-cyan-300">${s.id}</b></p><p class="text-sm text-gray-300">残り：約<b class="text-yellow-300">${s.remain}</b>日</p><p class="text-sm text-gray-300">状態：<b class="${userData.battlePassV2.premium ? 'text-green-300':'text-gray-300'}">${userData.battlePassV2.premium ? '購入済み':'未購入'}</b></p></div><button id="buyNeonPassBtnV2" class="btn-neon px-5 py-3 rounded font-bold mt-4 w-full ${(userData.passTickets > 0 && !userData.battlePassV2.premium) ? '' : 'opacity-40 cursor-not-allowed'}" ${(userData.passTickets > 0 && !userData.battlePassV2.premium) ? '' : 'disabled'}>NEON PASSを購入</button><button id="openPassFromShopBtnV2" class="btn-purple px-5 py-3 rounded font-bold mt-3 w-full">NEON PASSを見る</button></div>`;
+        document.getElementById('shopListContainer').innerHTML = `<div class="nsv-shop-card premium"><div class="text-5xl mb-2">🎟️</div><h3 class="text-2xl font-bold text-yellow-300">バトルパスチケット交換</h3><p class="text-sm text-gray-300 mt-2">初回だけ5,000コイン。その後は1,000,000コインで交換。</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-yellow-400/40"><p class="text-sm text-gray-300">所持銀コイン：<b class="text-yellow-300">${Math.floor(userData.coins || 0)}</b></p><p class="text-sm text-gray-300">所持チケット：<b class="text-cyan-300">${Math.floor(userData.passTickets || 0)}</b></p><p class="text-xl font-black text-yellow-200 mt-2">必要：${Number(cost).toLocaleString()} コイン</p></div><button id="buyPassTicketBtnV2" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${canBuy ? '' : 'opacity-40 cursor-not-allowed'}" ${canBuy ? '' : 'disabled'}>🎟️ チケットを1枚交換</button></div><div class="nsv-shop-card"><div class="text-5xl mb-2">⭐</div><h3 class="text-2xl font-bold text-cyan-300">${s.theme.icon} ${s.theme.name}</h3><p class="text-sm text-gray-300 mt-2">金曜日更新の2週間シーズン。チケット1枚で購入できます。</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-cyan-400/40"><p class="text-sm text-gray-300">シーズン：<b class="text-cyan-300">${s.id}</b></p><p class="text-sm text-gray-300">残り：約<b class="text-yellow-300">${s.remain}</b>日</p><p class="text-sm text-gray-300">状態：<b class="${userData.battlePassV2.premium ? 'text-green-300':'text-gray-300'}">${userData.battlePassV2.premium ? '購入済み':'未購入'}</b></p></div><button id="buyNeonPassBtnV2" class="btn-neon px-5 py-3 rounded font-bold mt-4 w-full ${(userData.passTickets > 0 && !userData.battlePassV2.premium) ? '' : 'opacity-40 cursor-not-allowed'}" ${(userData.passTickets > 0 && !userData.battlePassV2.premium) ? '' : 'disabled'}>NEON PASSを購入</button><button id="openPassFromShopBtnV2" class="btn-purple px-5 py-3 rounded font-bold mt-3 w-full">NEON PASSを見る</button></div>`;
         document.getElementById('buyPassTicketBtnV2')?.addEventListener('click', () => { ensurePassV2Data(); const price = userData.shop.firstPassTicketBought ? PASS_REPEAT_TICKET_COST : PASS_FIRST_TICKET_COST; if (Number(userData.coins || 0) < price) return; userData.coins -= price; userData.passTickets = Number(userData.passTickets || 0) + 1; userData.shop.firstPassTicketBought = true; saveData?.(); showMissionToast?.('TICKET GET!', 'バトルパスチケット +1'); renderShopV2(); });
         document.getElementById('buyNeonPassBtnV2')?.addEventListener('click', buyNeonPassV2);
         document.getElementById('openPassFromShopBtnV2')?.addEventListener('click', () => { renderBattlePassV2('base'); showScreen('battlePassScreen'); });
@@ -15974,6 +15974,396 @@
     patchVersionLabel();
   }, 1000);
 })();
+
+
+
+
+/* =========================================================
+   V28 STABLE: SHOP PASS TICKET + CHEAT RESTORE
+   - SHOPでネオンパスチケットを購入できる
+   - ネオンパスチケット1枚でNEON PASSに引き換えできる
+   - ホームと一時停止画面にチートコード入力欄を復元
+   - プレビューなし
+========================================================= */
+(() => {
+  'use strict';
+  const V28_LABEL = 'V29 STABLE';
+  const PASS_FIRST_TICKET_COST_V28 = 5000;
+  const PASS_REPEAT_TICKET_COST_V28 = 1000000;
+  const ADMIN_FORM_URL_V28 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
+  const $v28 = (id) => document.getElementById(id);
+  const qv28 = (sel, root=document) => root.querySelector(sel);
+  const nv28 = (v, d=0) => Number.isFinite(Number(v)) ? Number(v) : d;
+  const escV28 = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  function saveV28(){
+    try { if (typeof saveData === 'function') saveData(); } catch(e) {}
+  }
+  function toastV28(title, msg){
+    try {
+      if (typeof showMissionToast === 'function') showMissionToast(title, msg);
+      else console.log(title, msg);
+    } catch(e) {}
+  }
+  function ensureDataV28(){
+    try { if (typeof ensureProgressionData === 'function') ensureProgressionData(); } catch(e) {}
+    if (typeof userData === 'undefined' || !userData) return {};
+    userData.shop = userData.shop || {};
+    userData.passTickets = Math.max(0, Math.floor(nv28(userData.passTickets)));
+    userData.battlePassV2 = userData.battlePassV2 || {};
+    userData.battlePass = userData.battlePass || {};
+    userData.cheats = userData.cheats || {};
+    userData.cheats.flags = userData.cheats.flags || {};
+    userData.stats = userData.stats || {};
+    userData.unlocks = userData.unlocks || {};
+    userData.unlocks.legendaryWeapons = userData.unlocks.legendaryWeapons || {};
+    userData.unlocks.skins = userData.unlocks.skins || {};
+    userData.unlocks.auras = userData.unlocks.auras || {};
+    userData.cosmetics = userData.cosmetics || { unlocked:{}, equipped:{} };
+    userData.cosmetics.unlocked = userData.cosmetics.unlocked || {};
+    userData.cosmetics.equipped = userData.cosmetics.equipped || {};
+    return userData;
+  }
+  function seasonInfoV28(){
+    const anchor = new Date(2026, 4, 8, 0, 0, 0);
+    const now = new Date();
+    let diff = Math.floor((now - anchor) / 86400000);
+    if (diff < 0) diff = 0;
+    const idx = Math.floor(diff / 14);
+    const start = new Date(anchor.getTime() + idx * 14 * 86400000);
+    const end = new Date(start.getTime() + 14 * 86400000);
+    return {
+      id: `NEON-${start.getFullYear()}-${String(start.getMonth()+1).padStart(2,'0')}-${String(start.getDate()).padStart(2,'0')}`,
+      remain: Math.max(0, Math.ceil((end - now) / 86400000))
+    };
+  }
+  function passBoughtV28(){
+    const u = ensureDataV28();
+    return !!(u.battlePassV2?.premium || u.battlePass?.premium);
+  }
+  function setPassBoughtV28(){
+    const u = ensureDataV28();
+    u.battlePassV2 = u.battlePassV2 || {};
+    u.battlePass = u.battlePass || {};
+    u.battlePassV2.premium = true;
+    u.battlePass.premium = true;
+  }
+  function hardShowV28(screenId){
+    try {
+      if (typeof showScreen === 'function') showScreen(screenId);
+    } catch(e) {}
+    try {
+      const screens = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen','leaderboardScreen','eventModeScreen','shopScreen','battlePassScreen','pauseScreen','gameOverScreen','onlineRoleScreen','levelUpScreen'];
+      screens.forEach(id => {
+        const el = $v28(id);
+        if (!el) return;
+        if (id === screenId) {
+          el.classList.remove('hidden');
+          el.style.display = '';
+          el.style.pointerEvents = 'auto';
+        } else if (screenId && id !== 'pauseScreen' && id !== 'gameOverScreen' && id !== 'levelUpScreen') {
+          el.classList.add('hidden');
+        }
+      });
+    } catch(e) {}
+  }
+
+  function injectStyleV28(){
+    if ($v28('nsvV28Style')) return;
+    const st = document.createElement('style');
+    st.id = 'nsvV28Style';
+    st.textContent = `
+      #shopScreen .menu-panel{width:min(96vw,980px)!important;max-height:94vh!important;overflow-y:auto!important;}
+      .nsv-v28-shop-top{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+      .nsv-v28-stat{border:1px solid rgba(34,211,238,.35);background:rgba(2,6,23,.82);border-radius:16px;padding:12px;}
+      .nsv-v28-stat-label{font-size:.76rem;color:#94a3b8;font-weight:900;}
+      .nsv-v28-stat-value{font-family:Orbitron,'Noto Sans JP',sans-serif;font-size:1.35rem;font-weight:1000;color:#f8fafc;margin-top:3px;}
+      .nsv-v28-shop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+      .nsv-v28-shop-card{border:1px solid rgba(6,182,212,.48);border-radius:20px;background:linear-gradient(180deg,rgba(2,6,23,.92),rgba(0,0,0,.7));padding:16px;box-shadow:0 0 18px rgba(34,211,238,.15);}
+      .nsv-v28-shop-card.gold{border-color:rgba(250,204,21,.72);box-shadow:0 0 20px rgba(250,204,21,.18);}
+      .nsv-v28-shop-card h3{font-size:1.55rem;font-weight:1000;margin:4px 0;color:#fde68a;}
+      .nsv-v28-shop-card p{font-size:.92rem;color:#cbd5e1;line-height:1.45;}
+      .nsv-v28-price{border:1px solid rgba(250,204,21,.35);background:rgba(0,0,0,.45);border-radius:14px;padding:12px;margin-top:12px;}
+      .nsv-v28-price b{color:#fde047;}
+      .nsv-v28-cheat-card{width:100%;border:1px solid rgba(250,204,21,.55);border-radius:18px;background:linear-gradient(180deg,rgba(24,18,2,.84),rgba(15,23,42,.72));padding:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;box-shadow:0 0 16px rgba(250,204,21,.12);}
+      .nsv-v28-cheat-title{font-weight:1000;color:#fde68a;}
+      .nsv-v28-cheat-desc{font-size:.78rem;color:#cbd5e1;margin-top:3px;font-weight:700;}
+      .nsv-v28-cheat-actions{display:flex;gap:8px;align-items:center;}
+      .nsv-v28-cheat-actions input{width:190px;background:rgba(0,0,0,.72);border:1px solid rgba(250,204,21,.78);border-radius:12px;color:white;padding:11px 12px;font-weight:1000;letter-spacing:.18em;text-align:center;outline:none;font-size:16px;}
+      #pauseScreen .nsv-v28-cheat-card{width:min(92vw,560px);margin-top:14px;}
+      @media(max-width:760px){.nsv-v28-shop-top,.nsv-v28-shop-grid,.nsv-v28-cheat-card{grid-template-columns:1fr}.nsv-v28-cheat-actions{width:100%;}.nsv-v28-cheat-actions input{width:100%;}.nsv-v28-cheat-actions button{min-width:72px;}}
+    `;
+    document.head.appendChild(st);
+  }
+  function patchLabelV28(){
+    try {
+      const targets = ['nsvV13Badge','nsvV25Badge','nsvV28Badge'];
+      targets.forEach(id => {
+        let b = $v28(id);
+        if (!b && id === 'nsvV28Badge') {
+          b = document.createElement('div');
+          b.id = 'nsvV28Badge';
+          b.style.cssText = 'position:fixed;left:10px;bottom:8px;z-index:80;font-family:Orbitron,Noto Sans JP,sans-serif;font-size:11px;font-weight:900;color:#67e8f9;background:rgba(0,0,0,.55);border:1px solid rgba(34,211,238,.45);border-radius:999px;padding:5px 9px;box-shadow:0 0 12px rgba(34,211,238,.25);pointer-events:none';
+          document.body.appendChild(b);
+        }
+        if (b) b.textContent = V28_LABEL;
+      });
+      document.querySelectorAll('.nsv-version-badge,[id*="Badge"]').forEach(n => {
+        if (/V\d+\s+STABLE/.test(n.textContent || '')) n.textContent = V28_LABEL;
+      });
+    } catch(e) {}
+  }
+
+  function ensureShopScreenV28(){
+    injectStyleV28();
+    let div = $v28('shopScreen');
+    if (!div) {
+      div = document.createElement('div');
+      div.id = 'shopScreen';
+      div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3';
+      document.body.appendChild(div);
+    }
+    div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3';
+    div.style.pointerEvents = 'auto';
+    div.innerHTML = `
+      <div class="menu-panel w-full flex flex-col gap-4">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+          <div>
+            <h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">GAME SHOP</h2>
+            <p class="text-gray-300 text-sm mt-2">コインでネオンパスチケットを買い、チケット1枚でNEON PASSに引き換えできます。</p>
+          </div>
+          <button id="closeShopBtn" class="btn-neon px-4 py-2 rounded font-bold">BACK</button>
+        </div>
+        <div id="shopListContainer"></div>
+      </div>`;
+    $v28('closeShopBtn')?.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); hardShowV28('startScreen'); }, { passive:false });
+  }
+  function renderShopV28(){
+    ensureDataV28();
+    ensureShopScreenV28();
+    const u = ensureDataV28();
+    const s = seasonInfoV28();
+    const cost = u.shop.firstPassTicketBought ? PASS_REPEAT_TICKET_COST_V28 : PASS_FIRST_TICKET_COST_V28;
+    const coins = Math.floor(nv28(u.coins));
+    const tickets = Math.floor(nv28(u.passTickets));
+    const canBuyTicket = coins >= cost;
+    const bought = passBoughtV28();
+    const canExchange = tickets > 0 && !bought;
+    const box = $v28('shopListContainer');
+    if (!box) return;
+    box.innerHTML = `
+      <div class="nsv-v28-shop-top">
+        <div class="nsv-v28-stat"><div class="nsv-v28-stat-label">所持コイン</div><div class="nsv-v28-stat-value">🪙 ${coins.toLocaleString()}</div></div>
+        <div class="nsv-v28-stat"><div class="nsv-v28-stat-label">ネオンパスチケット</div><div class="nsv-v28-stat-value">🎟️ ${tickets}</div></div>
+        <div class="nsv-v28-stat"><div class="nsv-v28-stat-label">NEON PASS</div><div class="nsv-v28-stat-value">${bought ? '解放済み' : '未解放'}</div></div>
+      </div>
+      <div class="nsv-v28-shop-grid">
+        <div class="nsv-v28-shop-card gold">
+          <div class="text-5xl">🎟️</div>
+          <h3>ネオンパスチケット購入</h3>
+          <p>コインを使って、NEON PASS引き換え用のチケットを1枚買えます。</p>
+          <div class="nsv-v28-price">
+            <div>必要コイン：<b>${cost.toLocaleString()}</b></div>
+            <div class="text-xs text-gray-400 mt-1">${u.shop.firstPassTicketBought ? '2回目以降の価格です（1,000,000コイン）。' : '初回だけ5,000コインです。'}</div>
+          </div>
+          <button id="buyPassTicketBtnV28" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${canBuyTicket ? '' : 'opacity-40 cursor-not-allowed'}" ${canBuyTicket ? '' : 'disabled'}>🎟️ チケットを買う</button>
+        </div>
+        <div class="nsv-v28-shop-card">
+          <div class="text-5xl">💠</div>
+          <h3>NEON PASSに引き換え</h3>
+          <p>ネオンパスチケット1枚を使って、今のシーズンのNEON PASSを解放します。</p>
+          <div class="nsv-v28-price">
+            <div>シーズン：<b>${escV28(s.id)}</b></div>
+            <div>残り：約<b>${s.remain}</b>日</div>
+            <div>必要：<b>チケット1枚</b></div>
+          </div>
+          <button id="exchangeNeonPassBtnV28" class="btn-neon px-5 py-3 rounded font-bold mt-4 w-full ${canExchange ? '' : 'opacity-40 cursor-not-allowed'}" ${canExchange ? '' : 'disabled'}>${bought ? '購入済み' : 'NEON PASSに引き換え'}</button>
+          <button id="openPassFromShopBtnV28" class="btn-purple px-5 py-3 rounded font-bold mt-3 w-full">NEON PASSを見る</button>
+        </div>
+      </div>`;
+    $v28('buyPassTicketBtnV28')?.addEventListener('click', buyTicketV28, { passive:false });
+    $v28('exchangeNeonPassBtnV28')?.addEventListener('click', exchangePassV28, { passive:false });
+    $v28('openPassFromShopBtnV28')?.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      try { if (typeof renderBattlePassV2 === 'function') renderBattlePassV2('base'); } catch(err) {}
+      hardShowV28('battlePassScreen');
+    }, { passive:false });
+  }
+  function buyTicketV28(e){
+    e?.preventDefault?.(); e?.stopPropagation?.();
+    const u = ensureDataV28();
+    const price = u.shop.firstPassTicketBought ? PASS_REPEAT_TICKET_COST_V28 : PASS_FIRST_TICKET_COST_V28;
+    if (nv28(u.coins) < price) { toastV28('SHOP', 'コインが足りません。'); return; }
+    u.coins = Math.max(0, nv28(u.coins) - price);
+    u.passTickets = Math.floor(nv28(u.passTickets)) + 1;
+    u.shop.firstPassTicketBought = true;
+    saveV28();
+    toastV28('TICKET GET!', 'ネオンパスチケット +1');
+    renderShopV28();
+  }
+  function exchangePassV28(e){
+    e?.preventDefault?.(); e?.stopPropagation?.();
+    const u = ensureDataV28();
+    if (passBoughtV28()) { toastV28('NEON PASS', 'すでに購入済みです。'); return; }
+    if (nv28(u.passTickets) <= 0) { toastV28('NEON PASS', 'チケットがありません。SHOPで購入してください。'); return; }
+    u.passTickets = Math.max(0, Math.floor(nv28(u.passTickets)) - 1);
+    setPassBoughtV28();
+    saveV28();
+    toastV28('NEON PASS UNLOCKED!', 'チケット1枚でNEON PASSを解放しました。');
+    renderShopV28();
+    try { if (typeof renderBattlePassV2 === 'function') renderBattlePassV2('base'); } catch(err) {}
+  }
+  function wireShopButtonV28(){
+    const btns = [$v28('openShopBtn'), $v28('openShopHeroBtn')].filter(Boolean);
+    btns.forEach(btn => {
+      if (btn.__v28ShopWired) return;
+      btn.__v28ShopWired = true;
+      btn.disabled = false;
+      btn.style.pointerEvents = 'auto';
+      btn.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopImmediatePropagation(); e.stopPropagation();
+        renderShopV28(); hardShowV28('shopScreen');
+      }, { capture:true, passive:false });
+      btn.addEventListener('pointerup', (e) => {
+        if (e.pointerType === 'touch' && window.__nsvScrollGuardActive) return;
+        e.preventDefault(); e.stopImmediatePropagation(); e.stopPropagation();
+        renderShopV28(); hardShowV28('shopScreen');
+      }, { capture:true, passive:false });
+    });
+  }
+
+  const ULT_IDS_V28 = ['hollowMurasaki','kamehameha','vader','thor','muryoku','funnel','ironBlaster','disneyMagic','infinitySnap','infiniteBlade','shieldThrow','keraunos','phantomStep','neonLance','phoenixCore','starfallCrown','voidCollector','railCannon','blackholeEmperor','thunderAegis','solarDrill','chronoLotus'];
+  function addCoinsV28(n){ const u=ensureDataV28(); u.coins = Math.max(0, nv28(u.coins)+nv28(n)); u.stats.totalCoinsEarned = nv28(u.stats.totalCoinsEarned) + Math.max(0,nv28(n)); saveV28(); }
+  function flagV28(k,v){ ensureDataV28().cheats.flags[k]=v; saveV28(); applyPlayerCheatsV28(); }
+  function hpV28(m){ flagV28('hpMult', m); }
+  function unlockWeaponsV28(ids){ const u=ensureDataV28(); ids.forEach(id => { if(id) u.unlocks.legendaryWeapons[id]=true; }); saveV28(); }
+  function upgradeV28(n){ const u=ensureDataV28(); u.upgrades=u.upgrades||{}; try{ (upgradeDef||[]).forEach(x=>{ if(x?.id) u.upgrades[x.id]=nv28(u.upgrades[x.id])+n; }); }catch(e){} saveV28(); }
+  function maxUpgradeV28(){ const u=ensureDataV28(); u.upgrades=u.upgrades||{}; try{ (upgradeDef||[]).forEach(x=>{ if(x?.id) u.upgrades[x.id]=99; }); }catch(e){} saveV28(); }
+  function unlockCollectionV28(){
+    const u=ensureDataV28();
+    try{ (SKIN_DEFS||[]).forEach(x=>{ if(x?.id) u.unlocks.skins[x.id]=true; }); }catch(e){}
+    try{ (AURA_DEFS||[]).forEach(x=>{ if(x?.id) u.unlocks.auras[x.id]=true; }); }catch(e){}
+    try{ if(u.cosmetics?.unlocked){ Object.values(u.cosmetics.unlocked).forEach(x=>{ if(x?.id) u.cosmetics.unlocked[x.id]=x; }); } }catch(e){}
+    saveV28();
+  }
+  function cancelCheatsV28(){ const u=ensureDataV28(); u.cheats.flags={}; saveV28(); try{ if(player) player.__v28CheatApplied={}; }catch(e){} }
+  function battlePassCheatV28(){ const u=ensureDataV28(); u.passTickets=Math.max(nv28(u.passTickets),99); setPassBoughtV28(); if(u.battlePassV2){ u.battlePassV2.battleStars=Math.max(nv28(u.battlePassV2.battleStars),999); u.battlePassV2.seasonKills=Math.max(nv28(u.battlePassV2.seasonKills),99999); } saveV28(); }
+  function applyPlayerCheatsV28(){
+    try{
+      if(typeof player === 'undefined' || !player) return;
+      const f=ensureDataV28().cheats.flags||{};
+      player.__v28CheatApplied = player.__v28CheatApplied || {};
+      const hpM=Math.max(1,nv28(f.hpMult,1));
+      if(hpM>1 && player.__v28CheatApplied.hpMult!==hpM){ const base=player.__v28BaseMaxHp||player.maxHp||100; player.__v28BaseMaxHp=base; player.maxHp=Math.round(base*hpM); player.hp=player.maxHp; player.__v28CheatApplied.hpMult=hpM; }
+      if(f.damage10 && !player.__v28CheatApplied.damage10){ player.damage*=10; player.__v28CheatApplied.damage10=true; }
+      if(f.damage20 && !player.__v28CheatApplied.damage20){ player.damage*=20; player.fireRate=Math.max(3,player.fireRate*0.45); player.speed*=1.35; player.magnetBonus=(player.magnetBonus||0)+1200; player.__v28CheatApplied.damage20=true; }
+      if(f.oneHit && !player.__v28CheatApplied.oneHit){ player.damage*=999; player.pierce=(player.pierce||0)+999; player.__v28CheatApplied.oneHit=true; }
+      if(f.speed3 && !player.__v28CheatApplied.speed3){ player.speed*=3; player.__v28CheatApplied.speed3=true; }
+      if(f.ultraRapid && !player.__v28CheatApplied.ultraRapid){ player.fireRate=Math.max(3,player.fireRate*0.12); player.bulletSpeed=(player.bulletSpeed||10)*1.8; player.__v28CheatApplied.ultraRapid=true; }
+      if(f.magnetGod && !player.__v28CheatApplied.magnetGod){ player.magnetBonus=(player.magnetBonus||0)+9999; player.__v28CheatApplied.magnetGod=true; }
+      if(f.exp20 && !player.__v28CheatApplied.exp20){ player.expBoost=(player.expBoost||1)*20; player.__v28CheatApplied.exp20=true; }
+      if(f.bulletMega && !player.__v28CheatApplied.bulletMega){ player.bulletSize=(player.bulletSize||4)*3.2; player.pierce=(player.pierce||0)+99; player.attackRange=(player.attackRange||600)*1.8; player.__v28CheatApplied.bulletMega=true; }
+      if(f.invincible){ player.hp=player.maxHp; player.invincibleTimer=Math.max(player.invincibleTimer||0,120); }
+      if(f.autoHealMega && player.hp<player.maxHp) player.hp=Math.min(player.maxHp,player.hp+Math.max(5,Math.round((player.maxHp||100)*0.015)));
+      if(f.allWeaponLevels){
+        ['bladeRingLevel','electricFieldLevel','voidTempestLevel','hollowMurasakiLevel','orbitalStrikeLevel','kamehamehaLevel','infinitySnapLevel','infiniteBladeLevel','funnelLevel','vaderLevel','thorLevel','disneyMagicLevel','muryokuLevel','shieldLevel','onlineSniperLevel','onlineBounceBombLevel','onlinePoisonLevel','onlinePhantomLevel','onlineGravityLevel','legendaryRailCannonLevel','legendaryBlackholeEmperorLevel','legendaryThunderAegisLevel','legendarySolarDrillLevel','legendaryChronoLotusLevel'].forEach(k=>{ player[k]=Math.max(nv28(player[k]),5); });
+      }
+      try{ if(typeof updateUI === 'function') updateUI(); }catch(e){}
+    }catch(e){}
+  }
+  const CHEATS_V28 = {
+    '0000000':['全チート効果キャンセル', cancelCheatsV28],
+    '9384721':['コイン +10,000',()=>addCoinsV28(10000)], '7162948':['コイン +100,000',()=>addCoinsV28(100000)], '9274836':['コイン +1,000,000',()=>addCoinsV28(1000000)], '4819367':['コイン +5,000,000',()=>addCoinsV28(5000000)],
+    '4829137':['最大HP 2倍',()=>hpV28(2)], '8357194':['最大HP 3倍',()=>hpV28(3)], '2679485':['最大HP 5倍',()=>hpV28(5)], '3587264':['最大HP10倍＋復活コア',()=>{hpV28(10);unlockWeaponsV28(['phoenixCore']);flagV28('phoenixBoost',true);}], '8627419':['無敵モード',()=>{flagV28('invincible',true);hpV28(30);}],
+    '4196728':['ワンパンモード',()=>flagV28('oneHit',true)], '7368194':['移動速度3倍',()=>flagV28('speed3',true)], '2846193':['磁力MAX＋経験値20倍',()=>{flagV28('magnetGod',true);flagV28('exp20',true);}], '6928473':['超連射モード',()=>flagV28('ultraRapid',true)], '5369184':['レベルアップ10倍モード',()=>flagV28('levelBurst10',true)], '3748296':['レベルアップ5倍モード',()=>flagV28('levelBurst5',true)],
+    '2938476':['オート回復MAX',()=>flagV28('autoHealMega',true)], '4618297':['弾巨大化＋貫通MAX',()=>flagV28('bulletMega',true)], '7492816':['攻撃力10倍＋高速成長',()=>{flagV28('damage10',true);flagV28('fastGrowth',true);}], '5917362':['強武器スターター解放',()=>unlockWeaponsV28(['neonLance','phoenixCore','starfallCrown','funnel','phantomStep'])],
+    '6842197':['全アルティメット武器解放',()=>unlockWeaponsV28(ULT_IDS_V28)], '8726149':['全武器レベルMAXスターター',()=>{unlockWeaponsV28(ULT_IDS_V28);flagV28('allWeaponLevels',true);}], '1583947':['全コレクション解放',unlockCollectionV28], '9472618':['バトルパス完全解放',battlePassCheatV28], '9246813':['全アップグレード +10',()=>upgradeV28(10)], '5739284':['全アップグレードMAX',maxUpgradeV28], '8294651':['オーバードライブ強化',()=>{flagV28('overdrive',true);addCoinsV28(250000);}], '7893462':['全強化セット',()=>{hpV28(25);flagV28('damage20',true);flagV28('ultraRapid',true);flagV28('magnetGod',true);flagV28('exp20',true);flagV28('levelBurst10',true);addCoinsV28(3000000);unlockWeaponsV28(ULT_IDS_V28);unlockCollectionV28();}], '6159482':['ネオン神モード',()=>{hpV28(20);flagV28('damage20',true);flagV28('levelBurst5',true);addCoinsV28(2000000);unlockWeaponsV28(ULT_IDS_V28);}]
+  };
+  function applyCheatV28(code){
+    const raw = String(code||'').replace(/\D/g,'').slice(0,7);
+    if(raw.length !== 7){ toastV28('CHEAT CODE','7桁の数字を入力してください。'); return; }
+    const item = CHEATS_V28[raw];
+    if(!item){ toastV28('CHEAT CODE','このコードは使えません。'); return; }
+    try{ item[1](); toastV28('CHEAT OK', item[0]); }
+    catch(e){ console.warn(e); toastV28('CHEAT ERROR','もう一度入力してください。'); }
+  }
+  window.nsvApplyCheatCodeV28 = applyCheatV28;
+
+  function buildCheatCardV28(id){
+    const card = document.createElement('div');
+    card.id = id;
+    card.className = 'nsv-v28-cheat-card';
+    card.innerHTML = `
+      <div>
+        <div class="nsv-v28-cheat-title">チートコード</div>
+        <div class="nsv-v28-cheat-desc">7桁の数字を入力。0000000で継続効果をキャンセルできます。</div>
+      </div>
+      <div class="nsv-v28-cheat-actions">
+        <input inputmode="numeric" pattern="[0-9]*" maxlength="7" placeholder="7桁コード">
+        <button class="btn-gold px-4 py-2 rounded font-bold">OK</button>
+      </div>`;
+    const input = card.querySelector('input');
+    const run = (e) => {
+      e?.preventDefault?.(); e?.stopPropagation?.();
+      applyCheatV28(input.value);
+      input.value = '';
+    };
+    input.addEventListener('input', () => { input.value = input.value.replace(/\D/g,'').slice(0,7); });
+    input.addEventListener('keydown', e => { if(e.key === 'Enter') run(e); });
+    card.querySelector('button').addEventListener('click', run, { passive:false });
+    card.querySelector('button').addEventListener('pointerup', run, { passive:false });
+    return card;
+  }
+  function ensureHomeCheatV28(){
+    injectStyleV28();
+    const start = $v28('startScreen');
+    if(!start) return;
+    ['nsvV13StartCheat','nsvV26CheatCard'].forEach(id => { const n=$v28(id); if(n) n.remove(); });
+    let card = $v28('nsvV28HomeCheatCard');
+    if(!card) card = buildCheatCardV28('nsvV28HomeCheatCard');
+    const exportBtn = $v28('exportBtn');
+    const saveSec = exportBtn?.closest?.('section') || exportBtn?.closest?.('.nsv-v26-section') || exportBtn?.closest?.('.nsv-clean-save') || exportBtn?.closest?.('.bg-gray-900\\/80');
+    const panel = qv28('#startScreen .menu-panel') || qv28('#nsvCleanStartRoot20260504') || start;
+    if(saveSec && saveSec.parentElement){
+      if(card.parentElement !== saveSec.parentElement || card.nextElementSibling !== saveSec) {
+        saveSec.parentElement.insertBefore(card, saveSec);
+      }
+    } else if(panel && card.parentElement !== panel) {
+      panel.appendChild(card);
+    }
+    card.style.display = '';
+    card.style.pointerEvents = 'auto';
+  }
+  function ensurePauseCheatV28(){
+    injectStyleV28();
+    const pause = $v28('pauseScreen');
+    if(!pause) return;
+    let card = $v28('nsvV28PauseCheatCard');
+    if(!card) card = buildCheatCardV28('nsvV28PauseCheatCard');
+    if(card.parentElement !== pause) pause.appendChild(card);
+    card.style.display = '';
+    card.style.pointerEvents = 'auto';
+  }
+
+  function bootV28(){
+    try {
+      injectStyleV28();
+      patchLabelV28();
+      ensureDataV28();
+      wireShopButtonV28();
+      ensureHomeCheatV28();
+      ensurePauseCheatV28();
+      applyPlayerCheatsV28();
+      if ($v28('shopScreen') && !$v28('shopScreen').classList.contains('hidden')) renderShopV28();
+    } catch(e) { console.warn('V28 patch skipped', e); }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV28, { once:true });
+  else bootV28();
+  window.addEventListener('load', bootV28, { passive:true });
+  window.addEventListener('orientationchange', () => setTimeout(bootV28, 220), { passive:true });
+  setInterval(bootV28, 1500);
+})();
+
 
 </script>
 
