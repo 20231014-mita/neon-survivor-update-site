@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V29 STABLE neon-pass-ticket-price-complete -->
+<!-- V30 STABLE clean-bottom-performance-complete -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -13707,6 +13707,276 @@
   };
   window.nsvApplyCheatCodeV26 = function(code){ const raw = String(code || '').replace(/\D/g,'').slice(0,7); if (raw.length !== 7) { toast('CHEAT CODE','7桁の数字を入力してください。'); return false; } const item = CHEATS[raw]; if (!item) { toast('CHEAT CODE','このコードは使えません。'); return false; } try { item[1](); toast('CHEAT OK', item[0]); return true; } catch(e) { console.warn(e); toast('CHEAT ERROR','もう一度入力してください。'); return false; } };
   setInterval(applyPlayer, 1200);
+})();
+
+
+
+/* =========================================================
+   V30 STABLE: HOME BOTTOM CLEANUP + PLAY PERFORMANCE BOOST
+   - データ引き継ぎ欄より下の余計な表示を消す
+   - チートコード欄をデータ引き継ぎ欄の真上に固定
+   - プレイ中のエフェクト・粒子・弾数を自動で軽量化
+   - プレビューなし
+========================================================= */
+(() => {
+  'use strict';
+  const V30_LABEL = 'V30 STABLE';
+  const $ = (id) => document.getElementById(id);
+  const q = (sel, root=document) => root.querySelector(sel);
+  const qa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  function safe(fn){ try { return fn(); } catch(e) { console.warn('V30 patch skipped:', e); } }
+
+  function injectStyleV30(){
+    if ($('nsvV30Style')) return;
+    const st = document.createElement('style');
+    st.id = 'nsvV30Style';
+    st.textContent = `
+      /* ホームの下には何も残さない */
+      #startScreen .nsv-v30-hidden-below-save{display:none!important;pointer-events:none!important;}
+      #startScreen #nsvCleanStartRoot20260504{padding-bottom:0!important;margin-bottom:0!important;}
+      #startScreen #nsvCleanStartRoot20260504 > .nsv-v26-section:last-child{margin-bottom:0!important;}
+      #startScreen .menu-panel.nsv-v26-home-panel{padding-bottom:18px!important;}
+      #nsvV30Badge{
+        display:inline-flex;align-items:center;justify-content:center;width:max-content;
+        margin-top:10px;padding:5px 10px;border-radius:999px;
+        border:1px solid rgba(103,232,249,.55);background:rgba(2,6,23,.72);
+        color:#67e8f9;font:900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif;
+        letter-spacing:.08em;box-shadow:0 0 12px rgba(34,211,238,.20);pointer-events:none;
+      }
+      /* 古い固定バッジはホーム下に残って見えやすいので非表示 */
+      #nsvV13Badge,#nsvV14Badge,#nsvV15Badge,#nsvV17Badge,#nsvV18Badge,#nsvV20Badge,#nsvV21Badge,#nsvV22Badge,#nsvV23Badge,#nsvV24Badge,#nsvV25Badge,#nsvV26Badge,#nsvV27Badge,#nsvV28Badge,#nsvV29Badge{display:none!important;}
+      /* 軽量中は重い装飾を弱める */
+      body[data-nsv-v30-lite="1"] .cutin-base,
+      body[data-nsv-v30-lite="2"] .cutin-base,
+      body[data-nsv-v30-lite="3"] .cutin-base{animation-duration:1.1s!important;}
+      body[data-nsv-v30-lite="1"] #lavaOverlay.active{opacity:.12!important;}
+      body[data-nsv-v30-lite="2"] #lavaOverlay.active,
+      body[data-nsv-v30-lite="3"] #lavaOverlay.active{opacity:.06!important;}
+      body[data-nsv-v30-lite="2"] .shatter-glass,
+      body[data-nsv-v30-lite="3"] .shatter-glass{display:none!important;}
+      body[data-nsv-v30-lite="3"] #generalCutin{filter:none!important;}
+      .nsv-v30-light-status{
+        position:fixed;right:10px;bottom:8px;z-index:820;pointer-events:none;
+        background:rgba(2,6,23,.84);border:1px solid rgba(34,211,238,.55);border-radius:999px;
+        padding:4px 9px;color:#a5f3fc;font:900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif;
+        box-shadow:0 0 12px rgba(34,211,238,.25);
+      }
+      body:not([data-nsv-v30-lite="1"]):not([data-nsv-v30-lite="2"]):not([data-nsv-v30-lite="3"]) .nsv-v30-light-status{display:none!important;}
+    `;
+    document.head.appendChild(st);
+  }
+
+  function updateLabelV30(){
+    safe(() => {
+      qa('[id*="Badge"],.nsv-version-badge').forEach(el => {
+        if (el.id !== 'nsvV30Badge' && /V\d+\s+STABLE/i.test(el.textContent || '')) el.style.display = 'none';
+      });
+      const titleCard = q('#startScreen .nsv-v26-title-card') || q('#startScreen .menu-panel');
+      if (!titleCard) return;
+      let b = $('nsvV30Badge');
+      if (!b) {
+        b = document.createElement('div');
+        b.id = 'nsvV30Badge';
+        b.textContent = V30_LABEL;
+      }
+      if (!titleCard.contains(b)) titleCard.appendChild(b);
+      b.textContent = V30_LABEL;
+      b.style.display = 'inline-flex';
+    });
+  }
+
+  function findSaveSection(){
+    const exportBtn = $('exportBtn');
+    if (exportBtn) {
+      return exportBtn.closest('.nsv-v26-section') || exportBtn.closest('section') || exportBtn.closest('.bg-gray-900\\/80') || exportBtn.closest('.nsv-v25-save-card');
+    }
+    const root = $('nsvCleanStartRoot20260504') || q('#startScreen .menu-panel');
+    if (!root) return null;
+    return qa('.nsv-v26-section,section,.bg-gray-900\\/80', root).find(el => /データ引き継ぎ|SAVE CODE|EXPORT|IMPORT/.test(el.textContent || '')) || null;
+  }
+
+  function ensureCheatAboveSave(saveSec){
+    safe(() => {
+      if (!saveSec || !saveSec.parentElement) return;
+      const cheat = $('nsvV28HomeCheatCard') || $('nsvV26CheatCard') || $('nsvV13StartCheat');
+      if (!cheat) return;
+      cheat.classList.remove('nsv-v30-hidden-below-save');
+      cheat.style.display = '';
+      cheat.style.pointerEvents = 'auto';
+      if (cheat.parentElement !== saveSec.parentElement || cheat.nextElementSibling !== saveSec) {
+        saveSec.parentElement.insertBefore(cheat, saveSec);
+      }
+    });
+  }
+
+  function removeEverythingBelowSave(){
+    safe(() => {
+      const start = $('startScreen');
+      if (!start) return;
+      const root = $('nsvCleanStartRoot20260504') || q('#startScreen .menu-panel');
+      const saveSec = findSaveSection();
+      if (!root || !saveSec || !saveSec.parentElement) return;
+      ensureCheatAboveSave(saveSec);
+      // データ引き継ぎ欄より下の要素は、ホーム画面では全部消す
+      let node = saveSec.nextSibling;
+      while (node) {
+        const next = node.nextSibling;
+        if (node.nodeType === 1) {
+          node.classList.add('nsv-v30-hidden-below-save');
+          node.remove();
+        } else if (node.nodeType === 3 && !String(node.textContent || '').trim()) {
+          node.remove();
+        } else if (node.nodeType === 3) {
+          node.textContent = '';
+          node.remove();
+        }
+        node = next;
+      }
+      // もし別の古いチート欄が下に作られたら消す。ただし最新チート欄は上に固定する。
+      qa('#startScreen #nsvV13StartCheat,#startScreen #nsvV26CheatCard').forEach(el => el.remove());
+      ensureCheatAboveSave(saveSec);
+      updateLabelV30();
+    });
+  }
+
+  let currentLiteLevel = 0;
+  let fpsSamples = [];
+  let lastFrame = 0;
+  let lastTrim = 0;
+  let stableHighFps = 0;
+
+  function setLiteLevel(level, reason=''){
+    level = Math.max(0, Math.min(3, Number(level) || 0));
+    if (level === currentLiteLevel) return;
+    currentLiteLevel = level;
+    safe(() => {
+      document.body.dataset.nsvV30Lite = String(level);
+      if (level > 0 && typeof applyLightMode === 'function') applyLightMode(true);
+      let st = $('nsvV30LightStatus');
+      if (!st) {
+        st = document.createElement('div');
+        st.id = 'nsvV30LightStatus';
+        st.className = 'nsv-v30-light-status';
+        document.body.appendChild(st);
+      }
+      st.textContent = `軽量Lv${level}`;
+      st.style.display = level > 0 ? '' : 'none';
+      if (typeof runStats !== 'undefined' && runStats) runStats.maxLightLevel = Math.max(Number(runStats.maxLightLevel || 0), level);
+      if (level > 0 && typeof floatingTexts !== 'undefined' && typeof FloatingText !== 'undefined' && typeof player !== 'undefined' && player && typeof gameState !== 'undefined' && gameState === 'playing') {
+        floatingTexts.push(new FloatingText(player.x, player.y - 40, `軽量Lv${level}`, '#67e8f9', 13));
+      }
+    });
+  }
+
+  function trimArray(arr, max){
+    try { if (Array.isArray(arr) && arr.length > max) arr.splice(0, arr.length - max); } catch(e) {}
+  }
+
+  function performanceCaps(){
+    // Lv0でも最低限の上限を入れて、長時間プレイで落ちにくくする
+    return [
+      { particles:520, effects:220, floatingTexts:45, bullets:300, enemyBullets:180, gems:460, enemies:520, enemySoft:680 },
+      { particles:280, effects:120, floatingTexts:32, bullets:210, enemyBullets:130, gems:320, enemies:420, enemySoft:560 },
+      { particles:150, effects:70, floatingTexts:20, bullets:150, enemyBullets:90, gems:220, enemies:340, enemySoft:460 },
+      { particles:70, effects:36, floatingTexts:12, bullets:95, enemyBullets:55, gems:150, enemies:260, enemySoft:340 }
+    ][currentLiteLevel] || {};
+  }
+
+  function trimPlayObjects(){
+    safe(() => {
+      if (typeof gameState !== 'undefined' && gameState !== 'playing') return;
+      const c = performanceCaps();
+      if (typeof particles !== 'undefined') trimArray(particles, c.particles);
+      if (typeof effects !== 'undefined') trimArray(effects, c.effects);
+      if (typeof floatingTexts !== 'undefined') trimArray(floatingTexts, c.floatingTexts);
+      if (typeof bullets !== 'undefined') trimArray(bullets, c.bullets);
+      if (typeof enemyBullets !== 'undefined') trimArray(enemyBullets, c.enemyBullets);
+      if (typeof gems !== 'undefined') trimArray(gems, c.gems);
+      if (typeof enemies !== 'undefined') trimArray(enemies, c.enemies);
+      if (currentLiteLevel >= 1) {
+        if (typeof voidTempests !== 'undefined') trimArray(voidTempests, currentLiteLevel >= 3 ? 2 : 4);
+        if (typeof stormbreakers !== 'undefined') trimArray(stormbreakers, currentLiteLevel >= 3 ? 2 : 4);
+        if (typeof disneyMagics !== 'undefined') trimArray(disneyMagics, currentLiteLevel >= 3 ? 1 : 3);
+        if (typeof phantomDaggers !== 'undefined') trimArray(phantomDaggers, currentLiteLevel >= 3 ? 12 : 24);
+        if (typeof astralJudgements !== 'undefined') trimArray(astralJudgements, currentLiteLevel >= 3 ? 2 : 4);
+        if (typeof cosmicSushiStorms !== 'undefined') trimArray(cosmicSushiStorms, currentLiteLevel >= 3 ? 3 : 5);
+      }
+      if (currentLiteLevel >= 2) {
+        if (typeof shields !== 'undefined') trimArray(shields, 2);
+        if (typeof sniperBullets !== 'undefined') trimArray(sniperBullets, currentLiteLevel >= 3 ? 8 : 14);
+        if (typeof bounceBombs !== 'undefined') trimArray(bounceBombs, currentLiteLevel >= 3 ? 4 : 7);
+        if (typeof poisonClouds !== 'undefined') trimArray(poisonClouds, currentLiteLevel >= 3 ? 3 : 6);
+        if (typeof blackholes !== 'undefined') trimArray(blackholes, 0);
+        if (typeof mapBlackholes !== 'undefined') trimArray(mapBlackholes, 0);
+      }
+    });
+  }
+
+  function fpsLoop(now){
+    safe(() => {
+      if (typeof gameState !== 'undefined' && gameState === 'playing') {
+        if (lastFrame > 0) {
+          const dt = Math.max(1, now - lastFrame);
+          const fps = 1000 / dt;
+          fpsSamples.push(fps);
+          if (fpsSamples.length > 80) fpsSamples.shift();
+          const avg = fpsSamples.reduce((a,b)=>a+b,0) / fpsSamples.length;
+          let next = currentLiteLevel;
+          if (fpsSamples.length > 18) {
+            if (avg < 24) next = 3;
+            else if (avg < 34) next = Math.max(next, 2);
+            else if (avg < 46) next = Math.max(next, 1);
+            else if (avg > 58 && currentLiteLevel > 0) {
+              stableHighFps += 1;
+              if (stableHighFps > 240) { next = currentLiteLevel - 1; stableHighFps = 0; }
+            } else stableHighFps = 0;
+          }
+          if (next !== currentLiteLevel) setLiteLevel(next, `fps ${Math.round(avg)}`);
+          if (now - lastTrim > 260) { lastTrim = now; trimPlayObjects(); }
+        }
+        lastFrame = now;
+      } else {
+        lastFrame = 0;
+        fpsSamples = [];
+        stableHighFps = 0;
+        // メニューでは軽量表示を消して、ホーム下にも残さない
+        const st = $('nsvV30LightStatus');
+        if (st) st.style.display = 'none';
+        if (currentLiteLevel > 0) document.body.dataset.nsvV30Lite = String(currentLiteLevel);
+      }
+    });
+    requestAnimationFrame(fpsLoop);
+  }
+
+  function installMutationCleanup(){
+    safe(() => {
+      const start = $('startScreen');
+      if (!start || start.__nsvV30Observed) return;
+      start.__nsvV30Observed = true;
+      const obs = new MutationObserver(() => {
+        if (window.__nsvV30CleanupTimer) clearTimeout(window.__nsvV30CleanupTimer);
+        window.__nsvV30CleanupTimer = setTimeout(removeEverythingBelowSave, 30);
+      });
+      obs.observe(start, { childList:true, subtree:true });
+    });
+  }
+
+  function bootV30(){
+    injectStyleV30();
+    removeEverythingBelowSave();
+    installMutationCleanup();
+    updateLabelV30();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV30, { once:true });
+  else bootV30();
+  window.addEventListener('load', bootV30, { passive:true });
+  window.addEventListener('pageshow', bootV30, { passive:true });
+  window.addEventListener('orientationchange', () => setTimeout(bootV30, 220), { passive:true });
+  setInterval(bootV30, 900);
+  setInterval(trimPlayObjects, 320);
+  requestAnimationFrame(fpsLoop);
 })();
 
 </script>
