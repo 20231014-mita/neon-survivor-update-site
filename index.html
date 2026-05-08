@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V60 JAPANESE TEXT STABLE / no-preview build -->
+<!-- V63 SHOP DISPLAY STABLE / no-preview build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -2654,6 +2654,29 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             return safeDistance(d);
         };
 
+        // V67: fast-move aim assist helpers.
+        // Bullet collision now checks the line from previous position to current position,
+        // so fast bullets/player movement do not skip through enemies.
+        function segmentPointDistSqV67(x1, y1, x2, y2, px, py) {
+            x1 = safe(x1); y1 = safe(y1); x2 = safe(x2); y2 = safe(y2); px = safe(px); py = safe(py);
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const lenSq = dx * dx + dy * dy;
+            if (lenSq <= 0.0001) return distSq(x1, y1, px, py);
+            const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lenSq));
+            const cx = x1 + dx * t;
+            const cy = y1 + dy * t;
+            return distSq(cx, cy, px, py);
+        }
+
+        function clampAngleStepV67(current, target, maxStep) {
+            let diff = target - current;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            diff = Math.max(-maxStep, Math.min(maxStep, diff));
+            return current + diff;
+        }
+
         const Sound = {
             ctx: null, bgmInterval: null, masterGain: null,
             init: function() {
@@ -3454,10 +3477,11 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
         class Bullet {
             constructor(x, y, angle, damage, speed, radius, pierce = 1, color = '#0ff', shadow = '#0ff', isEnemy = false) {
-                this.x = x; this.y = y; this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+                this.x = x; this.y = y; this.prevX = x; this.prevY = y; this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
                 this.damage = damage; this.radius = radius; this.pierce = pierce;
                 this.color = color; this.shadow = shadow; this.isEnemy = isEnemy;
                 this.markedForDeletion = false; this.hitEnemies = new Set();
+                this.targetRef = null; this.softHoming = 0; this.hitRadiusBonus = 0;
                 this.trail = [];
                 this.legendaryNeonLanceLevel = 0;
                 this.legendaryPhoenixCoreLevel = 0;
@@ -3467,6 +3491,16 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 this.phoenixRevived = false;
             }
             update() {
+                this.prevX = this.x;
+                this.prevY = this.y;
+                if (!this.isEnemy && this.targetRef && !this.targetRef.markedForDeletion && !this.targetRef.isCharmed && this.softHoming > 0) {
+                    const speed = Math.max(0.01, Math.hypot(this.vx, this.vy));
+                    const currentAngle = Math.atan2(this.vy, this.vx);
+                    const targetAngle = MathUtils.angle(this.x, this.y, this.targetRef.x, this.targetRef.y);
+                    const nextAngle = clampAngleStepV67(currentAngle, targetAngle, this.softHoming);
+                    this.vx = Math.cos(nextAngle) * speed;
+                    this.vy = Math.sin(nextAngle) * speed;
+                }
                 this.trail.push({x: this.x, y: this.y});
                 if(this.trail.length > 5) this.trail.shift();
                 this.x += this.vx; this.y += this.vy;
@@ -5598,9 +5632,12 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 this.pendingBossSpawn = false; this.pendingMidBossSpawn = false; this.pendingMonkeyBoss = false;
 
                 this.trail = [];
+                this.lastX = this.x; this.lastY = this.y; this.vx = 0; this.vy = 0; this.moveSpeedNow = 0;
             }
 
             update() {
+                const __playerOldX_V67 = this.x;
+                const __playerOldY_V67 = this.y;
                 if (this.invincibleTimer > 0) this.invincibleTimer--;
 
                 this.trail.push({x: this.x, y: this.y});
@@ -5629,6 +5666,11 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
                 this.x = safe(Math.max(-mapSize, Math.min(mapSize, this.x))); 
                 this.y = safe(Math.max(-mapSize, Math.min(mapSize, this.y)));
+                this.vx = this.x - __playerOldX_V67;
+                this.vy = this.y - __playerOldY_V67;
+                this.moveSpeedNow = Math.hypot(this.vx, this.vy);
+                this.lastX = __playerOldX_V67;
+                this.lastY = __playerOldY_V67;
 
                 if (this.hp < this.maxHp) {
                     this.regenTimer++;
@@ -6097,7 +6139,6 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 const target = nearestRemote || nearestEnemy;
                 if (target) {
                     this.fireTimer = 0;
-                    const angle = MathUtils.angle(this.x, this.y, target.x, target.y);
                     let dmg = this.damage * 1.5;
                     let bulletPierce = this.pierce;
                     let bulletColor = '#0ff';
@@ -6114,7 +6155,21 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                         bulletColor = this.evoRailBurst ? '#f0f9ff' : '#67e8f9';
                         bulletShadow = this.evoRailBurst ? '#facc15' : '#0ea5e9';
                     }
-                    const b = new Bullet(this.x, this.y, angle, dmg, this.bulletSpeed + (this.legendaryNeonLanceLevel || 0) + (this.legendaryRailCannonLevel || 0) * 2, this.bulletSize + (this.legendaryNeonLanceLevel || 0) + (this.legendaryRailCannonLevel ? 2 : 0), bulletPierce, bulletColor, bulletShadow);
+                    const baseBulletSpeed = this.bulletSpeed + (this.legendaryNeonLanceLevel || 0) + (this.legendaryRailCannonLevel || 0) * 2;
+                    const speedAssist = Math.max(0, (this.moveSpeedNow || this.speed || 0) - 4) * 1.15;
+                    const finalBulletSpeed = baseBulletSpeed + speedAssist;
+                    let aimX = target.x;
+                    let aimY = target.y;
+                    const targetVx = Number.isFinite(target.x - target.__aimPrevX) ? (target.x - target.__aimPrevX) : 0;
+                    const targetVy = Number.isFinite(target.y - target.__aimPrevY) ? (target.y - target.__aimPrevY) : 0;
+                    const leadFrames = Math.max(0, Math.min(24, MathUtils.distance(this.x, this.y, target.x, target.y) / Math.max(1, finalBulletSpeed)));
+                    aimX += targetVx * leadFrames * 0.75;
+                    aimY += targetVy * leadFrames * 0.75;
+                    const angle = MathUtils.angle(this.x, this.y, aimX, aimY);
+                    const b = new Bullet(this.x, this.y, angle, dmg, finalBulletSpeed, this.bulletSize + (this.legendaryNeonLanceLevel || 0) + (this.legendaryRailCannonLevel ? 2 : 0), bulletPierce, bulletColor, bulletShadow);
+                    b.targetRef = target;
+                    b.softHoming = isOnlineMode ? 0.018 : 0.035;
+                    b.hitRadiusBonus = Math.max(4, Math.min(16, (this.moveSpeedNow || this.speed || 0) * 1.8));
                     if (nearestRemote) b.onlineAimId = nearestRemote.id;
                     if (bullets.length < 200) bullets.push(b);
                     createParticles(this.x + Math.cos(angle)*this.radius, this.y + Math.sin(angle)*this.radius, 3, this.color, 2);
@@ -6410,6 +6465,8 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             }
 
             update() {
+                this.__aimPrevX = Number.isFinite(this.x) ? this.x : this.__aimPrevX;
+                this.__aimPrevY = Number.isFinite(this.y) ? this.y : this.__aimPrevY;
                 if (!Number.isFinite(this.x)) this.x = width/2; if (!Number.isFinite(this.y)) this.y = height/2;
                 if (this.invincibleTimer > 0) this.invincibleTimer--;
                 if (isMuryokushoActive && !this.isCharmed && !this.isMonkey) { 
@@ -6860,8 +6917,41 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             }
         }
 
+        let nsvPerfPressureV66 = 0;
+        function nsvTrackFrameV66(deltaMs) {
+            if (!Number.isFinite(deltaMs)) return;
+            if (deltaMs > 42) nsvPerfPressureV66 = Math.min(60, nsvPerfPressureV66 + 2);
+            else if (deltaMs > 32) nsvPerfPressureV66 = Math.min(60, nsvPerfPressureV66 + 0.75);
+            else nsvPerfPressureV66 = Math.max(0, nsvPerfPressureV66 - 0.35);
+        }
+        function nsvIsSpawnPressureV66() {
+            return !!isLightMode || nsvPerfPressureV66 >= 10;
+        }
+        function nsvEnemyCapV66() {
+            if (isOnlineMode) return nsvIsSpawnPressureV66() ? 180 : 260;
+            return nsvIsSpawnPressureV66() ? 420 : 800;
+        }
+        function nsvSpawnIntervalV66() {
+            const base = Math.max(5, 40 - Math.floor(gameTime * 0.5));
+            if (isOnlineMode) return Math.max(10, base + 4);
+            if (nsvIsSpawnPressureV66()) return Math.max(8, base + 3);
+            return base;
+        }
+        function nsvTrimEnemiesV66() {
+            const cap = nsvEnemyCapV66();
+            if (!Array.isArray(enemies) || enemies.length <= cap || !player) return;
+            try {
+                enemies = enemies.filter(e => e && !e.markedForDeletion);
+                if (enemies.length <= cap) return;
+                enemies.sort((a, b) => MathUtils.distance(b.x, b.y, player.x, player.y) - MathUtils.distance(a.x, a.y, player.x, player.y));
+                enemies.splice(cap);
+            } catch(e) {
+                enemies.splice(0, Math.max(0, enemies.length - cap));
+            }
+        }
+
         function spawnAdvancedEnemyAtEdge(variant) {
-            if (!player || enemies.length >= 800) return;
+            if (!player || enemies.length >= nsvEnemyCapV66()) return;
             const angle = Math.random() * Math.PI * 2;
             const dist = Math.hypot(width, height) / 2 + 120;
             const ex = player.x + Math.cos(angle) * dist;
@@ -6871,7 +6961,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
         const __nsvOriginalSpawnEnemy = spawnEnemy;
         spawnEnemy = function() {
-            if (!player) return __nsvOriginalSpawnEnemy();
+            if (!player || enemies.length >= nsvEnemyCapV66()) return;
             const r = Math.random();
             if (isOnlineMode) {
                 if (gameTime > 45 && r < 0.13) return spawnAdvancedEnemyAtEdge(['fast','shooter','bomber'][MathUtils.randomInt(0,2)]);
@@ -6920,7 +7010,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 floatingTexts.push(new FloatingText(boss.x, boss.y - boss.radius - 35, 'HOMING BULLETS', '#f472b6', 17));
             } else if (roll < 0.82) {
                 const count = boss.isMidBoss ? 2 : 4;
-                for (let i = 0; i < count && enemies.length < 800; i++) {
+                for (let i = 0; i < count && enemies.length < nsvEnemyCapV66(); i++) {
                     const v = ['fast','shooter','bomber'][MathUtils.randomInt(0,2)];
                     enemies.push(new AdvancedEnemy(boss.x + MathUtils.random(-130,130), boss.y + MathUtils.random(-130,130), v));
                 }
@@ -7029,8 +7119,9 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                     checkMissionCompletions(false);
                 }
                 
-                let spawnInterval = Math.max(5, 40 - Math.floor(gameTime * 0.5));
-                if (frameCount % spawnInterval === 0 && enemies.length < 800) spawnEnemy();
+                const spawnInterval = nsvSpawnIntervalV66();
+                if (frameCount % spawnInterval === 0 && enemies.length < nsvEnemyCapV66()) spawnEnemy();
+                if (frameCount % 30 === 0) nsvTrimEnemiesV66();
                 
                 if (isLavaDomainActive && !enemies.some(e => e && !e.markedForDeletion && e.isMonkey)) {
                     triggerDomainCollapse();
@@ -7139,8 +7230,10 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                         let target = enemies[j];
                         if (target.markedForDeletion || target.isCharmed) continue;
                         if (!bullet.hitEnemies.has(target)) {
-                            let rSum = bullet.radius + target.radius;
-                            if (distSq(bullet.x, bullet.y, target.x, target.y) < rSum * rSum) {
+                            let rSum = bullet.radius + target.radius + (bullet.hitRadiusBonus || 0);
+                            const currentHit = distSq(bullet.x, bullet.y, target.x, target.y) < rSum * rSum;
+                            const sweptHit = segmentPointDistSqV67(bullet.prevX ?? bullet.x, bullet.prevY ?? bullet.y, bullet.x, bullet.y, target.x, target.y) < rSum * rSum;
+                            if (currentHit || sweptHit) {
                                 target.takeDamage(bullet.damage); bullet.hitEnemies.add(target); bullet.pierce--; 
                                 createParticles(bullet.x, bullet.y, 5, '#0ff', 2);
                                 if (bullet.pierce <= 0) { bullet.markedForDeletion = true; break; }
@@ -7519,6 +7612,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             if (gameState !== 'playing') return; 
             
             let deltaTime = currentTime - lastTime; lastTime = currentTime; if (deltaTime > 100) deltaTime = 100; 
+            try { nsvTrackFrameV66(deltaTime); } catch(e) {}
             timeAccumulator += deltaTime * gameSpeedMultiplier;
             let steps = 0;
             
@@ -10333,7 +10427,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         { free:{ title:'\u30CD\u30AA\u30F3\u8A0E\u4F10\u968A' }, premium:{ skin:'phantomSkin', coins:1800 } },
         { free:{ coins:700 }, premium:{ coins:2200 } },
         { free:{ coins:900 }, premium:{ aura:'galaxyTrail', coins:2600 } },
-        { free:{ coins:1100 }, premium:{ title:'BATTLE PASS HUNTER', coins:3000 } },
+        { free:{ coins:1100 }, premium:{ title:'NEON PASS HUNTER', coins:3000 } },
         { free:{ coins:1300 }, premium:{ skin:'infernoSkin', coins:3400 } },
         { free:{ coins:1500 }, premium:{ coins:3900 } },
         { free:{ title:'\u9023\u6226\u306E\u8987\u8005' }, premium:{ aura:'infernoRing', coins:4300 } },
@@ -10450,7 +10544,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             const div = document.createElement('div');
             div.id = 'shopScreen';
             div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3';
-            div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif; text-shadow:0 0 15px #facc15;">GAME SHOP</h2><p class="text-gray-300 text-sm mt-2">\u9280\u30B3\u30A4\u30F3\u3092\u30D0\u30C8\u30EB\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8\u306B\u4EA4\u63DB\u3067\u304D\u307E\u3059\u3002</p></div><button id="closeShopBtn" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div><div id="shopListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>`;
+            div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif; text-shadow:0 0 15px #facc15;">GAME SHOP</h2><p class="text-gray-300 text-sm mt-2">\u9280\u30B3\u30A4\u30F3\u3092\u30CD\u30AA\u30F3\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8\u306B\u4EA4\u63DB\u3067\u304D\u307E\u3059\u3002</p></div><button id="closeShopBtn" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div><div id="shopListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>`;
             document.body.appendChild(div);
             document.getElementById('closeShopBtn')?.addEventListener('click', () => showScreen('startScreen'));
         }
@@ -10496,7 +10590,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         box.innerHTML = `
             <div class="nsv-shop-card premium">
                 <div class="text-5xl mb-2">\uD83C\uDF9F\uFE0F</div>
-                <h3 class="text-2xl font-bold text-yellow-300">\u30D0\u30C8\u30EB\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8\u4EA4\u63DB</h3>
+                <h3 class="text-2xl font-bold text-yellow-300">\u30CD\u30AA\u30F3\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8\u4EA4\u63DB</h3>
                 <p class="text-sm text-gray-300 mt-2">\u30A2\u30C3\u30D7\u30B0\u30EC\u30FC\u30C9\u7528\u306E\u9280\u30B3\u30A4\u30F3\uD83E\uDE99\u3092\u4F7F\u3063\u3066\u3001NEON PASS\u7528\u30C1\u30B1\u30C3\u30C8\u306B\u4EA4\u63DB\u3057\u307E\u3059\u3002</p>
                 <div class="mt-4 bg-black/40 rounded-xl p-3 border border-yellow-400/40">
                     <p class="text-sm text-gray-300">\u6240\u6301\u9280\u30B3\u30A4\u30F3\uFF1A<b class="text-yellow-300">${Math.floor(userData.coins || 0)}</b></p>
@@ -10509,7 +10603,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             <div class="nsv-shop-card">
                 <div class="text-5xl mb-2">\uD83E\uDDFE</div>
                 <h3 class="text-2xl font-bold text-cyan-300">NEON PASS\u8CFC\u5165</h3>
-                <p class="text-sm text-gray-300 mt-2">\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u3001\u73FE\u5728\u306E2\u9031\u9593\u30B7\u30FC\u30BA\u30F3\u306E\u30D0\u30C8\u30EB\u30D1\u30B9\u3092\u89E3\u653E\u3067\u304D\u307E\u3059\u3002</p>
+                <p class="text-sm text-gray-300 mt-2">\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u3001\u73FE\u5728\u306E2\u9031\u9593\u30B7\u30FC\u30BA\u30F3\u306E\u30CD\u30AA\u30F3\u30D1\u30B9\u3092\u89E3\u653E\u3067\u304D\u307E\u3059\u3002</p>
                 <div class="mt-4 bg-black/40 rounded-xl p-3 border border-cyan-400/40">
                     <p class="text-sm text-gray-300">\u73FE\u5728\u306E\u30B7\u30FC\u30BA\u30F3\uFF1A<b class="text-cyan-300">${seasonInfo20260504().id}</b></p>
                     <p class="text-sm text-gray-300">\u6B8B\u308A\uFF1A\u7D04<b class="text-yellow-300">${seasonInfo20260504().remain}</b>\u65E5</p>
@@ -10527,7 +10621,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             userData.passTickets = Number(userData.passTickets || 0) + 1;
             userData.shop.firstPassTicketBought = true;
             saveData?.();
-            showMissionToast?.('TICKET GET!', `\u30D0\u30C8\u30EB\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8 +1`);
+            showMissionToast?.('TICKET GET!', `\u30CD\u30AA\u30F3\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8 +1`);
             renderShopScreen20260504();
         });
         document.getElementById('buyNeonPassBtn')?.addEventListener('click', buyNeonPass20260504);
@@ -10767,7 +10861,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             const banner = document.createElement('div');
             banner.id = 'nsvSeason1Hero';
             banner.className = 'nsv-season-hero';
-            banner.innerHTML = `<div class="nsv-season-kicker">NEON SURVIVOR FIRST BATTLE PASS</div><div class="nsv-season-title">SEASON 1</div><div class="nsv-season-sub">NEON GENESIS / 2\u9031\u9593\u9650\u5B9A\u30B7\u30FC\u30BA\u30F3</div>`;
+            banner.innerHTML = `<div class="nsv-season-kicker">NEON SURVIVOR FIRST NEON PASS</div><div class="nsv-season-title">SEASON 1</div><div class="nsv-season-sub">NEON GENESIS / 2\u9031\u9593\u9650\u5B9A\u30B7\u30FC\u30BA\u30F3</div>`;
             title.insertAdjacentElement('afterend', banner);
         } catch(e) {}
     }
@@ -10861,7 +10955,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         ['passTabBase','passTabSpecial','passTabLocker'].forEach(id => document.getElementById(id)?.classList.remove('active'));
         document.getElementById(tab === 'special' ? 'passTabSpecial' : tab === 'locker' ? 'passTabLocker' : 'passTabBase')?.classList.add('active');
         const baseCount = s.theme.rewards.filter(r => p.claimed[r.id]).length;
-        top.innerHTML = `<div class="nsv-pass-card premium" style="border-color:${s.theme.color};box-shadow:0 0 22px ${s.theme.color}44"><div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3"><div><div class="text-xs text-yellow-300 font-bold">${s.icon || s.theme.icon} SEASON ${s.id} / \u6B21\u306E\u30B7\u30FC\u30BA\u30F3\u958B\u59CB\uFF1A2026\u5E745\u670822\u65E5\uFF08\u91D1\uFF09</div><h3 class="text-2xl font-bold text-white mt-1">${s.theme.icon} ${s.theme.name}</h3><p class="text-sm text-gray-300 mt-1">${s.theme.sub}</p><p class="text-xs text-red-200 mt-2 bg-red-950/40 border border-red-400/40 rounded-lg px-3 py-2">\u3053\u306E\u30B7\u30FC\u30BA\u30F3\u306E\u30D0\u30C8\u30EB\u30D1\u30B9\u30A2\u30A4\u30C6\u30E0\u306F\u671F\u9593\u9650\u5B9A\u3067\u3059\u3002\u30B7\u30FC\u30BA\u30F3\u7D42\u4E86\u5F8C\u306F\u57FA\u672C\u7684\u306B\u5165\u624B\u3067\u304D\u307E\u305B\u3093\u3002</p><div class="mt-3 flex flex-wrap gap-2"><span class="nsv-star-chip">\u2B50 ${Math.floor(p.battleStars)} BATTLE STAR</span><span class="nsv-star-chip">\uD83C\uDF9F\uFE0F ${Math.floor(userData.passTickets || 0)} \u30C1\u30B1\u30C3\u30C8</span><span class="nsv-star-chip">\uD83C\uDF81 ${baseCount}/12 \u5165\u624B</span><span class="nsv-star-chip">\u2694\uFE0F ${Math.floor(p.seasonKills || 0)}\u4F53\u8A0E\u4F10</span></div></div><button id="buyPassTopBtnV2" class="btn-gold px-5 py-3 rounded font-bold ${(userData.passTickets > 0 && !p.premium) ? '' : 'opacity-40 cursor-not-allowed'}" ${(userData.passTickets > 0 && !p.premium) ? '' : 'disabled'}>${p.premium ? '\u8CFC\u5165\u6E08\u307F' : '\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u8CFC\u5165'}</button></div><p class="text-xs text-gray-400 mt-3">\u30B9\u30BF\u30FC\u5165\u624B\uFF1A\u657560\u4F53\u3054\u3068+1 / \u30DC\u30B9\u7CFB+2 / \u30EA\u30B6\u30EB\u30C8\u6210\u7E3E\u3067\u8FFD\u52A0\u3002\u9032\u884C\u72B6\u6CC1\u306F\u30D6\u30E9\u30A6\u30B6\u4FDD\u5B58\uFF06EXPORT\u30B3\u30FC\u30C9\u306B\u542B\u307E\u308C\u307E\u3059\u3002</p></div>`;
+        top.innerHTML = `<div class="nsv-pass-card premium" style="border-color:${s.theme.color};box-shadow:0 0 22px ${s.theme.color}44"><div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3"><div><div class="text-xs text-yellow-300 font-bold">${s.icon || s.theme.icon} SEASON ${s.id} / \u6B21\u306E\u30B7\u30FC\u30BA\u30F3\u958B\u59CB\uFF1A2026\u5E745\u670822\u65E5\uFF08\u91D1\uFF09</div><h3 class="text-2xl font-bold text-white mt-1">${s.theme.icon} ${s.theme.name}</h3><p class="text-sm text-gray-300 mt-1">${s.theme.sub}</p><p class="text-xs text-red-200 mt-2 bg-red-950/40 border border-red-400/40 rounded-lg px-3 py-2">\u3053\u306E\u30B7\u30FC\u30BA\u30F3\u306E\u30CD\u30AA\u30F3\u30D1\u30B9\u30A2\u30A4\u30C6\u30E0\u306F\u671F\u9593\u9650\u5B9A\u3067\u3059\u3002\u30B7\u30FC\u30BA\u30F3\u7D42\u4E86\u5F8C\u306F\u57FA\u672C\u7684\u306B\u5165\u624B\u3067\u304D\u307E\u305B\u3093\u3002</p><div class="mt-3 flex flex-wrap gap-2"><span class="nsv-star-chip">\u2B50 ${Math.floor(p.battleStars)} BATTLE STAR</span><span class="nsv-star-chip">\uD83C\uDF9F\uFE0F ${Math.floor(userData.passTickets || 0)} \u30C1\u30B1\u30C3\u30C8</span><span class="nsv-star-chip">\uD83C\uDF81 ${baseCount}/12 \u5165\u624B</span><span class="nsv-star-chip">\u2694\uFE0F ${Math.floor(p.seasonKills || 0)}\u4F53\u8A0E\u4F10</span></div></div><button id="buyPassTopBtnV2" class="btn-gold px-5 py-3 rounded font-bold ${(userData.passTickets > 0 && !p.premium) ? '' : 'opacity-40 cursor-not-allowed'}" ${(userData.passTickets > 0 && !p.premium) ? '' : 'disabled'}>${p.premium ? '\u8CFC\u5165\u6E08\u307F' : '\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u8CFC\u5165'}</button></div><p class="text-xs text-gray-400 mt-3">\u30B9\u30BF\u30FC\u5165\u624B\uFF1A\u657560\u4F53\u3054\u3068+1 / \u30DC\u30B9\u7CFB+2 / \u30EA\u30B6\u30EB\u30C8\u6210\u7E3E\u3067\u8FFD\u52A0\u3002\u9032\u884C\u72B6\u6CC1\u306F\u30D6\u30E9\u30A6\u30B6\u4FDD\u5B58\uFF06EXPORT\u30B3\u30FC\u30C9\u306B\u542B\u307E\u308C\u307E\u3059\u3002</p></div>`;
         document.getElementById('buyPassTopBtnV2')?.addEventListener('click', buyNeonPassV2);
         if (tab === 'locker') return renderLockerV2(box);
         const special = tab === 'special';
@@ -10908,8 +11002,8 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         const cost = userData.shop.firstPassTicketBought ? PASS_REPEAT_TICKET_COST : PASS_FIRST_TICKET_COST;
         const canBuy = Number(userData.coins || 0) >= cost;
         const s = fridaySeasonInfoV2();
-        document.getElementById('shopListContainer').innerHTML = `<div class="nsv-shop-card premium"><div class="text-5xl mb-2">\uD83C\uDF9F\uFE0F</div><h3 class="text-2xl font-bold text-yellow-300">\u30D0\u30C8\u30EB\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8\u4EA4\u63DB</h3><p class="text-sm text-gray-300 mt-2">\u521D\u56DE\u3060\u3051375000\u30B3\u30A4\u30F3\u3002\u305D\u306E\u5F8C\u306F3750000\u30B3\u30A4\u30F3\u3067\u4EA4\u63DB\u3002</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-yellow-400/40"><p class="text-sm text-gray-300">\u6240\u6301\u9280\u30B3\u30A4\u30F3\uFF1A<b class="text-yellow-300">${Math.floor(userData.coins || 0)}</b></p><p class="text-sm text-gray-300">\u6240\u6301\u30C1\u30B1\u30C3\u30C8\uFF1A<b class="text-cyan-300">${Math.floor(userData.passTickets || 0)}</b></p><p class="text-xl font-black text-yellow-200 mt-2">\u5FC5\u8981\uFF1A${cost} \u30B3\u30A4\u30F3</p></div><button id="buyPassTicketBtnV2" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${canBuy ? '' : 'opacity-40 cursor-not-allowed'}" ${canBuy ? '' : 'disabled'}>\uD83C\uDF9F\uFE0F \u30C1\u30B1\u30C3\u30C8\u30921\u679A\u4EA4\u63DB</button></div><div class="nsv-shop-card"><div class="text-5xl mb-2">\u2B50</div><h3 class="text-2xl font-bold text-cyan-300">${s.theme.icon} ${s.theme.name}</h3><p class="text-sm text-gray-300 mt-2">\u91D1\u66DC\u65E5\u66F4\u65B0\u306E2\u9031\u9593\u30B7\u30FC\u30BA\u30F3\u3002\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u8CFC\u5165\u3067\u304D\u307E\u3059\u3002</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-cyan-400/40"><p class="text-sm text-gray-300">\u30B7\u30FC\u30BA\u30F3\uFF1A<b class="text-cyan-300">${s.id}</b></p><p class="text-sm text-gray-300">\u6B8B\u308A\uFF1A\u7D04<b class="text-yellow-300">${s.remain}</b>\u65E5</p><p class="text-sm text-gray-300">\u72B6\u614B\uFF1A<b class="${userData.battlePassV2.premium ? 'text-green-300':'text-gray-300'}">${userData.battlePassV2.premium ? '\u8CFC\u5165\u6E08\u307F':'\u672A\u8CFC\u5165'}</b></p></div><button id="buyNeonPassBtnV2" class="btn-neon px-5 py-3 rounded font-bold mt-4 w-full ${(userData.passTickets > 0 && !userData.battlePassV2.premium) ? '' : 'opacity-40 cursor-not-allowed'}" ${(userData.passTickets > 0 && !userData.battlePassV2.premium) ? '' : 'disabled'}>NEON PASS\u3092\u8CFC\u5165</button><button id="openPassFromShopBtnV2" class="btn-purple px-5 py-3 rounded font-bold mt-3 w-full">NEON PASS\u3092\u898B\u308B</button></div>`;
-        document.getElementById('buyPassTicketBtnV2')?.addEventListener('click', () => { ensurePassV2Data(); const price = userData.shop.firstPassTicketBought ? PASS_REPEAT_TICKET_COST : PASS_FIRST_TICKET_COST; if (Number(userData.coins || 0) < price) return; userData.coins -= price; userData.passTickets = Number(userData.passTickets || 0) + 1; userData.shop.firstPassTicketBought = true; saveData?.(); showMissionToast?.('TICKET GET!', '\u30D0\u30C8\u30EB\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8 +1'); renderShopV2(); });
+        document.getElementById('shopListContainer').innerHTML = `<div class="nsv-shop-card premium"><div class="text-5xl mb-2">\uD83C\uDF9F\uFE0F</div><h3 class="text-2xl font-bold text-yellow-300">\u30CD\u30AA\u30F3\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8\u4EA4\u63DB</h3><p class="text-sm text-gray-300 mt-2">\u521D\u56DE\u3060\u3051375000\u30B3\u30A4\u30F3\u3002\u305D\u306E\u5F8C\u306F3750000\u30B3\u30A4\u30F3\u3067\u4EA4\u63DB\u3002</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-yellow-400/40"><p class="text-sm text-gray-300">\u6240\u6301\u9280\u30B3\u30A4\u30F3\uFF1A<b class="text-yellow-300">${Math.floor(userData.coins || 0)}</b></p><p class="text-sm text-gray-300">\u6240\u6301\u30C1\u30B1\u30C3\u30C8\uFF1A<b class="text-cyan-300">${Math.floor(userData.passTickets || 0)}</b></p><p class="text-xl font-black text-yellow-200 mt-2">\u5FC5\u8981\uFF1A${cost} \u30B3\u30A4\u30F3</p></div><button id="buyPassTicketBtnV2" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${canBuy ? '' : 'opacity-40 cursor-not-allowed'}" ${canBuy ? '' : 'disabled'}>\uD83C\uDF9F\uFE0F \u30C1\u30B1\u30C3\u30C8\u30921\u679A\u4EA4\u63DB</button></div><div class="nsv-shop-card"><div class="text-5xl mb-2">\u2B50</div><h3 class="text-2xl font-bold text-cyan-300">${s.theme.icon} ${s.theme.name}</h3><p class="text-sm text-gray-300 mt-2">\u91D1\u66DC\u65E5\u66F4\u65B0\u306E2\u9031\u9593\u30B7\u30FC\u30BA\u30F3\u3002\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u8CFC\u5165\u3067\u304D\u307E\u3059\u3002</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-cyan-400/40"><p class="text-sm text-gray-300">\u30B7\u30FC\u30BA\u30F3\uFF1A<b class="text-cyan-300">${s.id}</b></p><p class="text-sm text-gray-300">\u6B8B\u308A\uFF1A\u7D04<b class="text-yellow-300">${s.remain}</b>\u65E5</p><p class="text-sm text-gray-300">\u72B6\u614B\uFF1A<b class="${userData.battlePassV2.premium ? 'text-green-300':'text-gray-300'}">${userData.battlePassV2.premium ? '\u8CFC\u5165\u6E08\u307F':'\u672A\u8CFC\u5165'}</b></p></div><button id="buyNeonPassBtnV2" class="btn-neon px-5 py-3 rounded font-bold mt-4 w-full ${(userData.passTickets > 0 && !userData.battlePassV2.premium) ? '' : 'opacity-40 cursor-not-allowed'}" ${(userData.passTickets > 0 && !userData.battlePassV2.premium) ? '' : 'disabled'}>NEON PASS\u3092\u8CFC\u5165</button><button id="openPassFromShopBtnV2" class="btn-purple px-5 py-3 rounded font-bold mt-3 w-full">NEON PASS\u3092\u898B\u308B</button></div>`;
+        document.getElementById('buyPassTicketBtnV2')?.addEventListener('click', () => { ensurePassV2Data(); const price = userData.shop.firstPassTicketBought ? PASS_REPEAT_TICKET_COST : PASS_FIRST_TICKET_COST; if (Number(userData.coins || 0) < price) return; userData.coins -= price; userData.passTickets = Number(userData.passTickets || 0) + 1; userData.shop.firstPassTicketBought = true; saveData?.(); showMissionToast?.('TICKET GET!', '\u30CD\u30AA\u30F3\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8 +1'); renderShopV2(); });
         document.getElementById('buyNeonPassBtnV2')?.addEventListener('click', buyNeonPassV2);
         document.getElementById('openPassFromShopBtnV2')?.addEventListener('click', () => { renderBattlePassV2('base'); showScreen('battlePassScreen'); });
     }
@@ -11309,7 +11403,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
     function passSeasonLabel20260504(item) {
         const id = String(item?.id || '');
-        return item?.seasonLabel || item?.seasonName || (id.includes('_s1') ? 'Season 1 / NEON GENESIS' : '\u30D0\u30C8\u30EB\u30D1\u30B9\u5831\u916C');
+        return item?.seasonLabel || item?.seasonName || (id.includes('_s1') ? 'Season 1 / NEON GENESIS' : '\u30CD\u30AA\u30F3\u30D1\u30B9\u5831\u916C');
     }
 
     function typeLabelCollection20260504(t) {
@@ -11348,7 +11442,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             <div class="text-3xl">${item.icon || '\uD83C\uDF81'}</div>
             <div class="text-[11px] inline-block px-2 py-1 rounded bg-cyan-950/70 border border-cyan-400/50 text-cyan-200 font-bold mt-1">${typeLabelCollection20260504(type)}</div>
             <h3 class="font-bold text-white mt-2">${item.name || item.id}</h3>
-            <p class="text-xs text-yellow-200 mt-1">\u5165\u624B\u5143\uFF1A${passSeasonLabel20260504(item)} \u306E\u30D0\u30C8\u30EB\u30D1\u30B9</p>
+            <p class="text-xs text-yellow-200 mt-1">\u5165\u624B\u5143\uFF1A${passSeasonLabel20260504(item)} \u306E\u30CD\u30AA\u30F3\u30D1\u30B9</p>
             <p class="text-xs text-red-200 mt-1">\u3053\u306E\u30A2\u30A4\u30C6\u30E0\u306F\u671F\u9593\u9650\u5B9A\u5831\u916C\u3067\u3059\u3002</p>
             ${['skin','aura','backpack','trail','pet','emote','intro','elimination','bossFinish','nameplate','badge'].includes(type) ? `<button class="equip-bp-cos btn-purple mt-2 px-3 py-1 rounded text-sm font-bold" data-type="${type}" data-id="${item.id}">${eq?'\u88C5\u5099\u4E2D':'\u88C5\u5099'}</button>` : ''}
         </div>`;
@@ -11357,7 +11451,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
     function installCollectionSplitPatch20260504() {
         try {
             const collectionDesc = document.querySelector('#collectionScreen h2 + p');
-            if (collectionDesc) collectionDesc.textContent = '\u30DF\u30C3\u30B7\u30E7\u30F3\u3067\u5165\u624B\u3057\u305F\u3082\u306E\u3068\u3001\u30D0\u30C8\u30EB\u30D1\u30B9\u3067\u5165\u624B\u3057\u305F\u3082\u306E\u3092\u5206\u3051\u3066\u78BA\u8A8D\u3067\u304D\u307E\u3059\u3002';
+            if (collectionDesc) collectionDesc.textContent = '\u30DF\u30C3\u30B7\u30E7\u30F3\u3067\u5165\u624B\u3057\u305F\u3082\u306E\u3068\u3001\u30CD\u30AA\u30F3\u30D1\u30B9\u3067\u5165\u624B\u3057\u305F\u3082\u306E\u3092\u5206\u3051\u3066\u78BA\u8A8D\u3067\u304D\u307E\u3059\u3002';
             renderCollectionScreen = function() {
                 ensureProgressionData();
                 userData.cosmetics = userData.cosmetics || { unlocked:{}, equipped:{} };
@@ -11381,9 +11475,9 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${missionHtml || '<div class="collection-card"><h3 class="font-bold text-gray-300">\u307E\u3060\u30DF\u30C3\u30B7\u30E7\u30F3\u5831\u916C\u306F\u3042\u308A\u307E\u305B\u3093</h3><p class="text-sm text-gray-400 mt-1">\u30DF\u30C3\u30B7\u30E7\u30F3\u9054\u6210\u3067\u3053\u3053\u306B\u5897\u3048\u307E\u3059\u3002</p></div>'}</div>
                     </section>
                     <section>
-                        <h3 class="text-2xl font-bold text-cyan-300 mb-2">BATTLE PASS REWARDS</h3>
-                        <p class="text-xs text-red-200 mb-2">\u30D0\u30C8\u30EB\u30D1\u30B9\u5831\u916C\u306F\u30B7\u30FC\u30BA\u30F3\u9650\u5B9A\u3067\u3059\u3002\u5404\u30A2\u30A4\u30C6\u30E0\u306B\u5165\u624B\u30B7\u30FC\u30BA\u30F3\u3092\u8868\u793A\u3057\u3066\u3044\u307E\u3059\u3002</p>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${battlePassHtml || '<div class="collection-card"><h3 class="font-bold text-gray-300">\u307E\u3060\u30D0\u30C8\u30EB\u30D1\u30B9\u5831\u916C\u306F\u3042\u308A\u307E\u305B\u3093</h3><p class="text-sm text-gray-400 mt-1">NEON PASS\u3067\u4EA4\u63DB\u3059\u308B\u3068\u3053\u3053\u306B\u8868\u793A\u3055\u308C\u307E\u3059\u3002</p></div>'}</div>
+                        <h3 class="text-2xl font-bold text-cyan-300 mb-2">NEON PASS REWARDS</h3>
+                        <p class="text-xs text-red-200 mb-2">\u30CD\u30AA\u30F3\u30D1\u30B9\u5831\u916C\u306F\u30B7\u30FC\u30BA\u30F3\u9650\u5B9A\u3067\u3059\u3002\u5404\u30A2\u30A4\u30C6\u30E0\u306B\u5165\u624B\u30B7\u30FC\u30BA\u30F3\u3092\u8868\u793A\u3057\u3066\u3044\u307E\u3059\u3002</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${battlePassHtml || '<div class="collection-card"><h3 class="font-bold text-gray-300">\u307E\u3060\u30CD\u30AA\u30F3\u30D1\u30B9\u5831\u916C\u306F\u3042\u308A\u307E\u305B\u3093</h3><p class="text-sm text-gray-400 mt-1">NEON PASS\u3067\u4EA4\u63DB\u3059\u308B\u3068\u3053\u3053\u306B\u8868\u793A\u3055\u308C\u307E\u3059\u3002</p></div>'}</div>
                     </section>
                     <section>
                         <div class="collection-card border-cyan-400/60">
@@ -13782,13 +13876,13 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                     const s = (typeof fridaySeasonInfoV2 === 'function') ? fridaySeasonInfoV2() : {id:'SEASON', remain:'?', theme:{icon:'\u2B50', name:'NEON PASS'}};
                     const canBuy = n35(userData.coins) >= PASS_TICKET_COST_V35;
                     const premium = !!(userData.battlePassV2?.premium || userData.battlePass?.premium);
-                    return `<div class="nsv-shop-card premium"><div class="text-5xl mb-2">\uD83C\uDF9F\uFE0F</div><h3 class="text-2xl font-bold text-yellow-300">\u30D0\u30C8\u30EB\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8\u4EA4\u63DB</h3><p class="text-sm text-gray-300 mt-2">\u30C1\u30B1\u30C3\u30C8\u306F\u5E38\u306B100000\u30B3\u30A4\u30F3\u3067\u3059\u3002</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-yellow-400/40"><p class="text-sm text-gray-300">\u6240\u6301\u9280\u30B3\u30A4\u30F3\uFF1A<b class="text-yellow-300">${Math.floor(n35(userData.coins)).toLocaleString()}</b></p><p class="text-sm text-gray-300">\u6240\u6301\u30C1\u30B1\u30C3\u30C8\uFF1A<b class="text-cyan-300">${Math.floor(n35(userData.passTickets))}</b></p><p class="text-xl font-black text-yellow-200 mt-2">\u5FC5\u8981\uFF1A${PASS_TICKET_COST_V35.toLocaleString()} \u30B3\u30A4\u30F3</p></div><button id="buyPassTicketBtnV35" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${canBuy?'':'opacity-40 cursor-not-allowed'}" ${canBuy?'':'disabled'}>\uD83C\uDF9F\uFE0F \u30C1\u30B1\u30C3\u30C8\u30921\u679A\u4EA4\u63DB</button></div><div class="nsv-shop-card"><div class="text-5xl mb-2">\u2B50</div><h3 class="text-2xl font-bold text-cyan-300">${esc35(s.theme?.icon || '\u2B50')} ${esc35(s.theme?.name || 'NEON PASS')}</h3><p class="text-sm text-gray-300 mt-2">\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u73FE\u5728\u30B7\u30FC\u30BA\u30F3\u306E\u30D1\u30B9\u3092\u8CFC\u5165\u3067\u304D\u307E\u3059\u3002</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-cyan-400/40"><p class="text-sm text-gray-300">\u30B7\u30FC\u30BA\u30F3\uFF1A<b class="text-cyan-300">${esc35(s.id)}</b></p><p class="text-sm text-gray-300">\u6B8B\u308A\uFF1A\u7D04<b class="text-yellow-300">${esc35(s.remain)}</b>\u65E5</p><p class="text-sm text-gray-300">\u72B6\u614B\uFF1A<b class="${premium?'text-green-300':'text-gray-300'}">${premium?'\u8CFC\u5165\u6E08\u307F':'\u672A\u8CFC\u5165'}</b></p></div><button id="buyNeonPassBtnV35" class="btn-neon px-5 py-3 rounded font-bold mt-4 w-full ${(userData.passTickets > 0 && !premium)?'':'opacity-40 cursor-not-allowed'}" ${(userData.passTickets > 0 && !premium)?'':'disabled'}>NEON PASS\u3092\u8CFC\u5165</button><button id="openPassFromShopBtnV35" class="btn-purple px-5 py-3 rounded font-bold mt-3 w-full">NEON PASS\u3092\u898B\u308B</button></div>`;
+                    return `<div class="nsv-shop-card premium"><div class="text-5xl mb-2">\uD83C\uDF9F\uFE0F</div><h3 class="text-2xl font-bold text-yellow-300">\u30CD\u30AA\u30F3\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8\u4EA4\u63DB</h3><p class="text-sm text-gray-300 mt-2">\u30C1\u30B1\u30C3\u30C8\u306F\u5E38\u306B100000\u30B3\u30A4\u30F3\u3067\u3059\u3002</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-yellow-400/40"><p class="text-sm text-gray-300">\u6240\u6301\u9280\u30B3\u30A4\u30F3\uFF1A<b class="text-yellow-300">${Math.floor(n35(userData.coins)).toLocaleString()}</b></p><p class="text-sm text-gray-300">\u6240\u6301\u30C1\u30B1\u30C3\u30C8\uFF1A<b class="text-cyan-300">${Math.floor(n35(userData.passTickets))}</b></p><p class="text-xl font-black text-yellow-200 mt-2">\u5FC5\u8981\uFF1A${PASS_TICKET_COST_V35.toLocaleString()} \u30B3\u30A4\u30F3</p></div><button id="buyPassTicketBtnV35" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${canBuy?'':'opacity-40 cursor-not-allowed'}" ${canBuy?'':'disabled'}>\uD83C\uDF9F\uFE0F \u30C1\u30B1\u30C3\u30C8\u30921\u679A\u4EA4\u63DB</button></div><div class="nsv-shop-card"><div class="text-5xl mb-2">\u2B50</div><h3 class="text-2xl font-bold text-cyan-300">${esc35(s.theme?.icon || '\u2B50')} ${esc35(s.theme?.name || 'NEON PASS')}</h3><p class="text-sm text-gray-300 mt-2">\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u73FE\u5728\u30B7\u30FC\u30BA\u30F3\u306E\u30D1\u30B9\u3092\u8CFC\u5165\u3067\u304D\u307E\u3059\u3002</p><div class="mt-4 bg-black/40 rounded-xl p-3 border border-cyan-400/40"><p class="text-sm text-gray-300">\u30B7\u30FC\u30BA\u30F3\uFF1A<b class="text-cyan-300">${esc35(s.id)}</b></p><p class="text-sm text-gray-300">\u6B8B\u308A\uFF1A\u7D04<b class="text-yellow-300">${esc35(s.remain)}</b>\u65E5</p><p class="text-sm text-gray-300">\u72B6\u614B\uFF1A<b class="${premium?'text-green-300':'text-gray-300'}">${premium?'\u8CFC\u5165\u6E08\u307F':'\u672A\u8CFC\u5165'}</b></p></div><button id="buyNeonPassBtnV35" class="btn-neon px-5 py-3 rounded font-bold mt-4 w-full ${(userData.passTickets > 0 && !premium)?'':'opacity-40 cursor-not-allowed'}" ${(userData.passTickets > 0 && !premium)?'':'disabled'}>NEON PASS\u3092\u8CFC\u5165</button><button id="openPassFromShopBtnV35" class="btn-purple px-5 py-3 rounded font-bold mt-3 w-full">NEON PASS\u3092\u898B\u308B</button></div>`;
                 };
                 const render = () => {
                     try { if (typeof ensureShopV2 === 'function') ensureShopV2(); else if (typeof ensureShopScreen20260504 === 'function') ensureShopScreen20260504(); } catch(e) {}
                     const box = q35('shopListContainer'); if (!box) return;
                     box.innerHTML = renderShopHtml();
-                    q35('buyPassTicketBtnV35')?.addEventListener('click', () => { ensureUserV35(); if (n35(userData.coins) < PASS_TICKET_COST_V35) return; userData.coins = n35(userData.coins) - PASS_TICKET_COST_V35; userData.passTickets = n35(userData.passTickets) + 1; userData.shop.firstPassTicketBought = true; saveNowV35(); call35(showMissionToast, 'TICKET GET!', '\u30D0\u30C8\u30EB\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8 +1'); render(); });
+                    q35('buyPassTicketBtnV35')?.addEventListener('click', () => { ensureUserV35(); if (n35(userData.coins) < PASS_TICKET_COST_V35) return; userData.coins = n35(userData.coins) - PASS_TICKET_COST_V35; userData.passTickets = n35(userData.passTickets) + 1; userData.shop.firstPassTicketBought = true; saveNowV35(); call35(showMissionToast, 'TICKET GET!', '\u30CD\u30AA\u30F3\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8 +1'); render(); });
                     q35('buyNeonPassBtnV35')?.addEventListener('click', () => { ensureUserV35(); if (n35(userData.passTickets) <= 0) return; if (userData.battlePassV2) userData.battlePassV2.premium = true; else { userData.battlePass = userData.battlePass || {}; userData.battlePass.premium = true; } userData.passTickets = n35(userData.passTickets) - 1; saveNowV35(); call35(showMissionToast, 'NEON PASS UNLOCKED!', '\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u8CFC\u5165\u3057\u307E\u3057\u305F\u3002'); render(); });
                     q35('openPassFromShopBtnV35')?.addEventListener('click', () => { call35(renderBattlePassV2, 'base'); call35(showScreen, 'battlePassScreen'); });
                 };
@@ -14075,7 +14169,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                     const coins = Math.floor(n37(u?.coins));
                     const tickets = Math.floor(n37(u?.passTickets));
                     const premium = !!(u?.battlePassV2?.premium || u?.battlePass?.premium);
-                    div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">GAME SHOP</h2><p class="text-gray-300 text-sm mt-2">\u9280\u30B3\u30A4\u30F3\u3092\u30C1\u30B1\u30C3\u30C8\u3084\u30D1\u30B9\u306B\u4F7F\u3048\u307E\u3059\u3002</p></div><button id="closeShopBtnV37" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div><div class="text-yellow-200 font-black bg-black/40 border border-yellow-400/40 rounded-xl px-4 py-3">\u6240\u6301\u30B3\u30A4\u30F3 \uD83E\uDE99 ${coins.toLocaleString()}\u3000/\u3000\u30C1\u30B1\u30C3\u30C8 \uD83C\uDF9F\uFE0F ${tickets.toLocaleString()}</div><div id="shopListContainer" class="nsv-v37-shop-grid"><div class="nsv-v37-shop-card"><div class="text-5xl mb-2">\uD83C\uDF9F\uFE0F</div><h3 class="text-2xl font-bold text-yellow-300">\u30D0\u30C8\u30EB\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8</h3><p class="text-sm text-gray-300 mt-2">\u4FA1\u683C\u306F\u3044\u3064\u3067\u3082\u56FA\u5B9A\u3067\u3059\u3002</p><p class="text-xl font-black text-yellow-200 mt-3">\u5FC5\u8981\u30B3\u30A4\u30F3\uFF1A${PASS_TICKET_COST_V37.toLocaleString()}</p><button id="buyPassTicketBtnV37" class="btn-gold px-5 py-3 rounded font-bold mt-4 ${coins >= PASS_TICKET_COST_V37 ? '' : 'opacity-50'}">\u30C1\u30B1\u30C3\u30C8\u30921\u679A\u4EA4\u63DB</button></div><div class="nsv-v37-shop-card"><div class="text-5xl mb-2">\u2B50</div><h3 class="text-2xl font-bold text-cyan-300">NEON PASS</h3><p class="text-sm text-gray-300 mt-2">\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u73FE\u5728\u306E\u30D1\u30B9\u3092\u8CFC\u5165\u3067\u304D\u307E\u3059\u3002</p><p class="text-sm text-gray-300 mt-3">\u72B6\u614B\uFF1A<b class="${premium ? 'text-green-300' : 'text-gray-300'}">${premium ? '\u8CFC\u5165\u6E08\u307F' : '\u672A\u8CFC\u5165'}</b></p><button id="buyNeonPassBtnV37" class="btn-neon px-5 py-3 rounded font-bold mt-4 ${(tickets > 0 && !premium) ? '' : 'opacity-50'}">NEON PASS\u3092\u8CFC\u5165</button><button id="openPassFromShopBtnV37" class="btn-purple px-5 py-3 rounded font-bold mt-3">NEON PASS\u3092\u898B\u308B</button></div></div></div>`;
+                    div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">GAME SHOP</h2><p class="text-gray-300 text-sm mt-2">\u9280\u30B3\u30A4\u30F3\u3092\u30C1\u30B1\u30C3\u30C8\u3084\u30D1\u30B9\u306B\u4F7F\u3048\u307E\u3059\u3002</p></div><button id="closeShopBtnV37" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div><div class="text-yellow-200 font-black bg-black/40 border border-yellow-400/40 rounded-xl px-4 py-3">\u6240\u6301\u30B3\u30A4\u30F3 \uD83E\uDE99 ${coins.toLocaleString()}\u3000/\u3000\u30C1\u30B1\u30C3\u30C8 \uD83C\uDF9F\uFE0F ${tickets.toLocaleString()}</div><div id="shopListContainer" class="nsv-v37-shop-grid"><div class="nsv-v37-shop-card"><div class="text-5xl mb-2">\uD83C\uDF9F\uFE0F</div><h3 class="text-2xl font-bold text-yellow-300">\u30CD\u30AA\u30F3\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8</h3><p class="text-sm text-gray-300 mt-2">\u4FA1\u683C\u306F\u3044\u3064\u3067\u3082\u56FA\u5B9A\u3067\u3059\u3002</p><p class="text-xl font-black text-yellow-200 mt-3">\u5FC5\u8981\u30B3\u30A4\u30F3\uFF1A${PASS_TICKET_COST_V37.toLocaleString()}</p><button id="buyPassTicketBtnV37" class="btn-gold px-5 py-3 rounded font-bold mt-4 ${coins >= PASS_TICKET_COST_V37 ? '' : 'opacity-50'}">\u30C1\u30B1\u30C3\u30C8\u30921\u679A\u4EA4\u63DB</button></div><div class="nsv-v37-shop-card"><div class="text-5xl mb-2">\u2B50</div><h3 class="text-2xl font-bold text-cyan-300">NEON PASS</h3><p class="text-sm text-gray-300 mt-2">\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u73FE\u5728\u306E\u30D1\u30B9\u3092\u8CFC\u5165\u3067\u304D\u307E\u3059\u3002</p><p class="text-sm text-gray-300 mt-3">\u72B6\u614B\uFF1A<b class="${premium ? 'text-green-300' : 'text-gray-300'}">${premium ? '\u8CFC\u5165\u6E08\u307F' : '\u672A\u8CFC\u5165'}</b></p><button id="buyNeonPassBtnV37" class="btn-neon px-5 py-3 rounded font-bold mt-4 ${(tickets > 0 && !premium) ? '' : 'opacity-50'}">NEON PASS\u3092\u8CFC\u5165</button><button id="openPassFromShopBtnV37" class="btn-purple px-5 py-3 rounded font-bold mt-3">NEON PASS\u3092\u898B\u308B</button></div></div></div>`;
                     q37('closeShopBtnV37')?.addEventListener('click', () => stableShowV37('startScreen'));
                     q37('buyPassTicketBtnV37')?.addEventListener('click', () => {
                         const uu = ensureUserV37();
@@ -14654,7 +14748,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         // V59: STABLE CORE\uFF08\u5B89\u5B9A\u6027\u30FB\u4FDD\u5B58\u30FB\u8868\u793A\u6574\u7406\u30FB\u5B89\u5168\u88C5\u7F6E\u3092\u672C\u4F53\u30B9\u30B3\u30FC\u30D7\u306B\u7D71\u5408\uFF09
         // ==========================================
         ;(() => {
-            const V59_TAG = 'V59 STABLE CORE';
+            const V59_TAG = 'V67 AIM STABLE';
             const PASS_TICKET_COST_V59 = 1000000;
             const SAVE_KEYS_V59 = [
                 'neon_survivor_save',
@@ -15096,7 +15190,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4">
                     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-black text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">SHOP</h2><p class="text-gray-300 text-sm mt-2">\u30B3\u30A4\u30F3\u30FB\u30C1\u30B1\u30C3\u30C8\u30FB\u65E5\u66FF\u308F\u308A\u30A2\u30A4\u30C6\u30E0\u3092\u5B89\u5168\u306B\u4FDD\u5B58\u3057\u307E\u3059\u3002</p></div><button id="closeShopBtnV59" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div>
                     <div class="nsv-v59-grid"><div class="nsv-v59-card text-center"><div class="text-xs text-gray-400 font-bold">COINS</div><div class="text-3xl font-black text-yellow-300">\uD83E\uDE99 ${coins.toLocaleString()}</div></div><div class="nsv-v59-card text-center"><div class="text-xs text-gray-400 font-bold">TICKETS</div><div class="text-3xl font-black text-cyan-300">\uD83C\uDF9F\uFE0F ${tickets.toLocaleString()}</div></div></div>
-                    <div class="nsv-v59-grid"><div class="nsv-v59-card"><h3 class="font-black text-white text-xl">\u30D0\u30C8\u30EB\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8</h3><p class="text-sm text-gray-300 mt-1">NEON PASS\u306E\u89E3\u653E\u306B\u4F7F\u3044\u307E\u3059\u3002</p><button id="buyTicketBtnV59" class="btn-gold w-full px-4 py-3 rounded font-black mt-4" ${coins >= PASS_TICKET_COST_V59 ? '' : 'disabled'}>\uD83E\uDE99 ${PASS_TICKET_COST_V59.toLocaleString()} \u3067\u4EA4\u63DB</button></div><div class="nsv-v59-card"><h3 class="font-black text-white text-xl">NEON PASS</h3><p class="text-sm text-gray-300 mt-1">\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u30D7\u30EC\u30DF\u30A2\u30E0\u3092\u89E3\u653E\u3002</p><button id="buyPassBtnV59" class="btn-neon w-full px-4 py-3 rounded font-black mt-4" ${(tickets > 0 && !premium) ? '' : 'disabled'}>${premium ? '\u89E3\u653E\u6E08\u307F' : '\uD83C\uDF9F\uFE0F 1\u679A\u3067\u89E3\u653E'}</button></div></div>
+                    <div class="nsv-v59-grid"><div class="nsv-v59-card"><h3 class="font-black text-white text-xl">\u30CD\u30AA\u30F3\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8</h3><p class="text-sm text-gray-300 mt-1">NEON PASS\u306E\u89E3\u653E\u306B\u4F7F\u3044\u307E\u3059\u3002</p><button id="buyTicketBtnV59" class="btn-gold w-full px-4 py-3 rounded font-black mt-4" ${coins >= PASS_TICKET_COST_V59 ? '' : 'disabled'}>\uD83E\uDE99 ${PASS_TICKET_COST_V59.toLocaleString()} \u3067\u4EA4\u63DB</button></div><div class="nsv-v59-card"><h3 class="font-black text-white text-xl">NEON PASS</h3><p class="text-sm text-gray-300 mt-1">\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u30D7\u30EC\u30DF\u30A2\u30E0\u3092\u89E3\u653E\u3002</p><button id="buyPassBtnV59" class="btn-neon w-full px-4 py-3 rounded font-black mt-4" ${(tickets > 0 && !premium) ? '' : 'disabled'}>${premium ? '\u89E3\u653E\u6E08\u307F' : '\uD83C\uDF9F\uFE0F 1\u679A\u3067\u89E3\u653E'}</button></div></div>
                     <div class="flex items-center justify-between border-b border-gray-600 pb-2"><h3 class="text-xl font-black text-cyan-200">DAILY ITEMS</h3><span class="text-xs text-yellow-200">7 items / \u6BCE\u65E5\u66F4\u65B0</span></div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 overflow-y-auto max-h-[48vh] pr-1">${itemHtml}</div>
                 </div>`;
@@ -15274,6 +15368,402 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             window.addEventListener('pageshow', bootV59, { passive:true });
             window.addEventListener('resize', () => setTimeout(cleanupUiV59, 120), { passive:true });
             setInterval(cleanupUiV59, 1200);
+
+
+            // ==========================================
+            // V64: COLLECTION UNDEFINED FIX / BADGE CLEAN
+            // ==========================================
+            ;(() => {
+                const V64_TAG = 'V67 STABLE';
+                const q64 = (id) => document.getElementById(id);
+                const esc64 = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+                const pretty64 = (key) => String(key || 'item')
+                    .replace(/^bp[_-]?/i, '')
+                    .replace(/[_-]+/g, ' ')
+                    .replace(/\b\w/g, m => m.toUpperCase());
+
+                const BP_CATALOG_V64 = {
+                    badge: { id:'bp_badge_s1', name:'繝阪が繝ｳ遘ｰ蜿ｷ繝舌ャ繧ｸ', type:'badge', icon:'遵', desc:'Season 1 縺ｮ髯仙ｮ壹ヰ繝�ず縺ｧ縺吶�' },
+                    trail: { id:'bp_trail_s1', name:'繝阪が繝ｳ繝ｻ繝医Ξ繧､繝ｫ', type:'trail', icon:'ｧｬ', desc:'遘ｻ蜍輔＠縺溘≠縺ｨ縺ｫ蜈峨�霆瑚ｷ｡縺梧ｮ九ｊ縺ｾ縺吶�' },
+                    frame: { id:'bp_frame_s1', name:'繝阪が繝ｳ繝阪�繝�繝輔Ξ繝ｼ繝�', type:'nameplate', icon:'名��', desc:'蜷榊燕縺ｾ繧上ｊ繧偵ロ繧ｪ繝ｳ鬚ｨ縺ｫ鬟ｾ繧翫∪縺吶�' },
+                    bp_badge_s1: { id:'bp_badge_s1', name:'繝阪が繝ｳ遘ｰ蜿ｷ繝舌ャ繧ｸ', type:'badge', icon:'遵', desc:'Season 1 縺ｮ髯仙ｮ壹ヰ繝�ず縺ｧ縺吶�' },
+                    bp_trail_s1: { id:'bp_trail_s1', name:'繝阪が繝ｳ繝ｻ繝医Ξ繧､繝ｫ', type:'trail', icon:'ｧｬ', desc:'遘ｻ蜍輔＠縺溘≠縺ｨ縺ｫ蜈峨�霆瑚ｷ｡縺梧ｮ九ｊ縺ｾ縺吶�' },
+                    bp_frame_s1: { id:'bp_frame_s1', name:'繝阪が繝ｳ繝阪�繝�繝輔Ξ繝ｼ繝�', type:'nameplate', icon:'名��', desc:'蜷榊燕縺ｾ繧上ｊ繧偵ロ繧ｪ繝ｳ鬚ｨ縺ｫ鬟ｾ繧翫∪縺吶�' }
+                };
+
+                function installStyleV64() {
+                    if (q64('nsvV64CollectionStyle')) return;
+                    const st = document.createElement('style');
+                    st.id = 'nsvV64CollectionStyle';
+                    st.textContent = `
+                        .nsv-v64-collection-note { background:rgba(2,6,23,.72); border:1px solid rgba(34,211,238,.28); border-radius:14px; padding:10px 12px; }
+                        .nsv-v64-empty { background:rgba(15,23,42,.82); border:1px dashed rgba(148,163,184,.45); border-radius:16px; padding:16px; }
+                    `;
+                    document.head.appendChild(st);
+                }
+
+                function typeLabelV64(type) {
+                    const map = {
+                        skin:'繧ｹ繧ｭ繝ｳ', aura:'繧ｪ繝ｼ繝ｩ', backpack:'閭御ｸｭ繧｢繧ｯ繧ｻ繧ｵ繝ｪ繝ｼ', trail:'繝医Ξ繧､繝ｫ', pet:'繝壹ャ繝�',
+                        emote:'繧ｨ繝｢繝ｼ繝�', intro:'逋ｻ蝣ｴ貍泌�', elimination:'謦��ｴ貍泌�', bossFinish:'繝懊せ謦��ｴ貍泌�',
+                        nameplate:'繝阪�繝�繝励Ξ繝ｼ繝�', badge:'遘ｰ蜿ｷ繝舌ャ繧ｸ', frame:'繝阪�繝�繝輔Ξ繝ｼ繝�', item:'繧｢繧､繝�Β', boost:'繝悶�繧ｹ繝�'
+                    };
+                    return map[type] || '繧｢繧､繝�Β';
+                }
+
+                function ensureCollectionDataV64() {
+                    try { ensureProgressionData?.(); } catch(e) {}
+                    userData = userData || {};
+                    userData.unlocks = userData.unlocks || {};
+                    userData.unlocks.skins = Object.assign({ classic:true }, userData.unlocks.skins || {});
+                    userData.unlocks.auras = Object.assign({ none:true }, userData.unlocks.auras || {});
+                    userData.unlocks.capes = userData.unlocks.capes || {};
+                    userData.cosmetics = userData.cosmetics || { unlocked:{}, equipped:{} };
+                    userData.cosmetics.unlocked = userData.cosmetics.unlocked || {};
+                    userData.cosmetics.equipped = userData.cosmetics.equipped || {};
+                }
+
+                function normalizeBattlePassItemsV64() {
+                    ensureCollectionDataV64();
+                    const src = userData.cosmetics.unlocked || {};
+                    const out = {};
+                    Object.entries(src).forEach(([key, value]) => {
+                        if (!value) return;
+                        const base = BP_CATALOG_V64[key] || BP_CATALOG_V64[String(value?.id || '')] || {};
+                        const raw = (value && typeof value === 'object') ? Object.assign({}, value) : {};
+                        let id = String(raw.id || base.id || key || '').trim();
+                        if (!id || id === 'undefined') id = 'bp_item_' + Object.keys(out).length;
+                        let name = String(raw.name || base.name || '').trim();
+                        if (!name || name === 'undefined') name = pretty64(key);
+                        let type = String(raw.type || base.type || '').trim();
+                        if (!type || type === 'undefined') type = 'item';
+                        let icon = String(raw.icon || base.icon || '氏').trim();
+                        let desc = String(raw.desc || raw.description || base.desc || '繝阪が繝ｳ繝代せ縺ｧ蜈･謇九＠縺滄剞螳壹い繧､繝�Β縺ｧ縺吶�').trim();
+                        out[id] = {
+                            id,
+                            name,
+                            type,
+                            icon,
+                            desc,
+                            source: raw.source || 'battlePass',
+                            seasonLabel: raw.seasonLabel || raw.seasonName || base.seasonLabel || 'Season 1 / NEON GENESIS'
+                        };
+                    });
+                    userData.cosmetics.unlocked = out;
+                    try { saveData?.(); } catch(e) {}
+                    return Object.values(out).filter(item => item && item.name && item.name !== 'undefined');
+                }
+
+                function missionCardV64(kind, item, equipped) {
+                    const color = item?.color || '#22d3ee';
+                    const label = kind === 'skin' ? '繧ｹ繧ｭ繝ｳ' : kind === 'aura' ? '繧ｪ繝ｼ繝ｩ' : '繝槭Φ繝�';
+                    return `<div class="collection-card unlocked">
+                        <div class="text-3xl">${esc64(item?.icon || '氏')}</div>
+                        <div class="text-[11px] inline-block px-2 py-1 rounded bg-green-950/70 border border-green-400/50 text-green-200 font-bold mt-1">${label}</div>
+                        <h3 class="font-bold text-white mt-2" style="color:${esc64(color)}">${esc64(item?.name || '繧｢繧､繝�Β')}</h3>
+                        <p class="text-xs text-cyan-200 mt-1">蜈･謇句��壹Α繝�す繝ｧ繝ｳ / 騾壼ｸｸ隗｣謾ｾ</p>
+                        <p class="text-sm text-gray-300 mt-1">${esc64(item?.desc || '')}</p>
+                        <button class="equipMissionV64 btn-neon mt-2 px-3 py-1 rounded text-sm font-bold" data-kind="${esc64(kind)}" data-id="${esc64(item?.id || '')}">${equipped ? '陬�ｙ荳ｭ' : '陬�ｙ'}</button>
+                    </div>`;
+                }
+
+                function bpCardV64(item) {
+                    const type = item.type || 'item';
+                    const eq = (type === 'skin' && userData.equippedSkin === item.id) ||
+                               (type === 'aura' && userData.equippedAura === item.id) ||
+                               (userData.cosmetics?.equipped?.[type] === item.id);
+                    const canEquip = ['skin','aura','backpack','trail','pet','emote','intro','elimination','bossFinish','nameplate','badge','frame','item'].includes(type);
+                    return `<div class="collection-card unlocked" style="border-color:rgba(34,211,238,.8);box-shadow:0 0 16px rgba(34,211,238,.18)">
+                        <div class="text-3xl">${esc64(item.icon || '氏')}</div>
+                        <div class="text-[11px] inline-block px-2 py-1 rounded bg-cyan-950/70 border border-cyan-400/50 text-cyan-200 font-bold mt-1">${esc64(typeLabelV64(type))}</div>
+                        <h3 class="font-bold text-white mt-2">${esc64(item.name || '繝阪が繝ｳ繝代せ繧｢繧､繝�Β')}</h3>
+                        <p class="text-xs text-yellow-200 mt-1">蜈･謇句���${esc64(item.seasonLabel || 'Season 1 / NEON GENESIS')} 縺ｮ繝阪が繝ｳ繝代せ</p>
+                        <p class="text-xs text-red-200 mt-1">縺薙�繧｢繧､繝�Β縺ｯ譛滄俣髯仙ｮ壼�ｱ驟ｬ縺ｧ縺吶�</p>
+                        <p class="text-sm text-gray-300 mt-1">${esc64(item.desc || '')}</p>
+                        ${canEquip ? `<button class="equipBpV64 btn-purple mt-2 px-3 py-1 rounded text-sm font-bold" data-type="${esc64(type)}" data-id="${esc64(item.id)}">${eq ? '陬�ｙ荳ｭ' : '陬�ｙ'}</button>` : ''}
+                    </div>`;
+                }
+
+                function renderCollectionV64() {
+                    installStyleV64();
+                    ensureCollectionDataV64();
+                    const container = q64('collectionListContainer');
+                    if (!container) return;
+                    const desc = document.querySelector('#collectionScreen h2 + p');
+                    if (desc) desc.textContent = '繝溘ャ繧ｷ繝ｧ繝ｳ縺ｧ蜈･謇九＠縺溘ｂ縺ｮ縺ｨ縲√ロ繧ｪ繝ｳ繝代せ縺ｧ蜈･謇九＠縺溘ｂ縺ｮ繧貞�縺代※遒ｺ隱阪〒縺阪∪縺吶�';
+
+                    const mission = [];
+                    try { (SKIN_DEFS || []).filter(x => x && userData.unlocks?.skins?.[x.id]).forEach(x => mission.push(missionCardV64('skin', x, userData.equippedSkin === x.id))); } catch(e) {}
+                    try { (AURA_DEFS || []).filter(x => x && userData.unlocks?.auras?.[x.id]).forEach(x => mission.push(missionCardV64('aura', x, userData.equippedAura === x.id))); } catch(e) {}
+                    try { (typeof CAPE_DEFS !== 'undefined' ? CAPE_DEFS : []).filter(x => x && x.id !== 'none' && userData.unlocks?.capes?.[x.id]).forEach(x => mission.push(missionCardV64('cape', x, userData.equippedCape === x.id))); } catch(e) {}
+                    const bpItems = normalizeBattlePassItemsV64();
+
+                    container.innerHTML = `
+                        <section>
+                            <h3 class="text-2xl font-bold text-green-300 mb-2">MISSION / NORMAL REWARDS</h3>
+                            <p class="text-xs text-gray-300 mb-2 nsv-v64-collection-note">繝溘ャ繧ｷ繝ｧ繝ｳ繝ｻ騾壼ｸｸ隗｣謾ｾ縺ｧ蜈･謇九＠縺溘ｂ縺ｮ縺ｧ縺吶�</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${mission.join('') || '<div class="nsv-v64-empty"><h3 class="font-bold text-gray-300">縺ｾ縺�繝溘ャ繧ｷ繝ｧ繝ｳ蝣ｱ驟ｬ縺ｯ縺ゅｊ縺ｾ縺帙ｓ</h3><p class="text-sm text-gray-400 mt-1">繝溘ャ繧ｷ繝ｧ繝ｳ驕疲�縺ｧ縺薙％縺ｫ蠅励∴縺ｾ縺吶�</p></div>'}</div>
+                        </section>
+                        <section>
+                            <h3 class="text-2xl font-bold text-cyan-300 mb-2">NEON PASS REWARDS</h3>
+                            <p class="text-xs text-red-200 mb-2 nsv-v64-collection-note">繝阪が繝ｳ繝代せ蝣ｱ驟ｬ縺ｯ繧ｷ繝ｼ繧ｺ繝ｳ髯仙ｮ壹〒縺吶ょ推繧｢繧､繝�Β縺ｫ蜈･謇九す繝ｼ繧ｺ繝ｳ繧定｡ｨ遉ｺ縺励※縺�∪縺吶�</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${bpItems.map(bpCardV64).join('') || '<div class="nsv-v64-empty"><h3 class="font-bold text-gray-300">縺ｾ縺�繝阪が繝ｳ繝代せ蝣ｱ驟ｬ縺ｯ縺ゅｊ縺ｾ縺帙ｓ</h3><p class="text-sm text-gray-400 mt-1">NEON PASS縺ｧ莠､謠帙☆繧九→縺薙％縺ｫ陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶�</p></div>'}</div>
+                        </section>
+                        <section>
+                            <div class="collection-card border-cyan-400/60">
+                                <h3 class="text-xl font-bold text-cyan-200">豁ｦ蝎ｨ縺ｯ WEAPON CODEX 縺ｫ遘ｻ蜍輔＠縺ｾ縺励◆</h3>
+                                <p class="text-sm text-gray-300 mt-1">豁ｦ蝎ｨ縺ｮ隗｣謾ｾ迥ｶ豕√�諤ｧ閭ｽ繝ｻON/OFF險ｭ螳壹�縲√ち繧､繝医Ν逕ｻ髱｢縺ｮ WEAPON CODEX 縺九ｉ遒ｺ隱阪〒縺阪∪縺吶�</p>
+                            </div>
+                        </section>`;
+
+                    container.querySelectorAll('.equipMissionV64').forEach(btn => btn.addEventListener('click', () => {
+                        const kind = btn.dataset.kind, id = btn.dataset.id;
+                        if (!id) return;
+                        if (kind === 'skin') userData.equippedSkin = id;
+                        else if (kind === 'aura') userData.equippedAura = id;
+                        else if (kind === 'cape') userData.equippedCape = id;
+                        try { saveData?.(); } catch(e) {}
+                        renderCollectionV64();
+                    }));
+                    container.querySelectorAll('.equipBpV64').forEach(btn => btn.addEventListener('click', () => {
+                        const type = btn.dataset.type || 'item', id = btn.dataset.id;
+                        if (!id) return;
+                        userData.cosmetics = userData.cosmetics || { unlocked:{}, equipped:{} };
+                        userData.cosmetics.equipped = userData.cosmetics.equipped || {};
+                        if (type === 'skin') userData.equippedSkin = id;
+                        else if (type === 'aura') userData.equippedAura = id;
+                        else userData.cosmetics.equipped[type] = id;
+                        try { saveData?.(); } catch(e) {}
+                        renderCollectionV64();
+                    }));
+                }
+
+                function removeDuplicateBadgesV64() {
+                    try {
+                        document.querySelectorAll('body > div').forEach(el => {
+                            const id = el.id || '';
+                            const txt = (el.textContent || '').trim();
+                            if (id === 'nsvV59Badge') { el.textContent = V64_TAG; return; }
+                            if (/^V\d+\s+STABLE/i.test(txt) || /STABLE CORE/i.test(txt) || /nsv-v\d+-badge/i.test(String(el.className || ''))) el.remove();
+                        });
+                    } catch(e) {}
+                }
+
+                function bootV64() {
+                    try {
+                        removeDuplicateBadgesV64();
+                        normalizeBattlePassItemsV64();
+                        renderCollectionScreen = renderCollectionV64;
+                        if (q64('collectionScreen') && !q64('collectionScreen').classList.contains('hidden')) renderCollectionV64();
+                    } catch(e) { console.warn('V64 collection patch skipped', e); }
+                }
+
+                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV64, {once:true}); else bootV64();
+                window.addEventListener('pageshow', bootV64, {passive:true});
+                setTimeout(bootV64, 400);
+                setTimeout(bootV64, 1400);
+                setInterval(() => { try { removeDuplicateBadgesV64(); if (q64('collectionScreen') && !q64('collectionScreen').classList.contains('hidden')) renderCollectionV64(); } catch(e) {} }, 2500);
+            })();
+
+
+
+            /* =========================================================
+               V65 NEON PASS NAME + COLLECTION EQUIP/UNEQUIP PATCH
+               ========================================================= */
+            (() => {
+                'use strict';
+                const V65_TAG = 'V67 STABLE';
+                const EQUIP_TYPES = new Set(['skin','aura','cape','backpack','trail','pet','emote','intro','elimination','bossFinish','nameplate','badge']);
+                const TYPE_LABELS = {
+                    skin:'繧ｹ繧ｭ繝ｳ', aura:'繧ｪ繝ｼ繝ｩ', cape:'繝槭Φ繝�', backpack:'閭御ｸｭ繧｢繧ｯ繧ｻ', trail:'繝医Ξ繧､繝ｫ', pet:'繝壹ャ繝�',
+                    emote:'繧ｨ繝｢繝ｼ繝�', intro:'逋ｻ蝣ｴ貍泌�', elimination:'謦��ｴ貍泌�', bossFinish:'繝懊せ謦��ｴ貍泌�', nameplate:'繝阪�繝�繝励Ξ繝ｼ繝�', badge:'遘ｰ蜿ｷ繝舌ャ繧ｸ', item:'繧｢繧､繝�Β', box:'BOX'
+                };
+
+                function escV65(v) {
+                    return String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+                }
+                function labelV65(type) { return TYPE_LABELS[type] || String(type || '繧｢繧､繝�Β'); }
+                function safeColorV65(v, fallback='#22d3ee') { return /^#[0-9a-f]{3,8}$/i.test(String(v || '')) ? String(v) : fallback; }
+                function saveV65() { try { saveData?.(); } catch(e) {} }
+                function toastV65(title, msg) { try { showMissionToast?.(title, msg || ''); } catch(e) {} }
+
+                function normalizeNeonPassWordsV65(root=document.body) {
+                    try {
+                        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+                        const nodes = [];
+                        while (walker.nextNode()) nodes.push(walker.currentNode);
+                        nodes.forEach(n => {
+                            const before = n.nodeValue || '';
+                            const after = before
+                                .replace(/繝舌ヨ繝ｫ繝代せ/g, '繝阪が繝ｳ繝代せ')
+                                .replace(/BATTLE PASS/g, 'NEON PASS')
+                                .replace(/Battle Pass/g, 'Neon Pass');
+                            if (after !== before) n.nodeValue = after;
+                        });
+                    } catch(e) {}
+                }
+
+                function ensureCollectionDataV65() {
+                    try { ensureProgressionData?.(); } catch(e) {}
+                    userData.unlocks = userData.unlocks || {};
+                    userData.unlocks.skins = Object.assign({classic:true}, userData.unlocks.skins || {});
+                    userData.unlocks.auras = Object.assign({none:true}, userData.unlocks.auras || {});
+                    userData.unlocks.capes = Object.assign({none:true}, userData.unlocks.capes || {});
+                    userData.cosmetics = userData.cosmetics || { unlocked:{}, equipped:{} };
+                    userData.cosmetics.unlocked = userData.cosmetics.unlocked || {};
+                    userData.cosmetics.equipped = userData.cosmetics.equipped || {};
+                    if (!userData.equippedSkin) userData.equippedSkin = 'classic';
+                    if (!userData.equippedAura) userData.equippedAura = 'none';
+                    if (!userData.equippedCape) userData.equippedCape = 'none';
+                }
+
+                function isEquippedV65(type, id) {
+                    if (!id) return false;
+                    if (type === 'skin') return userData.equippedSkin === id;
+                    if (type === 'aura') return userData.equippedAura === id;
+                    if (type === 'cape') return userData.equippedCape === id;
+                    return userData.cosmetics?.equipped?.[type] === id;
+                }
+                function equipV65(type, id) {
+                    ensureCollectionDataV65();
+                    if (!id || !EQUIP_TYPES.has(type)) return;
+                    if (type === 'skin') userData.equippedSkin = id;
+                    else if (type === 'aura') userData.equippedAura = id;
+                    else if (type === 'cape') userData.equippedCape = id;
+                    else userData.cosmetics.equipped[type] = id;
+                    saveV65();
+                    toastV65('COLLECTION', '陬�ｙ縺励∪縺励◆縲�');
+                }
+                function unequipV65(type, id) {
+                    ensureCollectionDataV65();
+                    if (!id || !EQUIP_TYPES.has(type)) return;
+                    if (type === 'skin' && userData.equippedSkin === id) userData.equippedSkin = 'classic';
+                    else if (type === 'aura' && userData.equippedAura === id) userData.equippedAura = 'none';
+                    else if (type === 'cape' && userData.equippedCape === id) userData.equippedCape = 'none';
+                    else if (userData.cosmetics.equipped?.[type] === id) delete userData.cosmetics.equipped[type];
+                    saveV65();
+                    toastV65('COLLECTION', '陬�ｙ繧貞､悶＠縺ｾ縺励◆縲�');
+                }
+                function toggleEquipV65(type, id) {
+                    if (isEquippedV65(type, id)) unequipV65(type, id);
+                    else equipV65(type, id);
+                    renderCollectionV65();
+                }
+
+                function seasonLabelV65(item) {
+                    return item?.seasonLabel || item?.seasonName || item?.theme || 'Season 1 / NEON GENESIS';
+                }
+                function normalizePassItemV65(key, value) {
+                    if (value && typeof value === 'object') {
+                        const type = value.type || 'item';
+                        return {
+                            id: value.id || key,
+                            name: value.name || value.title || (type === 'badge' ? '繝阪が繝ｳ繝代せ繝舌ャ繧ｸ' : '繝阪が繝ｳ繝代せ蝣ｱ驟ｬ'),
+                            type,
+                            icon: value.icon || (type === 'skin' ? 'ｧｬ' : type === 'aura' ? '笨ｨ' : type === 'badge' ? '遵' : '氏'),
+                            theme: value.theme || value.seasonLabel || value.seasonName || 'Season 1 / NEON GENESIS',
+                            desc: value.desc || '繝阪が繝ｳ繝代せ縺ｧ蜈･謇九＠縺溘す繝ｼ繧ｺ繝ｳ髯仙ｮ壼�ｱ驟ｬ縺ｧ縺吶�'
+                        };
+                    }
+                    return { id:key, name:'繝阪が繝ｳ繝代せ蝣ｱ驟ｬ', type:key.includes('badge') ? 'badge' : 'item', icon:'氏', theme:'Season 1 / NEON GENESIS', desc:'繝阪が繝ｳ繝代せ縺ｧ蜈･謇九＠縺溘す繝ｼ繧ｺ繝ｳ髯仙ｮ壼�ｱ驟ｬ縺ｧ縺吶�' };
+                }
+
+                function missionCardV65(kind, item, equipped) {
+                    const color = safeColorV65(item.color);
+                    const name = escV65(item.name || item.id);
+                    const desc = escV65(item.desc || '');
+                    const id = escV65(item.id);
+                    const ability = kind === 'skin' ? `<p class="text-xs text-cyan-200 mt-2">閭ｽ蜉�: ${escV65(typeof getSkinAbilityText === 'function' ? getSkinAbilityText(item.id) : '隕九◆逶ｮ繧貞､画峩縺励∪縺�')}</p>` : '';
+                    const disabledNone = (kind === 'skin' && item.id === 'classic') || (kind === 'aura' && item.id === 'none') || (kind === 'cape' && item.id === 'none');
+                    const btnText = equipped ? (disabledNone ? '陬�ｙ荳ｭ' : '螟悶☆') : '陬�ｙ';
+                    const btnClass = equipped ? (disabledNone ? 'btn-green' : 'btn-red') : 'btn-neon';
+                    return `<div class="collection-card unlocked" style="border-color:${color}99;box-shadow:0 0 16px ${color}33">
+                        <div class="text-3xl">${escV65(item.icon || '氏')}</div>
+                        <div class="text-[11px] inline-block px-2 py-1 rounded bg-slate-900/80 border border-cyan-400/40 text-cyan-200 font-bold mt-1">${labelV65(kind)}</div>
+                        <h3 class="font-bold text-white mt-2" style="color:${color}">${name}</h3>
+                        <p class="text-xs text-cyan-200 mt-1">蜈･謇句��壹Α繝�す繝ｧ繝ｳ / 騾壼ｸｸ隗｣謾ｾ</p>
+                        <p class="text-sm text-gray-300 mt-1">${desc}</p>${ability}
+                        <button class="nsvV65Equip ${btnClass} mt-3 px-3 py-1 rounded text-sm font-bold" data-type="${kind}" data-id="${id}" ${disabledNone && equipped ? 'disabled' : ''}>${btnText}</button>
+                    </div>`;
+                }
+
+                function passCardV65(item) {
+                    const type = item.type || 'item';
+                    const equipped = isEquippedV65(type, item.id);
+                    const canEquip = EQUIP_TYPES.has(type);
+                    const name = escV65(item.name || item.id || '繝阪が繝ｳ繝代せ蝣ｱ驟ｬ');
+                    const id = escV65(item.id || name);
+                    return `<div class="collection-card unlocked" style="border-color:rgba(34,211,238,.8);box-shadow:0 0 16px rgba(34,211,238,.18)">
+                        <div class="text-3xl">${escV65(item.icon || '氏')}</div>
+                        <div class="text-[11px] inline-block px-2 py-1 rounded bg-cyan-950/70 border border-cyan-400/50 text-cyan-200 font-bold mt-1">${labelV65(type)}</div>
+                        <h3 class="font-bold text-white mt-2">${name}</h3>
+                        <p class="text-xs text-yellow-200 mt-1">蜈･謇句���${escV65(seasonLabelV65(item))} 縺ｮ繝阪が繝ｳ繝代せ</p>
+                        <p class="text-xs text-red-200 mt-1">縺薙�繧｢繧､繝�Β縺ｯ繧ｷ繝ｼ繧ｺ繝ｳ髯仙ｮ壼�ｱ驟ｬ縺ｧ縺吶�</p>
+                        ${canEquip ? `<button class="nsvV65Equip ${equipped ? 'btn-red' : 'btn-purple'} mt-3 px-3 py-1 rounded text-sm font-bold" data-type="${escV65(type)}" data-id="${id}">${equipped ? '螟悶☆' : '陬�ｙ'}</button>` : `<p class="text-xs text-gray-400 mt-3">隕九ｋ蟆ら畑繧｢繧､繝�Β縺ｧ縺吶�</p>`}
+                    </div>`;
+                }
+
+                function renderCollectionV65() {
+                    ensureCollectionDataV65();
+                    const container = document.getElementById('collectionListContainer');
+                    if (!container) return;
+                    const skins = (typeof SKIN_DEFS !== 'undefined' ? SKIN_DEFS : []).filter(x => x?.id && userData.unlocks.skins[x.id]).map(x => missionCardV65('skin', x, isEquippedV65('skin', x.id)));
+                    const auras = (typeof AURA_DEFS !== 'undefined' ? AURA_DEFS : []).filter(x => x?.id && userData.unlocks.auras[x.id]).map(x => missionCardV65('aura', x, isEquippedV65('aura', x.id)));
+                    const capes = (typeof CAPE_DEFS !== 'undefined' ? CAPE_DEFS : []).filter(x => x?.id && x.id !== 'none' && userData.unlocks.capes?.[x.id]).map(x => missionCardV65('cape', x, isEquippedV65('cape', x.id)));
+                    const missionHtml = skins.concat(auras, capes).join('');
+                    const passItems = Object.entries(userData.cosmetics.unlocked || {}).filter(([,v]) => !!v).map(([k,v]) => normalizePassItemV65(k,v));
+                    const passHtml = passItems.map(passCardV65).join('');
+                    container.innerHTML = `
+                        <section>
+                            <div class="collection-card border-cyan-400/60 mb-3">
+                                <h3 class="text-xl font-bold text-cyan-200">陬�ｙ蛻�ｊ譖ｿ縺�</h3>
+                                <p class="text-sm text-gray-300 mt-1">繧ｳ繝ｬ繧ｯ繧ｷ繝ｧ繝ｳ逕ｻ髱｢縺九ｉ縲∝�謇区ｸ医∩繧｢繧､繝�Β繧偵瑚｣�ｙ縲阪∪縺溘�縲悟､悶☆縲阪〒驕ｸ縺ｹ縺ｾ縺吶�</p>
+                            </div>
+                        </section>
+                        <section>
+                            <h3 class="text-2xl font-bold text-green-300 mb-2">MISSION / NORMAL REWARDS</h3>
+                            <p class="text-xs text-gray-300 mb-2">繝溘ャ繧ｷ繝ｧ繝ｳ繝ｻ騾壼ｸｸ隗｣謾ｾ縺ｧ蜈･謇九＠縺溘ｂ縺ｮ縺ｧ縺吶�</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${missionHtml || '<div class="collection-card"><h3 class="font-bold text-gray-300">縺ｾ縺�繝溘ャ繧ｷ繝ｧ繝ｳ蝣ｱ驟ｬ縺ｯ縺ゅｊ縺ｾ縺帙ｓ</h3><p class="text-sm text-gray-400 mt-1">繝溘ャ繧ｷ繝ｧ繝ｳ驕疲�縺ｧ縺薙％縺ｫ蠅励∴縺ｾ縺吶�</p></div>'}</div>
+                        </section>
+                        <section>
+                            <h3 class="text-2xl font-bold text-cyan-300 mb-2">NEON PASS REWARDS</h3>
+                            <p class="text-xs text-red-200 mb-2">繝阪が繝ｳ繝代せ蝣ｱ驟ｬ縺ｯ繧ｷ繝ｼ繧ｺ繝ｳ髯仙ｮ壹〒縺吶ょ推繧｢繧､繝�Β縺ｫ蜈･謇九す繝ｼ繧ｺ繝ｳ繧定｡ｨ遉ｺ縺励※縺�∪縺吶�</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${passHtml || '<div class="collection-card"><h3 class="font-bold text-gray-300">縺ｾ縺�繝阪が繝ｳ繝代せ蝣ｱ驟ｬ縺ｯ縺ゅｊ縺ｾ縺帙ｓ</h3><p class="text-sm text-gray-400 mt-1">NEON PASS縺ｧ莠､謠帙☆繧九→縺薙％縺ｫ陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶�</p></div>'}</div>
+                        </section>
+                        <section>
+                            <div class="collection-card border-cyan-400/60">
+                                <h3 class="text-xl font-bold text-cyan-200">豁ｦ蝎ｨ縺ｯ WEAPON CODEX 縺ｫ遘ｻ蜍輔＠縺ｾ縺励◆</h3>
+                                <p class="text-sm text-gray-300 mt-1">豁ｦ蝎ｨ縺ｮ隗｣謾ｾ迥ｶ豕√�諤ｧ閭ｽ繝ｻON/OFF險ｭ螳壹�縲√ち繧､繝医Ν逕ｻ髱｢縺ｮ WEAPON CODEX 縺九ｉ遒ｺ隱阪〒縺阪∪縺吶�</p>
+                            </div>
+                        </section>`;
+                    container.querySelectorAll('.nsvV65Equip').forEach(btn => btn.addEventListener('click', () => toggleEquipV65(btn.dataset.type, btn.dataset.id)));
+                    normalizeNeonPassWordsV65(container);
+                }
+
+                function installV65() {
+                    try {
+                        normalizeNeonPassWordsV65();
+                        renderCollectionScreen = renderCollectionV65;
+                        const desc = document.querySelector('#collectionScreen h2 + p');
+                        if (desc) desc.textContent = '繝溘ャ繧ｷ繝ｧ繝ｳ縺ｧ蜈･謇九＠縺溘ｂ縺ｮ縺ｨ縲√ロ繧ｪ繝ｳ繝代せ縺ｧ蜈･謇九＠縺溘ｂ縺ｮ繧貞�縺代※遒ｺ隱阪〒縺阪∪縺吶り｣�ｙ縺吶ｋ縺句､悶☆縺九ｂ驕ｸ縺ｹ縺ｾ縺吶�';
+                        if (document.getElementById('collectionScreen') && !document.getElementById('collectionScreen').classList.contains('hidden')) renderCollectionV65();
+                    } catch(e) { console.warn('V65 collection patch skipped', e); }
+                }
+                window.renderCollectionV65 = renderCollectionV65;
+                window.installNeonPassNameV65 = installV65;
+                installV65();
+                document.addEventListener('DOMContentLoaded', installV65, {once:false});
+                window.addEventListener('pageshow', installV65, {passive:true});
+                setTimeout(installV65, 350);
+                setTimeout(installV65, 1500);
+                setInterval(() => {
+                    try {
+                        normalizeNeonPassWordsV65();
+                        if (document.getElementById('collectionScreen') && !document.getElementById('collectionScreen').classList.contains('hidden')) renderCollectionV65();
+                    } catch(e) {}
+                }, 2500);
+            })();
+
             window.NEON_SURVIVOR_STABLE_CORE = { tag: V59_TAG, save: writeSaveV59, shop: renderShopV59, ranking: renderLeaderboardV59, safeMode: enableSafeModeV59 };
         })();
 </script>
@@ -15407,6 +15897,369 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         observer.observe(document.documentElement, { childList:true, subtree:true, characterData:true });
     } catch(e) {}
     window.NEON_SURVIVOR_TEXT_GUARD_V62 = { cleanText, scanNode, organizePausePanel };
+})();
+</script>
+
+
+<script>
+/* V63 final shop and badge stabilizer */
+;(() => {
+  const TAG = 'V67 STABLE';
+  const PASS_TICKET_COST = 1000000;
+  const SCREEN_IDS = [
+    'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen',
+    'onlineRoomScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen','shopScreen',
+    'battlePassScreen','leaderboardScreen','eventModeScreen','dailyEventScreen'
+  ];
+  const JP = {
+    shopTitle: '\u30B2\u30FC\u30E0\u30B7\u30E7\u30C3\u30D7',
+    shopDesc: '\u30B3\u30A4\u30F3\u3001\u30C1\u30B1\u30C3\u30C8\u3001\u30B9\u30AD\u30F3\u3001\u30AA\u30FC\u30E9\u3092\u3053\u3053\u3067\u7BA1\u7406\u3057\u307E\u3059\u3002',
+    back: 'BACK',
+    coins: '\u6240\u6301\u30B3\u30A4\u30F3',
+    tickets: '\u6240\u6301\u30C1\u30B1\u30C3\u30C8',
+    passTicket: '\u30CD\u30AA\u30F3\u30D1\u30B9\u30C1\u30B1\u30C3\u30C8',
+    passTicketDesc: 'NEON PASS\u3092\u958B\u653E\u3059\u308B\u305F\u3081\u306E\u30C1\u30B1\u30C3\u30C8\u3067\u3059\u3002',
+    exchange: '\u4EA4\u63DB\u3059\u308B',
+    neonPassDesc: '\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u73FE\u5728\u306E\u30D1\u30B9\u3092\u958B\u653E\u3057\u307E\u3059\u3002',
+    buyPass: 'NEON PASS\u3092\u8CFC\u5165',
+    passOpen: '\u8CFC\u5165\u6E08\u307F',
+    passNeed: '\u30C1\u30B1\u30C3\u30C8\u304C\u5FC5\u8981',
+    daily: '\u65E5\u66FF\u308F\u308A\u30A2\u30A4\u30C6\u30E0',
+    dailyDesc: '\u30B9\u30AD\u30F3\u30FB\u30AA\u30FC\u30E9\u30FB\u30B5\u30DD\u30FC\u30C8\u30A2\u30A4\u30C6\u30E0',
+    owned: '\u6240\u6709\u6E08\u307F',
+    buy: '\u8CFC\u5165',
+    notEnough: '\u30B3\u30A4\u30F3\u4E0D\u8DB3',
+    safetyPack: '\u30B3\u30A4\u30F3\u5B89\u5168\u30D1\u30C3\u30AF',
+    safetyDesc: '\u30B7\u30E7\u30C3\u30D7\u52D5\u4F5C\u78BA\u8A8D\u7528\u306E\u8EFD\u91CF\u30A2\u30A4\u30C6\u30E0\u3067\u3059\u3002',
+    ticketGot: '\u30C1\u30B1\u30C3\u30C8 +1',
+    passGot: 'NEON PASS\u3092\u958B\u653E\u3057\u307E\u3057\u305F',
+    itemGot: '\u8CFC\u5165\u3057\u307E\u3057\u305F'
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const num = (v) => Number.isFinite(Number(v)) ? Number(v) : 0;
+  const money = (v) => Math.max(0, Math.floor(num(v))).toLocaleString();
+
+  function installStyleV63() {
+    if ($('nsvV63Style')) return;
+    const st = document.createElement('style');
+    st.id = 'nsvV63Style';
+    st.textContent = `
+      .nsv-v63-badge {
+        position: fixed !important;
+        left: 12px !important;
+        bottom: 12px !important;
+        z-index: 999999 !important;
+        pointer-events: none !important;
+        color: #dcfce7 !important;
+        background: rgba(2,6,23,.92) !important;
+        border: 1px solid rgba(74,222,128,.75) !important;
+        border-radius: 999px !important;
+        padding: 5px 12px !important;
+        font: 900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif !important;
+        letter-spacing: .08em !important;
+        box-shadow: 0 0 14px rgba(34,197,94,.34) !important;
+        width: auto !important;
+        max-width: 170px !important;
+        white-space: nowrap !important;
+      }
+      .nsv-v63-shop-card {
+        background: rgba(15,23,42,.88);
+        border: 1px solid rgba(6,182,212,.42);
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 0 14px rgba(6,182,212,.14);
+      }
+      .nsv-v63-shop-grid { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:14px; }
+      .nsv-v63-balance { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:12px; }
+      .nsv-v63-buy-btn[disabled] { opacity:.45 !important; cursor:not-allowed !important; }
+      @media (max-width:760px){
+        .nsv-v63-shop-grid, .nsv-v63-balance { grid-template-columns: 1fr; }
+        #shopScreen .menu-panel { padding: 16px !important; }
+      }
+    `;
+    document.head.appendChild(st);
+  }
+
+  function removeOldVersionBadgesV63() {
+    try {
+      const targets = [];
+      document.querySelectorAll('body > div').forEach(el => {
+        const t = (el.textContent || '').trim();
+        const id = el.id || '';
+        const cls = el.className || '';
+        if (id === 'nsvV63Badge') return;
+        if (/^V\d+\s+STABLE/i.test(t) || /STABLE CORE/i.test(t) || /nsv-v5\d-badge/.test(String(cls)) || /^nsvV\d+Badge$/.test(id)) {
+          targets.push(el);
+        }
+      });
+      targets.forEach(el => el.remove());
+    } catch(e) {}
+  }
+
+  function showBadgeV63() {
+    installStyleV63();
+    removeOldVersionBadgesV63();
+    let b = $('nsvV63Badge');
+    if (!b) {
+      b = document.createElement('div');
+      b.id = 'nsvV63Badge';
+      b.className = 'nsv-v63-badge';
+      document.body.appendChild(b);
+    }
+    b.textContent = TAG;
+  }
+
+  function ensureUserV63() {
+    try {
+      if (!window.userData && typeof userData !== 'undefined') window.userData = userData;
+    } catch(e) {}
+    try {
+      if (typeof userData === 'undefined' || !userData || typeof userData !== 'object') {
+        window.userData = { score:0, coins:0, nickname:'', upgrades:{}, stats:{}, unlocks:{skins:{classic:true},auras:{none:true}}, passTickets:0, battlePass:{}, battlePassV2:{} };
+      }
+    } catch(e) {}
+    try {
+      userData.coins = Math.max(0, Math.floor(num(userData.coins)));
+      userData.passTickets = Math.max(0, Math.floor(num(userData.passTickets)));
+      userData.unlocks = userData.unlocks || {};
+      userData.unlocks.skins = Object.assign({classic:true}, userData.unlocks.skins || {});
+      userData.unlocks.auras = Object.assign({none:true}, userData.unlocks.auras || {});
+      userData.battlePass = userData.battlePass || {};
+      userData.battlePassV2 = userData.battlePassV2 || {};
+    } catch(e) {}
+  }
+
+  function saveV63() {
+    try { if (typeof saveData === 'function') saveData(); } catch(e) {}
+    try {
+      const txt = JSON.stringify(userData);
+      localStorage.setItem('neon_survivor_save', txt);
+      localStorage.setItem('neon_survivor_save_backup_v63', txt);
+      localStorage.setItem('neon_survivor_save_mirror_v63', txt);
+    } catch(e) {}
+  }
+
+  function toastV63(title, msg) {
+    try {
+      if (typeof showMissionToast === 'function') { showMissionToast(title, msg); return; }
+    } catch(e) {}
+    try {
+      const box = $('missionToast') || document.body.appendChild(document.createElement('div'));
+      box.id = 'missionToast';
+      box.innerHTML = `<div class="toast-card"><b>${esc(title)}</b><br><span class="text-sm">${esc(msg)}</span></div>`;
+      setTimeout(() => { if (box) box.innerHTML = ''; }, 2500);
+    } catch(e) {}
+  }
+
+  function showScreenV63(id) {
+    try {
+      if (typeof showScreen === 'function') { showScreen(id); return; }
+    } catch(e) {}
+    SCREEN_IDS.forEach(sid => {
+      const el = $(sid);
+      if (!el) return;
+      if (sid === id) {
+        el.classList.remove('hidden');
+        el.style.display = 'flex';
+        el.style.pointerEvents = 'auto';
+      } else {
+        el.classList.add('hidden');
+        el.style.pointerEvents = 'none';
+      }
+    });
+    const ui = $('uiLayer');
+    if (ui) {
+      if (id === 'startScreen' || id === 'shopScreen') ui.classList.add('hidden');
+    }
+  }
+
+  function dailyItemsV63() {
+    const pool = [];
+    try {
+      (window.SKIN_DEFS || SKIN_DEFS || []).filter(x => x && x.id !== 'classic').forEach(x => {
+        pool.push({ itemType:'skin', typeLabel:'SKIN', price:150000, id:x.id, name:x.name, desc:x.desc, icon:x.icon });
+      });
+    } catch(e) {}
+    try {
+      (window.AURA_DEFS || AURA_DEFS || []).filter(x => x && x.id !== 'none').forEach(x => {
+        pool.push({ itemType:'aura', typeLabel:'AURA', price:120000, id:x.id, name:x.name, desc:x.desc, icon:x.icon });
+      });
+    } catch(e) {}
+    pool.push({ itemType:'boost', typeLabel:'BOOST', price:50000, id:'coin_safety_pack_v63', name:JP.safetyPack, desc:JP.safetyDesc, icon:'\uD83E\uDE99' });
+    let seed = Number(new Date().toISOString().slice(0,10).replace(/-/g,''));
+    const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      const tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
+    }
+    return pool.slice(0, Math.min(7, pool.length));
+  }
+
+  function renderShopV63() {
+    installStyleV63();
+    ensureUserV63();
+    let div = $('shopScreen');
+    if (!div) {
+      div = document.createElement('div');
+      div.id = 'shopScreen';
+      div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3';
+      document.body.appendChild(div);
+    }
+    const coins = Math.max(0, Math.floor(num(userData.coins)));
+    const tickets = Math.max(0, Math.floor(num(userData.passTickets)));
+    const premium = !!(userData.battlePass?.premium || userData.battlePassV2?.premium);
+    const items = dailyItemsV63();
+    const itemHtml = items.map((item, idx) => {
+      const owned = item.itemType === 'skin' ? !!userData.unlocks?.skins?.[item.id] : item.itemType === 'aura' ? !!userData.unlocks?.auras?.[item.id] : false;
+      const canBuy = !owned && coins >= num(item.price);
+      const label = owned ? JP.owned : canBuy ? `${JP.buy}  \uD83E\uDE99 ${money(item.price)}` : JP.notEnough;
+      return `<div class="nsv-v63-shop-card flex flex-col justify-between min-h-[170px]">
+        <div class="text-center">
+          <div class="text-4xl mb-2">${esc(item.icon || '\u2728')}</div>
+          <div class="text-[10px] font-black text-cyan-200 tracking-widest">${esc(item.typeLabel || 'ITEM')}</div>
+          <h4 class="font-black text-white mt-1">${esc(item.name || 'ITEM')}</h4>
+          <p class="text-xs text-gray-300 mt-2">${esc(item.desc || '')}</p>
+        </div>
+        <button class="buyDailyV63 nsv-v63-buy-btn mt-3 ${canBuy ? 'btn-gold' : 'bg-gray-800 text-gray-500 border border-gray-600'} px-3 py-2 rounded font-black" data-idx="${idx}" ${canBuy ? '' : 'disabled'}>${label}</button>
+      </div>`;
+    }).join('');
+
+    div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3';
+    div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+        <div>
+          <h2 class="text-4xl md:text-5xl font-black text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">GAME SHOP</h2>
+          <p class="text-gray-300 text-sm mt-2">${JP.shopDesc}</p>
+        </div>
+        <button id="closeShopBtnV63" class="btn-neon px-4 py-2 rounded font-bold">${JP.back}</button>
+      </div>
+
+      <div class="nsv-v63-balance">
+        <div class="nsv-v63-shop-card text-center">
+          <div class="text-xs text-gray-400 font-bold">${JP.coins}</div>
+          <div class="text-3xl font-black text-yellow-300">\uD83E\uDE99 ${money(coins)}</div>
+        </div>
+        <div class="nsv-v63-shop-card text-center">
+          <div class="text-xs text-gray-400 font-bold">${JP.tickets}</div>
+          <div class="text-3xl font-black text-cyan-300">\uD83C\uDF9F\uFE0F ${money(tickets)}</div>
+        </div>
+      </div>
+
+      <div class="nsv-v63-shop-grid">
+        <div class="nsv-v63-shop-card">
+          <div class="text-4xl mb-2">\uD83C\uDF9F\uFE0F</div>
+          <h3 class="font-black text-yellow-300 text-xl">${JP.passTicket}</h3>
+          <p class="text-sm text-gray-300 mt-1">${JP.passTicketDesc}</p>
+          <p class="text-lg font-black text-yellow-200 mt-3">\uD83E\uDE99 ${money(PASS_TICKET_COST)}</p>
+          <button id="buyTicketBtnV63" class="btn-gold nsv-v63-buy-btn w-full px-4 py-3 rounded font-black mt-4" ${coins >= PASS_TICKET_COST ? '' : 'disabled'}>${JP.exchange}</button>
+        </div>
+        <div class="nsv-v63-shop-card">
+          <div class="text-4xl mb-2">\u2B50</div>
+          <h3 class="font-black text-cyan-300 text-xl">NEON PASS</h3>
+          <p class="text-sm text-gray-300 mt-1">${JP.neonPassDesc}</p>
+          <p class="text-sm mt-3 ${premium ? 'text-green-300' : 'text-gray-300'}">${premium ? JP.passOpen : JP.passNeed}</p>
+          <button id="buyPassBtnV63" class="btn-neon nsv-v63-buy-btn w-full px-4 py-3 rounded font-black mt-4" ${(tickets > 0 && !premium) ? '' : 'disabled'}>${premium ? JP.passOpen : JP.buyPass}</button>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between border-b border-gray-600 pb-2">
+        <div><h3 class="text-xl font-black text-cyan-200">${JP.daily}</h3><p class="text-xs text-gray-400">${JP.dailyDesc}</p></div>
+        <span class="text-xs text-yellow-200">7 ITEMS</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 overflow-y-auto max-h-[42vh] pr-1">${itemHtml}</div>
+    </div>`;
+
+    $('closeShopBtnV63')?.addEventListener('click', () => showScreenV63('startScreen'));
+    $('buyTicketBtnV63')?.addEventListener('click', () => {
+      ensureUserV63();
+      if (num(userData.coins) < PASS_TICKET_COST) return;
+      userData.coins = Math.max(0, Math.floor(num(userData.coins) - PASS_TICKET_COST));
+      userData.passTickets = Math.max(0, Math.floor(num(userData.passTickets) + 1));
+      saveV63();
+      toastV63('SHOP', JP.ticketGot);
+      renderShopV63();
+      showScreenV63('shopScreen');
+    });
+    $('buyPassBtnV63')?.addEventListener('click', () => {
+      ensureUserV63();
+      if (num(userData.passTickets) <= 0) return;
+      if (userData.battlePass?.premium || userData.battlePassV2?.premium) return;
+      userData.passTickets = Math.max(0, Math.floor(num(userData.passTickets) - 1));
+      userData.battlePass = userData.battlePass || {};
+      userData.battlePassV2 = userData.battlePassV2 || {};
+      userData.battlePass.premium = true;
+      userData.battlePassV2.premium = true;
+      saveV63();
+      toastV63('NEON PASS', JP.passGot);
+      renderShopV63();
+      showScreenV63('shopScreen');
+    });
+    div.querySelectorAll('.buyDailyV63').forEach(btn => btn.addEventListener('click', () => {
+      ensureUserV63();
+      const item = items[Number(btn.dataset.idx)];
+      if (!item || num(userData.coins) < num(item.price)) return;
+      userData.coins = Math.max(0, Math.floor(num(userData.coins) - num(item.price)));
+      if (item.itemType === 'skin') userData.unlocks.skins[item.id] = true;
+      else if (item.itemType === 'aura') userData.unlocks.auras[item.id] = true;
+      else if (item.itemType === 'boost') userData.coins += 25000;
+      saveV63();
+      toastV63('SHOP', `${esc(item.name)} ${JP.itemGot}`);
+      renderShopV63();
+      showScreenV63('shopScreen');
+    }));
+  }
+
+  function installShopButtonV63() {
+    try {
+      const grid = document.querySelector('#startScreen .menu-grid') || document.querySelector('.menu-grid');
+      let btn = $('openShopBtn');
+      if (!btn && grid) {
+        btn = document.createElement('button');
+        btn.id = 'openShopBtn';
+        grid.appendChild(btn);
+      }
+      if (!btn) return;
+      if (!btn.dataset.v63Clean) {
+        const clone = btn.cloneNode(true);
+        btn.parentNode.replaceChild(clone, btn);
+        btn = clone;
+        btn.dataset.v63Clean = '1';
+      }
+      btn.className = 'btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer transition-all';
+      btn.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">\u30B7\u30E7\u30C3\u30D7</span>';
+      btn.disabled = false;
+      btn.style.pointerEvents = 'auto';
+      btn.onclick = (e) => {
+        try { e.preventDefault(); e.stopPropagation(); } catch(_) {}
+        renderShopV63();
+        showScreenV63('shopScreen');
+        showBadgeV63();
+      };
+    } catch(e) {}
+  }
+
+  function bootV63() {
+    installStyleV63();
+    showBadgeV63();
+    installShopButtonV63();
+    try {
+      if ($('shopScreen') && !$('shopScreen').classList.contains('hidden')) {
+        renderShopV63();
+        showScreenV63('shopScreen');
+      }
+    } catch(e) {}
+  }
+
+  window.renderShopV63 = renderShopV63;
+  window.bootV63Stable = bootV63;
+  document.addEventListener('DOMContentLoaded', bootV63, {once:false});
+  window.addEventListener('load', bootV63, {passive:true});
+  window.addEventListener('pageshow', bootV63, {passive:true});
+  setTimeout(bootV63, 300);
+  setTimeout(bootV63, 1200);
+  setInterval(() => { try { showBadgeV63(); installShopButtonV63(); } catch(e) {} }, 2000);
 })();
 </script>
 
