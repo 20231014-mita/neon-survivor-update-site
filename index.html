@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V63 SHOP DISPLAY STABLE / no-preview build -->
+<!-- V71 PLAYFIELD STABLE / no-preview build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -14748,7 +14748,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         // V59: STABLE CORE\uFF08\u5B89\u5B9A\u6027\u30FB\u4FDD\u5B58\u30FB\u8868\u793A\u6574\u7406\u30FB\u5B89\u5168\u88C5\u7F6E\u3092\u672C\u4F53\u30B9\u30B3\u30FC\u30D7\u306B\u7D71\u5408\uFF09
         // ==========================================
         ;(() => {
-            const V59_TAG = 'V69 STABLE';
+            const V59_TAG = 'V71 STABLE';
             const PASS_TICKET_COST_V59 = 1000000;
             const SAVE_KEYS_V59 = [
                 'neon_survivor_save',
@@ -15377,6 +15377,321 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
             window.NEON_SURVIVOR_STABLE_CORE = { tag: V59_TAG, save: writeSaveV59, shop: renderShopV59, ranking: renderLeaderboardV59, safeMode: enableSafeModeV59 };
         })();
+
+            // V70 bridge: expose the real game data safely for final UI patches.
+            try {
+                window.userData = userData;
+                try { window.SKIN_DEFS = SKIN_DEFS; } catch(e) {}
+                try { window.AURA_DEFS = AURA_DEFS; } catch(e) {}
+                try { window.CAPE_DEFS = CAPE_DEFS; } catch(e) {}
+                window.NEON_SURVIVOR_REAL_SAVE = function(){ try { saveData(); } catch(e) {} };
+                window.NEON_SURVIVOR_REAL_SHOW = function(id){ try { showScreen(id); } catch(e) {} };
+                window.NEON_SURVIVOR_REAL_TOAST = function(title, msg){ try { showMissionToast(title, msg || ''); } catch(e) {} };
+                window.NEON_SURVIVOR_SET_COLLECTION_RENDERER = function(fn){
+                    try { if (typeof fn === 'function') renderCollectionScreen = fn; } catch(e) {}
+                };
+            } catch(e) {}
+
+
+
+/* ===== V71 PLAYFIELD STABLE: black-screen and game-loop rescue ===== */
+(function neonSurvivorV71PlayfieldStable(){
+  'use strict';
+  const TAG = 'V71 PLAY STABLE';
+  const nowV71 = () => (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  let lastBeatV71 = nowV71();
+  let drawErrorCountV71 = 0;
+  let logicErrorCountV71 = 0;
+  let rescueLoopRunningV71 = false;
+
+  function numV71(v, fallback = 0) {
+    v = Number(v);
+    return Number.isFinite(v) ? v : fallback;
+  }
+
+  function ensureCanvasSizeV71() {
+    try {
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      const ww = Math.max(320, Math.floor(window.innerWidth || 800));
+      const hh = Math.max(240, Math.floor(window.innerHeight || 600));
+      width = ww;
+      height = hh;
+      if (canvas.width !== Math.floor(ww * dpr) || canvas.height !== Math.floor(hh * dpr)) {
+        canvas.width = Math.floor(ww * dpr);
+        canvas.height = Math.floor(hh * dpr);
+        canvas.style.width = ww + 'px';
+        canvas.style.height = hh + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      return { w: ww, h: hh };
+    } catch(e) {
+      return { w: Math.max(320, numV71(width, 800)), h: Math.max(240, numV71(height, 600)) };
+    }
+  }
+
+  function cleanBadgesV71() {
+    try {
+      const badgeIds = ['nsvV13Badge','nsvV30Badge','nsvV31Badge','nsvV33Badge','nsvV34Badge','nsvV35Badge','nsvV37Badge','nsvV59Badge','nsvV70Badge'];
+      badgeIds.forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
+      document.querySelectorAll('[id*="Badge"]').forEach(el => {
+        if (el.id !== 'nsvV71Badge' && /V\d+|STABLE|CORE|AIM/i.test(el.textContent || '')) el.remove();
+      });
+      let b = document.getElementById('nsvV71Badge');
+      if (!b) {
+        b = document.createElement('div');
+        b.id = 'nsvV71Badge';
+        document.body.appendChild(b);
+      }
+      b.textContent = TAG;
+      b.style.cssText = 'display:block!important;position:fixed!important;left:10px!important;bottom:8px!important;z-index:1000000!important;pointer-events:none!important;color:#a7f3d0!important;background:rgba(2,6,23,.90)!important;border:1px solid rgba(52,211,153,.70)!important;border-radius:999px!important;padding:4px 10px!important;font:900 11px/1.2 Orbitron,monospace!important;letter-spacing:.08em!important;box-shadow:0 0 13px rgba(16,185,129,.38)!important;white-space:nowrap!important;';
+    } catch(e) {}
+  }
+
+  function ensurePlayerV71() {
+    try {
+      if (!player) {
+        player = new Player(numV71(width, 800) / 2, numV71(height, 600) / 2);
+      }
+      if (!Number.isFinite(player.x)) player.x = numV71(width, 800) / 2;
+      if (!Number.isFinite(player.y)) player.y = numV71(height, 600) / 2;
+      if (!Number.isFinite(player.hp) || player.hp <= 0) player.hp = Math.max(1, numV71(player.maxHp, 100));
+      if (!Number.isFinite(player.faceAngle)) player.faceAngle = 0;
+      return true;
+    } catch(e) {
+      console.warn('[V71] player rescue failed', e);
+      return false;
+    }
+  }
+
+  function safeSpawnEnemyV71() {
+    try {
+      if (gameState !== 'playing' || !player) return;
+      if (Array.isArray(enemies) && enemies.length >= (isLightMode ? 90 : 180)) return;
+      spawnEnemy();
+    } catch(e) {
+      try {
+        const a = Math.random() * Math.PI * 2;
+        const d = Math.max(360, Math.hypot(numV71(width,800), numV71(height,600)) * 0.55);
+        enemies.push(new Enemy(player.x + Math.cos(a) * d, player.y + Math.sin(a) * d, 0));
+      } catch(e2) {
+        console.warn('[V71] enemy rescue failed', e2);
+      }
+    }
+  }
+
+  function drawEssentialOverlayV71() {
+    if (gameState !== 'playing' || !player) return;
+    const size = ensureCanvasSizeV71();
+    const w = size.w, h = size.h;
+    camera.x = numV71(player.x, w / 2) - w / 2;
+    camera.y = numV71(player.y, h / 2) - h / 2;
+    const px = numV71(player.x - camera.x, w / 2);
+    const py = numV71(player.y - camera.y, h / 2);
+
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.globalCompositeOperation = 'screen';
+
+    if (Array.isArray(enemies)) {
+      let drawn = 0;
+      for (const e of enemies) {
+        if (!e || e.markedForDeletion) continue;
+        const ex = numV71(e.x - camera.x, -9999);
+        const ey = numV71(e.y - camera.y, -9999);
+        if (ex < -80 || ex > w + 80 || ey < -80 || ey > h + 80) continue;
+        ctx.beginPath();
+        ctx.arc(ex, ey, Math.max(6, numV71(e.radius, 12)), 0, Math.PI * 2);
+        ctx.fillStyle = e.isBoss || e.isMonkey ? 'rgba(255,70,70,.38)' : 'rgba(255,0,110,.28)';
+        ctx.strokeStyle = e.isBoss || e.isMonkey ? '#facc15' : '#fb7185';
+        ctx.lineWidth = e.isBoss || e.isMonkey ? 4 : 2;
+        ctx.shadowBlur = e.isBoss || e.isMonkey ? 22 : 12;
+        ctx.shadowColor = ctx.strokeStyle;
+        ctx.fill();
+        ctx.stroke();
+        if (++drawn > 70) break;
+      }
+    }
+
+    if (Array.isArray(bullets)) {
+      ctx.shadowBlur = 10; ctx.shadowColor = '#22d3ee'; ctx.fillStyle = '#a5f3fc';
+      for (let i = Math.max(0, bullets.length - 80); i < bullets.length; i++) {
+        const b = bullets[i]; if (!b || b.markedForDeletion) continue;
+        const bx = numV71(b.x - camera.x, -9999), by = numV71(b.y - camera.y, -9999);
+        if (bx < -20 || bx > w+20 || by < -20 || by > h+20) continue;
+        ctx.beginPath(); ctx.arc(bx, by, Math.max(3, numV71(b.radius, 5)), 0, Math.PI*2); ctx.fill();
+      }
+    }
+
+    ctx.shadowBlur = 26;
+    ctx.shadowColor = '#22d3ee';
+    ctx.fillStyle = 'rgba(34,211,238,.36)';
+    ctx.strokeStyle = '#22d3ee';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(px, py, Math.max(17, numV71(player.radius, 15) + 5), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(px, py, 5, 0, Math.PI * 2);
+    ctx.fill();
+    const angle = numV71(player.faceAngle, 0);
+    ctx.strokeStyle = '#facc15';
+    ctx.shadowColor = '#facc15';
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    ctx.lineTo(px + Math.cos(angle) * 34, py + Math.sin(angle) * 34);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawFallbackPlayfieldV71(label = 'SAFE DRAW') {
+    const size = ensureCanvasSizeV71();
+    const w = size.w, h = size.h;
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    const grad = ctx.createRadialGradient(w/2, h/2, 20, w/2, h/2, Math.max(w, h));
+    grad.addColorStop(0, '#0b1230');
+    grad.addColorStop(.55, '#030716');
+    grad.addColorStop(1, '#000000');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,w,h);
+
+    ctx.globalCompositeOperation = 'screen';
+    ctx.strokeStyle = 'rgba(34,211,238,.14)';
+    ctx.lineWidth = 1;
+    const grid = 80;
+    ctx.beginPath();
+    for (let x = ((-numV71(camera.x,0)) % grid + grid) % grid; x < w; x += grid) { ctx.moveTo(x,0); ctx.lineTo(x,h); }
+    for (let y = ((-numV71(camera.y,0)) % grid + grid) % grid; y < h; y += grid) { ctx.moveTo(0,y); ctx.lineTo(w,y); }
+    ctx.stroke();
+    ctx.restore();
+    drawEssentialOverlayV71();
+    try {
+      ctx.save();
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.fillStyle = 'rgba(167,243,208,.78)';
+      ctx.font = 'bold 11px Orbitron, monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText(label, w - 14, h - 16);
+      ctx.restore();
+    } catch(e) {}
+  }
+
+  function basicTickV71() {
+    if (gameState !== 'playing') return;
+    ensureCanvasSizeV71();
+    ensurePlayerV71();
+    if (!Number.isFinite(gameTime)) gameTime = 0;
+    if (!Number.isFinite(frameCount)) frameCount = 0;
+    gameTime += 1 / 60;
+    frameCount++;
+    try {
+      const timeEl = document.getElementById('timeDisplay');
+      if (timeEl && frameCount % 15 === 0) {
+        timeEl.innerText = String(Math.floor(gameTime / 60)).padStart(2,'0') + ':' + String(Math.floor(gameTime % 60)).padStart(2,'0');
+      }
+    } catch(e) {}
+    try { if (player && typeof player.update === 'function') player.update(); } catch(e) {}
+    if (frameCount % 75 === 0 || (Array.isArray(enemies) && enemies.length === 0 && gameTime > .8)) safeSpawnEnemyV71();
+    if (Array.isArray(enemies)) {
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        try { enemies[i].update(); } catch(e) { enemies[i].markedForDeletion = true; }
+        if (enemies[i].markedForDeletion) enemies.splice(i, 1);
+      }
+    }
+    try { updateUI(); } catch(e) {}
+  }
+
+  try {
+    const oldUpdateLogicV71 = updateLogic;
+    updateLogic = function updateLogicV71Stable() {
+      try {
+        const r = oldUpdateLogicV71.apply(this, arguments);
+        lastBeatV71 = nowV71();
+        if (gameState === 'playing' && player && Array.isArray(enemies) && enemies.length === 0 && gameTime > 1.2 && frameCount % 90 === 0) safeSpawnEnemyV71();
+        return r;
+      } catch(e) {
+        logicErrorCountV71++;
+        console.error('[V71] Logic Error Rescued:', e);
+        basicTickV71();
+      }
+    };
+  } catch(e) {}
+
+  try {
+    const oldDrawAllV71 = drawAll;
+    drawAll = function drawAllV71Stable() {
+      try {
+        oldDrawAllV71.apply(this, arguments);
+        drawEssentialOverlayV71();
+        lastBeatV71 = nowV71();
+      } catch(e) {
+        drawErrorCountV71++;
+        console.error('[V71] Draw Error Rescued:', e);
+        drawFallbackPlayfieldV71('SAFE DRAW');
+        lastBeatV71 = nowV71();
+      }
+    };
+  } catch(e) {}
+
+  try {
+    const oldGameLoopV71 = gameLoop;
+    gameLoop = function gameLoopV71Stable(t) {
+      if (gameState !== 'playing') return;
+      try {
+        return oldGameLoopV71.apply(this, arguments);
+      } catch(e) {
+        console.error('[V71] Loop Error Rescued:', e);
+        try { basicTickV71(); } catch(e2) {}
+        try { drawFallbackPlayfieldV71('SAFE LOOP'); } catch(e3) {}
+        if (gameState === 'playing') animationId = requestAnimationFrame(gameLoop);
+      }
+    };
+  } catch(e) {}
+
+  try {
+    const oldInitGameV71 = initGame;
+    initGame = function initGameV71Stable(mode = 'solo') {
+      const r = oldInitGameV71.apply(this, arguments);
+      setTimeout(() => {
+        try {
+          if (gameState === 'playing') {
+            ensureCanvasSizeV71();
+            ensurePlayerV71();
+            if (Array.isArray(enemies) && enemies.length === 0) safeSpawnEnemyV71();
+            drawFallbackPlayfieldV71('READY');
+          }
+          cleanBadgesV71();
+        } catch(e) {}
+      }, 120);
+      return r;
+    };
+  } catch(e) {}
+
+  setInterval(() => {
+    cleanBadgesV71();
+    try {
+      if (gameState === 'playing') {
+        ensureCanvasSizeV71();
+        ensurePlayerV71();
+        if (nowV71() - lastBeatV71 > 900 && !rescueLoopRunningV71) {
+          rescueLoopRunningV71 = true;
+          try { lastTime = nowV71(); animationId = requestAnimationFrame(gameLoop); } catch(e) {}
+          setTimeout(() => rescueLoopRunningV71 = false, 200);
+        }
+        if (Array.isArray(enemies) && enemies.length === 0 && gameTime > 1.5) safeSpawnEnemyV71();
+      }
+    } catch(e) {}
+  }, 700);
+
+  window.addEventListener('resize', () => {
+    try { ensureCanvasSizeV71(); if (gameState === 'playing') drawFallbackPlayfieldV71('RESIZE'); } catch(e) {}
+  }, { passive: true });
+
+  cleanBadgesV71();
+})();
 </script>
 
 
@@ -15515,7 +15830,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 <script>
 /* V63 final shop and badge stabilizer */
 ;(() => {
-  const TAG = 'V69 STABLE';
+  const TAG = 'V71 STABLE';
   const PASS_TICKET_COST = 1000000;
   const SCREEN_IDS = [
     'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen',
@@ -15875,318 +16190,8 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 </script>
 
 
-<style id="nsvV68BadgeAndCollectionStyle">
-  #nsvV59Badge,
-  #nsvV63Badge,
-  [id^="nsvV"][id$="Badge"]:not(#nsvV68Badge) {
-    display: none !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-  }
-  #nsvV68Badge {
-    position: fixed !important;
-    left: 14px !important;
-    bottom: 10px !important;
-    z-index: 99999 !important;
-    padding: 5px 14px !important;
-    border: 1px solid rgba(34, 197, 94, .9) !important;
-    border-radius: 999px !important;
-    background: rgba(2, 6, 23, .92) !important;
-    color: #bbf7d0 !important;
-    font-family: Orbitron, monospace !important;
-    font-size: 12px !important;
-    font-weight: 900 !important;
-    letter-spacing: .08em !important;
-    line-height: 1.2 !important;
-    box-shadow: 0 0 14px rgba(34, 197, 94, .45) !important;
-    white-space: nowrap !important;
-  }
-  #collectionScreen .nsv-v68-onoff-row {
-    display: flex !important;
-    gap: 8px !important;
-    margin-top: 10px !important;
-  }
-  #collectionScreen .nsv-v68-toggle {
-    flex: 1 1 0 !important;
-    min-height: 38px !important;
-    border-radius: 10px !important;
-    font-weight: 900 !important;
-    letter-spacing: .08em !important;
-    border: 2px solid rgba(34, 211, 238, .55) !important;
-    background: rgba(15, 23, 42, .9) !important;
-    color: #a5f3fc !important;
-    box-shadow: inset 0 0 8px rgba(34, 211, 238, .12) !important;
-  }
-  #collectionScreen .nsv-v68-toggle.active-on {
-    border-color: #22c55e !important;
-    color: #000 !important;
-    background: #86efac !important;
-    box-shadow: 0 0 14px rgba(34, 197, 94, .6) !important;
-  }
-  #collectionScreen .nsv-v68-toggle.active-off {
-    border-color: #fb7185 !important;
-    color: #000 !important;
-    background: #fb7185 !important;
-    box-shadow: 0 0 14px rgba(251, 113, 133, .5) !important;
-  }
-  #collectionScreen .nsv-v68-card {
-    background: rgba(2, 6, 23, .9) !important;
-    border: 1px solid rgba(34, 211, 238, .55) !important;
-    border-radius: 16px !important;
-    padding: 14px !important;
-    box-shadow: 0 0 16px rgba(34, 211, 238, .14) !important;
-  }
-</style>
 
-<script id="nsvV68CollectionTextAndBadgeFix">
-(() => {
-  'use strict';
-  const TAG = 'V69 STABLE';
-  const VERSION_RE = /V\d+\s*(?:AIM\s*)?STABLE|STABLE\s*CORE/i;
-  const EQUIP_TYPES = new Set(['skin','aura','cape','backpack','trail','pet','emote','intro','elimination','bossFinish','nameplate','badge']);
-  const DEFAULT_BY_TYPE = { skin: 'classic', aura: 'none', cape: 'none' };
-  const SAVE_KEYS = [
-    'neon_survivor_save',
-    'neon_survivor_save_backup_v59',
-    'neon_survivor_save_mirror_v59',
-    'neon_survivor_autosave_v13'
-  ];
-  const TYPE_LABELS = {
-    skin:'SKIN', aura:'AURA', cape:'CAPE', backpack:'BACK PACK', trail:'TRAIL', pet:'PET', emote:'EMOTE',
-    intro:'INTRO', elimination:'KO EFFECT', bossFinish:'BOSS FINISH', nameplate:'NAME PLATE', badge:'BADGE', item:'ITEM', box:'BOX'
-  };
-  const KNOWN_NAMES = {
-    classic:'Classic Neon', none:'None', ruby:'Ruby Breaker', gold:'Gold Survivor', void:'Void Runner', emerald:'Emerald Guardian',
-    angel:'Silver Angel Core', obsidian:'Obsidian Shadow Core', solar:'Solar Helios', sapphire:'Sapphire Striker',
-    crimson:'Crimson Hero Cape', royal:'Royal Gold Cape', voidCape:'Void Nebula Cape', stormCape:'Storm Emperor Cape',
-    phantom:'Phantom Cloak', galaxy:'Galaxy Voyager Cape', inferno:'Inferno General Cape', monarch:'Monarch Black Gold Cape',
-    cyanFlame:'Cyan Flame Aura', goldSpark:'Gold Spark Aura', voidMist:'Void Mist Aura', toxicPulse:'Toxic Pulse Aura',
-    royalHalo:'Royal Halo', solarFlare:'Solar Flare', stormKing:'Storm King Aura'
-  };
-
-  const $ = (id) => document.getElementById(id);
-  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const isPlain = (v) => /^[\x20-\x7E]+$/.test(String(v || ''));
-  function titleFromId(id, type) {
-    id = String(id || '').trim();
-    if (KNOWN_NAMES[id]) return KNOWN_NAMES[id];
-    const cleaned = id
-      .replace(/^bp[_-]?/i, '')
-      .replace(/^season[_-]?\d+[_-]?/i, '')
-      .replace(/[_-]+/g, ' ')
-      .replace(/([a-z])([A-Z])/g, '$1 $2')
-      .replace(/\s+/g, ' ')
-      .trim();
-    if (cleaned && isPlain(cleaned)) return cleaned.replace(/\b\w/g, m => m.toUpperCase());
-    return `${TYPE_LABELS[type] || 'ITEM'} Reward`;
-  }
-  function typeLabel(type) { return TYPE_LABELS[type] || String(type || 'ITEM').toUpperCase(); }
-
-  function getUser() {
-    if (!window.userData) window.userData = { score:0, coins:0, nickname:'', upgrades:{}, unlocks:{}, cosmetics:{} };
-    const u = window.userData;
-    u.unlocks = u.unlocks || {};
-    u.unlocks.skins = Object.assign({ classic:true }, u.unlocks.skins || {});
-    u.unlocks.auras = Object.assign({ none:true }, u.unlocks.auras || {});
-    u.unlocks.capes = Object.assign({ none:true }, u.unlocks.capes || {});
-    u.cosmetics = u.cosmetics || {};
-    u.cosmetics.unlocked = u.cosmetics.unlocked || {};
-    u.cosmetics.equipped = u.cosmetics.equipped || {};
-    if (!u.equippedSkin) u.equippedSkin = 'classic';
-    if (!u.equippedAura) u.equippedAura = 'none';
-    if (!u.equippedCape) u.equippedCape = 'none';
-    return u;
-  }
-  function saveUser() {
-    try { window.NEON_SURVIVOR_STABLE_CORE?.save?.(); } catch(e) {}
-    try {
-      const u = getUser();
-      const text = JSON.stringify(u);
-      SAVE_KEYS.forEach(k => localStorage.setItem(k, text));
-    } catch(e) {}
-  }
-  function toast(title, msg) {
-    try { window.showMissionToast?.(title, msg); } catch(e) {}
-  }
-  function isEquipped(type, id) {
-    const u = getUser();
-    if (type === 'skin') return u.equippedSkin === id;
-    if (type === 'aura') return u.equippedAura === id;
-    if (type === 'cape') return u.equippedCape === id;
-    return u.cosmetics.equipped?.[type] === id;
-  }
-  function setEquip(type, id, on) {
-    const u = getUser();
-    if (!EQUIP_TYPES.has(type)) return;
-    if (on) {
-      if (type === 'skin') u.equippedSkin = id;
-      else if (type === 'aura') u.equippedAura = id;
-      else if (type === 'cape') u.equippedCape = id;
-      else u.cosmetics.equipped[type] = id;
-      toast('COLLECTION', 'EQUIP ON');
-    } else {
-      if (type === 'skin') u.equippedSkin = DEFAULT_BY_TYPE.skin;
-      else if (type === 'aura') u.equippedAura = DEFAULT_BY_TYPE.aura;
-      else if (type === 'cape') u.equippedCape = DEFAULT_BY_TYPE.cape;
-      else delete u.cosmetics.equipped[type];
-      toast('COLLECTION', 'EQUIP OFF');
-    }
-    saveUser();
-    renderCollectionV68();
-  }
-
-  function collectMissionItems() {
-    const u = getUser();
-    const out = [];
-    Object.keys(u.unlocks.skins || {}).forEach(id => { if (u.unlocks.skins[id]) out.push({type:'skin', id, source:'Mission / Normal'}); });
-    Object.keys(u.unlocks.auras || {}).forEach(id => { if (u.unlocks.auras[id] && id !== 'none') out.push({type:'aura', id, source:'Mission / Normal'}); });
-    Object.keys(u.unlocks.capes || {}).forEach(id => { if (u.unlocks.capes[id] && id !== 'none') out.push({type:'cape', id, source:'Mission / Normal'}); });
-    return out;
-  }
-  function collectPassItems() {
-    const u = getUser();
-    const raw = u.cosmetics.unlocked || {};
-    return Object.entries(raw).filter(([,v]) => !!v).map(([key, val]) => {
-      const obj = val && typeof val === 'object' ? val : {};
-      const type = String(obj.type || (key.includes('badge') ? 'badge' : 'item'));
-      const id = String(obj.id || key || `${type}_reward`);
-      return { type, id, source: 'Neon Pass', season: 'Season 1 / NEON GENESIS' };
-    });
-  }
-  function card(item, passItem) {
-    const canEquip = EQUIP_TYPES.has(item.type);
-    const on = canEquip && isEquipped(item.type, item.id);
-    const off = !on;
-    const name = titleFromId(item.id, item.type);
-    const source = passItem ? 'Neon Pass' : item.source;
-    const season = passItem ? '<p class="text-xs text-yellow-200 mt-1">Season: Season 1 / NEON GENESIS</p>' : '';
-    const actions = canEquip ? `<div class="nsv-v68-onoff-row">
-      <button class="nsv-v68-toggle ${on ? 'active-on' : ''}" data-nsv68-type="${esc(item.type)}" data-nsv68-id="${esc(item.id)}" data-nsv68-on="1">ON</button>
-      <button class="nsv-v68-toggle ${off ? 'active-off' : ''}" data-nsv68-type="${esc(item.type)}" data-nsv68-id="${esc(item.id)}" data-nsv68-on="0">OFF</button>
-    </div>` : '<p class="text-xs text-gray-400 mt-3">VIEW ONLY</p>';
-    return `<div class="nsv-v68-card collection-card unlocked">
-      <div class="text-[11px] inline-block px-2 py-1 rounded bg-cyan-950/70 border border-cyan-400/50 text-cyan-200 font-bold">${esc(typeLabel(item.type))}</div>
-      <h3 class="font-bold text-white mt-2">${esc(name)}</h3>
-      <p class="text-xs text-cyan-200 mt-1">Source: ${esc(source)}</p>
-      ${season}
-      <p class="text-sm text-gray-300 mt-2">Equip status: <b class="${on ? 'text-green-300' : 'text-red-300'}">${on ? 'ON' : 'OFF'}</b></p>
-      ${actions}
-    </div>`;
-  }
-
-  let rendering = false;
-  function renderCollectionV68() {
-    if (rendering) return;
-    const screen = $('collectionScreen');
-    const container = $('collectionListContainer');
-    if (!screen || !container) return;
-    rendering = true;
-    try {
-      const title = screen.querySelector('h2');
-      if (title) title.textContent = 'COLLECTION';
-      const desc = title ? title.parentElement?.querySelector('p') : screen.querySelector('p');
-      if (desc) desc.textContent = 'Check mission rewards and Neon Pass rewards. Use ON / OFF to equip items.';
-      const mission = collectMissionItems();
-      const pass = collectPassItems();
-      const missionHtml = mission.map(x => card(x, false)).join('') || '<div class="nsv-v68-card"><h3 class="font-bold text-gray-300">No mission rewards yet</h3><p class="text-sm text-gray-400 mt-1">Clear missions to add items here.</p></div>';
-      const passHtml = pass.map(x => card(x, true)).join('') || '<div class="nsv-v68-card"><h3 class="font-bold text-gray-300">No Neon Pass rewards yet</h3><p class="text-sm text-gray-400 mt-1">Unlock Neon Pass rewards to add items here.</p></div>';
-      container.innerHTML = `<section>
-        <div class="nsv-v68-card mb-3">
-          <h3 class="text-xl font-bold text-cyan-200">EQUIP SWITCH</h3>
-          <p class="text-sm text-gray-300 mt-1">Every equip button is shown in English: ON or OFF.</p>
-        </div>
-      </section>
-      <section>
-        <h3 class="text-2xl font-bold text-green-300 mb-2">MISSION / NORMAL REWARDS</h3>
-        <p class="text-xs text-gray-300 mb-2">Items unlocked by missions or normal progress.</p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${missionHtml}</div>
-      </section>
-      <section>
-        <h3 class="text-2xl font-bold text-cyan-300 mb-2">NEON PASS REWARDS</h3>
-        <p class="text-xs text-gray-300 mb-2">Limited rewards from Neon Pass.</p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${passHtml}</div>
-      </section>
-      <section>
-        <div class="nsv-v68-card">
-          <h3 class="text-xl font-bold text-cyan-200">WEAPONS</h3>
-          <p class="text-sm text-gray-300 mt-1">Weapon unlocks and weapon ON / OFF settings are in WEAPON CODEX.</p>
-        </div>
-      </section>`;
-      container.querySelectorAll('[data-nsv68-type]').forEach(btn => {
-        btn.addEventListener('click', () => setEquip(btn.dataset.nsv68Type, btn.dataset.nsv68Id, btn.dataset.nsv68On === '1'));
-      });
-    } finally {
-      rendering = false;
-    }
-  }
-
-  function normalizePassWords(root = document.body) {
-    try {
-      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-      const nodes = [];
-      while (walker.nextNode()) nodes.push(walker.currentNode);
-      nodes.forEach(n => {
-        const before = n.nodeValue || '';
-        const after = before.replace(/BATTLE PASS/g, 'NEON PASS').replace(/Battle Pass/g, 'Neon Pass');
-        if (after !== before) n.nodeValue = after;
-      });
-    } catch(e) {}
-  }
-  function cleanBadgesV68() {
-    try {
-      document.querySelectorAll('[id^="nsvV"][id$="Badge"]').forEach(el => { if (el.id !== 'nsvV68Badge') el.remove(); });
-      document.querySelectorAll('body > div').forEach(el => {
-        if (el.id === 'nsvV68Badge') return;
-        const txt = (el.textContent || '').trim();
-        if (!VERSION_RE.test(txt)) return;
-        const cs = getComputedStyle(el);
-        const r = el.getBoundingClientRect();
-        if (cs.position === 'fixed' && r.left < 280 && (innerHeight - r.bottom) < 120) el.remove();
-      });
-      let b = $('nsvV68Badge');
-      if (!b) {
-        b = document.createElement('div');
-        b.id = 'nsvV68Badge';
-        document.body.appendChild(b);
-      }
-      b.textContent = TAG;
-    } catch(e) {}
-  }
-  function bootV68() {
-    cleanBadgesV68();
-    normalizePassWords();
-    try { window.renderCollectionScreen = renderCollectionV68; } catch(e) {}
-    try { window.renderCollectionV65 = renderCollectionV68; } catch(e) {}
-    const screen = $('collectionScreen');
-    if (screen && !screen.classList.contains('hidden')) renderCollectionV68();
-  }
-
-  window.renderCollectionV68 = renderCollectionV68;
-  window.cleanBadgesV68 = cleanBadgesV68;
-  document.addEventListener('DOMContentLoaded', bootV68, { once:false });
-  window.addEventListener('load', bootV68, { passive:true });
-  window.addEventListener('pageshow', bootV68, { passive:true });
-  document.addEventListener('click', (e) => {
-    const target = e.target && e.target.closest && e.target.closest('#openCollectionBtn, #closeCollectionBtn, button');
-    if (target) setTimeout(bootV68, 80);
-  }, true);
-  setTimeout(bootV68, 100);
-  setTimeout(bootV68, 700);
-  setInterval(bootV68, 700);
-  try {
-    const container = $('collectionListContainer');
-    if (container) {
-      const observer = new MutationObserver(() => {
-        if (rendering) return;
-        const screen = $('collectionScreen');
-        if (screen && !screen.classList.contains('hidden')) setTimeout(renderCollectionV68, 0);
-      });
-      observer.observe(container, { childList:true, subtree:false });
-    }
-  } catch(e) {}
-})();
-</script>
-
+<!-- V68 collection/badge override removed in V70. -->
 
 <style id="nsvV69PauseCheatStableStyle">
   #nsvV30Badge,#nsvV31Badge,#nsvV68Badge{display:none!important;}
@@ -16212,7 +16217,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 <script id="nsvV69PauseCheatStablePatch">
 (() => {
   'use strict';
-  const TAG = 'V69 STABLE';
+  const TAG = 'V71 STABLE';
   const $ = (id) => document.getElementById(id);
   const badChars = ['\u7e5d','\u7e67','\u7e3a','\ufffd','\u00c3','\u00e3','\u00c2'].map(s => JSON.parse('"' + s + '"'));
   const badRe = new RegExp('[' + badChars.map(ch => ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('') + ']');
@@ -16335,5 +16340,274 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 })();
 </script>
 
+
+
+<style id="nsvV70CollectionRankingBadgeStyle">
+  #nsvV30Badge,#nsvV31Badge,#nsvV63Badge,#nsvV68Badge,#nsvV59Badge{display:none!important;visibility:hidden!important;pointer-events:none!important;}
+  #nsvV70Badge{display:block!important;position:fixed!important;left:10px!important;bottom:8px!important;z-index:100000!important;pointer-events:none!important;color:#a7f3d0!important;background:rgba(2,6,23,.90)!important;border:1px solid rgba(52,211,153,.70)!important;border-radius:999px!important;padding:4px 10px!important;font:900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif!important;letter-spacing:.08em!important;box-shadow:0 0 13px rgba(16,185,129,.38)!important;white-space:nowrap!important;}
+  #collectionScreen .nsv-v70-section-title{font-size:1.35rem;font-weight:900;letter-spacing:.08em;margin:8px 0;color:#86efac;text-shadow:0 0 12px rgba(34,197,94,.35);}
+  #collectionScreen .nsv-v70-card{background:rgba(2,6,23,.90);border:1px solid rgba(34,211,238,.48);border-radius:16px;padding:14px;box-shadow:0 0 14px rgba(6,182,212,.16);}
+  #collectionScreen .nsv-v70-card.unlocked{border-color:rgba(34,197,94,.75);box-shadow:0 0 16px rgba(34,197,94,.18);}
+  #collectionScreen .nsv-v70-card.pass{border-color:rgba(192,132,252,.65);box-shadow:0 0 16px rgba(192,132,252,.18);}
+  #collectionScreen .nsv-v70-type{display:inline-block;font-size:11px;font-weight:900;padding:3px 8px;border-radius:999px;background:rgba(8,47,73,.72);border:1px solid rgba(34,211,238,.50);color:#a5f3fc;margin-top:4px;}
+  #collectionScreen .nsv-v70-equip-row{display:flex;gap:8px;margin-top:12px;}
+  #collectionScreen .nsv-v70-equip-row button{flex:1 1 0;min-height:38px;border-radius:10px;font-weight:900;letter-spacing:.08em;}
+  #collectionScreen .nsv-v70-equip{border:2px solid #22d3ee;color:#67e8f9;background:rgba(15,23,42,.9);box-shadow:inset 0 0 8px rgba(34,211,238,.12);}
+  #collectionScreen .nsv-v70-equipped{border:2px solid #86efac;color:#052e16;background:#86efac;box-shadow:0 0 14px rgba(34,197,94,.55);}
+  #leaderboardScreen #nsvV70FriendManage{grid-column:1/-1!important;}
+  #leaderboardScreen .nsv-v70-friend-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border-bottom:1px solid rgba(148,163,184,.22);padding:8px 0;}
+  #leaderboardScreen .nsv-v70-remove-friend{border:1px solid #fb7185;color:#fecdd3;background:rgba(127,29,29,.45);border-radius:10px;padding:6px 10px;font-weight:900;}
+  #leaderboardScreen .nsv-v70-remove-friend:hover{background:#fb7185;color:#000;}
+</style>
+
+<script id="nsvV70CollectionRankingBadgePatch">
+(() => {
+  'use strict';
+  const TAG = 'V71 STABLE';
+  const $ = (id) => document.getElementById(id);
+  const SAVE_KEYS = ['neon_survivor_save','neon_survivor_save_backup_v59','neon_survivor_save_mirror_v59','neon_survivor_autosave_v13'];
+  const EQUIP_TYPES = new Set(['skin','aura','cape','backpack','trail','pet','emote','intro','elimination','bossFinish','nameplate','badge']);
+  const DEFAULT_BY_TYPE = { skin:'classic', aura:'none', cape:'none' };
+  const TYPE_LABELS = { skin:'SKIN', aura:'AURA', cape:'CAPE', backpack:'BACK PACK', trail:'TRAIL', pet:'PET', emote:'EMOTE', intro:'INTRO', elimination:'KO EFFECT', bossFinish:'BOSS FINISH', nameplate:'NAME PLATE', badge:'BADGE', item:'ITEM', box:'BOX' };
+  const KNOWN_NAMES = {
+    classic:"\u30af\u30e9\u30b7\u30c3\u30af\u30cd\u30aa\u30f3", none:"\u306a\u3057", ruby:"\u30eb\u30d3\u30fc\u30d6\u30ec\u30a4\u30ab\u30fc", gold:"\u30b4\u30fc\u30eb\u30c9\u30b5\u30d0\u30a4\u30d0\u30fc", void:"\u30f4\u30a9\u30a4\u30c9\u30e9\u30f3\u30ca\u30fc", emerald:"\u30a8\u30e1\u30e9\u30eb\u30c9\u30ac\u30fc\u30c7\u30a3\u30a2\u30f3", angel:"\u767d\u9280\u30a8\u30f3\u30b8\u30a7\u30eb\u30b3\u30a2", obsidian:"\u9ed2\u66dc\u30b7\u30e3\u30c9\u30a6\u30b3\u30a2", solar:"\u592a\u967d\u795e\u30d8\u30ea\u30aa\u30b9", sapphire:"\u30b5\u30d5\u30a1\u30a4\u30a2\u30b9\u30c8\u30e9\u30a4\u30ab\u30fc",
+    crimson:"\u7d05\u84ee\u306e\u82f1\u96c4\u30de\u30f3\u30c8", royal:"\u738b\u8005\u306e\u9ec4\u91d1\u30de\u30f3\u30c8", voidCape:"\u865a\u7a7a\u306e\u661f\u96f2\u30de\u30f3\u30c8", stormCape:"\u96f7\u5e1d\u306e\u84bc\u96f7\u30de\u30f3\u30c8", phantom:"\u5e7b\u5f71\u30af\u30ed\u30fc\u30af", galaxy:"\u9280\u6cb3\u822a\u6d77\u30de\u30f3\u30c8", inferno:"\u696d\u706b\u5c06\u8ecd\u30de\u30f3\u30c8", monarch:"\u8987\u738b\u306e\u9ed2\u91d1\u30de\u30f3\u30c8",
+    cyanFlame:"\u84bc\u708e\u30aa\u30fc\u30e9", goldSpark:"\u9ec4\u91d1\u30b9\u30d1\u30fc\u30af", voidMist:"\u865a\u7a7a\u30df\u30b9\u30c8", toxicPulse:"\u731b\u6bd2\u30d1\u30eb\u30b9", royalHalo:"\u738b\u8005\u306e\u9ec4\u91d1\u51a0", solarFlare:"\u592a\u967d\u30d5\u30ec\u30a2", stormKing:"\u96f7\u5e1d\u30aa\u30fc\u30e9"
+  };
+  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const badRe = /[\u7e5d\u7e67\u7e3a\ufffd\u00c3\u00e3\u00c2\u8737\u879f\u8b41]/;
+  function safeText(value, fallback) {
+    const s = String(value == null ? '' : value);
+    if (!s || badRe.test(s) || /undefined|null/i.test(s)) return fallback || "\u30a2\u30a4\u30c6\u30e0";
+    return s;
+  }
+  function titleFromId(id, type, rawName) {
+    id = String(id || '').trim();
+    if (rawName && !badRe.test(String(rawName)) && !/undefined|null/i.test(String(rawName))) return String(rawName);
+    if (KNOWN_NAMES[id]) return KNOWN_NAMES[id];
+    const cleaned = id.replace(/^bp[_-]?/i,'').replace(/^season[_-]?\d+[_-]?/i,'').replace(/[_-]+/g,' ').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/\s+/g,' ').trim();
+    return cleaned ? cleaned.replace(/\w/g, m => m.toUpperCase()) : (TYPE_LABELS[type] || 'ITEM') + ' Reward';
+  }
+  function getUser() {
+    let u = window.userData;
+    if (!u || typeof u !== 'object') {
+      try { u = JSON.parse(localStorage.getItem('neon_survivor_save') || localStorage.getItem('neon_survivor_save_backup_v59') || 'null'); } catch(e) { u = null; }
+    }
+    if (!u || typeof u !== 'object') u = { score:0, coins:0, nickname:'', upgrades:{}, unlocks:{}, cosmetics:{}, leaderboards:{friends:[]}, friendBook:{friends:[]} };
+    window.userData = u;
+    u.unlocks = u.unlocks || {};
+    u.unlocks.skins = Object.assign({ classic:true }, u.unlocks.skins || {});
+    u.unlocks.auras = Object.assign({ none:true }, u.unlocks.auras || {});
+    u.unlocks.capes = Object.assign({ none:true }, u.unlocks.capes || {});
+    u.cosmetics = u.cosmetics || {};
+    u.cosmetics.unlocked = u.cosmetics.unlocked || {};
+    u.cosmetics.equipped = u.cosmetics.equipped || {};
+    u.leaderboards = u.leaderboards || { friends:[] };
+    u.friendBook = u.friendBook || { friends:[] };
+    if (!Array.isArray(u.leaderboards.friends)) u.leaderboards.friends = [];
+    if (!Array.isArray(u.friendBook.friends)) u.friendBook.friends = u.leaderboards.friends;
+    if (!u.equippedSkin) u.equippedSkin = 'classic';
+    if (!u.equippedAura) u.equippedAura = 'none';
+    if (!u.equippedCape) u.equippedCape = 'none';
+    return u;
+  }
+  function saveUser() {
+    const u = getUser();
+    try { window.NEON_SURVIVOR_REAL_SAVE?.(); } catch(e) {}
+    try { window.NEON_SURVIVOR_STABLE_CORE?.save?.(); } catch(e) {}
+    try { const text = JSON.stringify(u); SAVE_KEYS.forEach(k => localStorage.setItem(k, text)); } catch(e) {}
+  }
+  function toast(title, msg) { try { window.NEON_SURVIVOR_REAL_TOAST?.(title, msg || ''); } catch(e) {} }
+  function isEquipped(type, id) {
+    const u = getUser();
+    if (type === 'skin') return u.equippedSkin === id;
+    if (type === 'aura') return u.equippedAura === id;
+    if (type === 'cape') return u.equippedCape === id;
+    return u.cosmetics.equipped?.[type] === id;
+  }
+  function equip(type, id) {
+    const u = getUser();
+    if (!EQUIP_TYPES.has(type)) return;
+    if (type === 'skin') u.equippedSkin = id;
+    else if (type === 'aura') u.equippedAura = id;
+    else if (type === 'cape') u.equippedCape = id;
+    else u.cosmetics.equipped[type] = id;
+    saveUser(); toast('COLLECTION', 'EQUIP'); renderCollectionV70();
+  }
+  function unequip(type) {
+    const u = getUser();
+    if (type === 'skin') u.equippedSkin = DEFAULT_BY_TYPE.skin;
+    else if (type === 'aura') u.equippedAura = DEFAULT_BY_TYPE.aura;
+    else if (type === 'cape') u.equippedCape = DEFAULT_BY_TYPE.cape;
+    else if (u.cosmetics?.equipped) delete u.cosmetics.equipped[type];
+    saveUser(); toast('COLLECTION', 'UNEQUIP'); renderCollectionV70();
+  }
+  function buildMissionItems() {
+    const u = getUser();
+    const defs = [];
+    try { (window.SKIN_DEFS || []).forEach(x => defs.push(['skin', x])); } catch(e) {}
+    try { (window.AURA_DEFS || []).forEach(x => defs.push(['aura', x])); } catch(e) {}
+    try { (window.CAPE_DEFS || []).forEach(x => defs.push(['cape', x])); } catch(e) {}
+    const out = [];
+    defs.forEach(([type, def]) => {
+      if (!def || !def.id) return;
+      const unlocked = type === 'skin' ? !!u.unlocks.skins[def.id] : type === 'aura' ? !!u.unlocks.auras[def.id] : !!u.unlocks.capes[def.id];
+      if (!unlocked) return;
+      if ((type === 'aura' || type === 'cape') && def.id === 'none') return;
+      out.push({ type, id:String(def.id), icon:def.icon || '\u{1F381}', name:titleFromId(def.id, type, def.name), desc:safeText(def.desc, "\u5165\u624b\u6e08\u307f\u30a2\u30a4\u30c6\u30e0\u3067\u3059\u3002"), source:"\u30df\u30c3\u30b7\u30e7\u30f3\u5831\u916c / \u901a\u5e38\u5831\u916c" });
+    });
+    if (!out.some(x => x.type === 'skin' && x.id === 'classic')) out.unshift({ type:'skin', id:'classic', icon:'\u{1F535}', name:"\u30af\u30e9\u30b7\u30c3\u30af\u30cd\u30aa\u30f3", desc:"\u6700\u521d\u304b\u3089\u4f7f\u3048\u308b\u57fa\u672c\u30b9\u30ad\u30f3", source:"\u901a\u5e38\u5831\u916c" });
+    return out;
+  }
+  function buildPassItems() {
+    const u = getUser();
+    const raw = u.cosmetics.unlocked || {};
+    const out = [];
+    Object.entries(raw).forEach(([key, val]) => {
+      if (!val) return;
+      const obj = val && typeof val === 'object' ? val : {};
+      const type = String(obj.type || (key.includes('badge') ? 'badge' : key.includes('trail') ? 'trail' : key.includes('cape') ? 'cape' : key.includes('aura') ? 'aura' : key.includes('skin') ? 'skin' : 'item'));
+      const id = String(obj.id || key || type + '_reward');
+      out.push({ type, id, icon: obj.icon || '\u{1F381}', name:titleFromId(id, type, obj.name), desc:safeText(obj.desc, "\u30cd\u30aa\u30f3\u30d1\u30b9\u3067\u5165\u624b\u3057\u305f\u9650\u5b9a\u5831\u916c\u3067\u3059\u3002"), source:'NEON PASS', season:'Season 1 / NEON GENESIS' });
+    });
+    return out;
+  }
+  function card(item, pass) {
+    const canEquip = EQUIP_TYPES.has(item.type);
+    const on = canEquip && isEquipped(item.type, item.id);
+    const type = TYPE_LABELS[item.type] || String(item.type || 'ITEM').toUpperCase();
+    const buttons = canEquip ? `<div class="nsv-v70-equip-row"><button class="${on ? 'nsv-v70-equipped' : 'nsv-v70-equip'}" data-v70-action="equip" data-type="${esc(item.type)}" data-id="${esc(item.id)}">EQUIP</button><button class="${!on ? 'nsv-v70-equipped' : 'nsv-v70-equip'}" data-v70-action="unequip" data-type="${esc(item.type)}" data-id="${esc(item.id)}">UNEQUIP</button></div>` : `<p class="text-xs text-gray-400 mt-3">VIEW ONLY</p>`;
+    return `<div class="nsv-v70-card collection-card unlocked ${pass ? 'pass' : ''}"><div class="text-3xl">${esc(item.icon || '\u{1F381}')}</div><div class="nsv-v70-type">${esc(type)}</div><h3 class="font-bold text-white mt-2">${esc(item.name)}</h3><p class="text-sm text-gray-300 mt-1">${esc(item.desc || '')}</p><p class="text-xs text-yellow-200 mt-2">${pass ? 'NEON PASS / Season 1' : esc(item.source || '')}</p>${canEquip ? `<p class="text-sm mt-2 ${on ? 'text-green-300' : 'text-red-300'}">STATUS: <b>${on ? 'ON' : 'OFF'}</b></p>` : ''}${buttons}</div>`;
+  }
+  let rendering = false;
+  function renderCollectionV70() {
+    if (rendering) return;
+    const screen = $('collectionScreen');
+    const container = $('collectionListContainer');
+    if (!screen || !container) return;
+    rendering = true;
+    try {
+      const h2 = screen.querySelector('h2');
+      if (h2) h2.textContent = 'COLLECTION';
+      const p = h2 ? h2.parentElement?.querySelector('p') : screen.querySelector('p');
+      if (p) p.textContent = "\u30df\u30c3\u30b7\u30e7\u30f3\u3067\u5165\u624b\u3057\u305f\u3082\u306e\u3068\u3001\u30cd\u30aa\u30f3\u30d1\u30b9\u3067\u5165\u624b\u3057\u305f\u3082\u306e\u3092\u5206\u3051\u3066\u78ba\u8a8d\u3067\u304d\u307e\u3059\u3002";
+      const mission = buildMissionItems();
+      const pass = buildPassItems();
+      const noMission = `<div class="nsv-v70-card"><h3 class="font-bold text-gray-300">"\u307e\u3060\u30df\u30c3\u30b7\u30e7\u30f3\u5831\u916c\u306f\u3042\u308a\u307e\u305b\u3093"</h3><p class="text-sm text-gray-400 mt-1">"\u30df\u30c3\u30b7\u30e7\u30f3\u9054\u6210\u3067\u3053\u3053\u306b\u5897\u3048\u307e\u3059\u3002"</p></div>`;
+      const noPass = `<div class="nsv-v70-card"><h3 class="font-bold text-gray-300">"\u307e\u3060\u30cd\u30aa\u30f3\u30d1\u30b9\u5831\u916c\u306f\u3042\u308a\u307e\u305b\u3093"</h3><p class="text-sm text-gray-400 mt-1">"\u30cd\u30aa\u30f3\u30d1\u30b9\u5831\u916c\u3092\u5165\u624b\u3059\u308b\u3068\u3053\u3053\u306b\u8868\u793a\u3055\u308c\u307e\u3059\u3002"</p></div>`;
+      container.innerHTML = `<section><h3 class="nsv-v70-section-title">"\u30df\u30c3\u30b7\u30e7\u30f3\u30fb\u901a\u5e38\u5831\u916c"</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${mission.map(x => card(x, false)).join('') || noMission}</div></section><section><h3 class="nsv-v70-section-title text-cyan-300">NEON PASS REWARDS</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${pass.map(x => card(x, true)).join('') || noPass}</div></section><section><div class="nsv-v70-card"><h3 class="text-xl font-bold text-cyan-200">WEAPON CODEX</h3><p class="text-sm text-gray-300 mt-1">"\u6b66\u5668\u306e\u89e3\u653e\u72b6\u614b\u3068\u51fa\u73feON/OFF\u306f WEAPON CODEX \u3067\u78ba\u8a8d\u3067\u304d\u307e\u3059\u3002"</p></div></section>`;
+      container.querySelectorAll('[data-v70-action]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const type = btn.dataset.type;
+          const id = btn.dataset.id;
+          if (btn.dataset.v70Action === 'equip') equip(type, id); else unequip(type);
+        });
+      });
+    } finally { rendering = false; }
+  }
+  function normalizeFriends() {
+    const u = getUser();
+    const seen = new Set();
+    const rows = [];
+    const add = (r) => {
+      if (!r || typeof r !== 'object') return;
+      const name = safeText(r.name, 'FRIEND').slice(0, 12) || 'FRIEND';
+      const key = name + '|' + Number(r.bestScore || 0) + '|' + Number(r.bestTime || 0);
+      if (seen.has(key)) return;
+      seen.add(key);
+      rows.push(Object.assign({}, r, { name }));
+    };
+    (u.leaderboards?.friends || []).forEach(add);
+    (u.friendBook?.friends || []).forEach(add);
+    u.leaderboards.friends = rows.slice(0, 100);
+    u.friendBook.friends = u.leaderboards.friends;
+    return u.leaderboards.friends;
+  }
+  function removeFriend(index) {
+    const rows = normalizeFriends();
+    if (index < 0 || index >= rows.length) return;
+    const name = rows[index].name || 'FRIEND';
+    const ok = confirm(name + ' ' + '\u3092\u30e9\u30f3\u30ad\u30f3\u30b0\u304b\u3089\u6d88\u3057\u307e\u3059\u304b\uff1f');
+    if (!ok) return;
+    rows.splice(index, 1);
+    const u = getUser();
+    u.leaderboards.friends = rows;
+    u.friendBook.friends = rows;
+    saveUser();
+    try { window.NEON_SURVIVOR_STABLE_CORE?.ranking?.(); } catch(e) {}
+    setTimeout(decorateRankingV70, 80);
+  }
+  function decorateRankingV70() {
+    const screen = $('leaderboardScreen');
+    if (!screen || screen.classList.contains('hidden')) return;
+    const grid = $('leaderboardListContainer') || screen.querySelector('.nsv-v59-grid');
+    if (!grid) return;
+    const old = $('nsvV70FriendManage');
+    if (old) old.remove();
+    const friends = normalizeFriends();
+    const box = document.createElement('div');
+    box.id = 'nsvV70FriendManage';
+    box.className = 'nsv-v59-card nsv-v70-friend-manage';
+    box.innerHTML = `<h3 class="text-cyan-200 font-black mb-2">FRIEND MANAGE</h3><p class="text-xs text-gray-300 mb-2">"\u8ffd\u52a0\u3057\u305f\u53cb\u9054\u3092\u3053\u3053\u304b\u3089\u524a\u9664\u3067\u304d\u307e\u3059\u3002"</p>` + (friends.length ? friends.map((f,i) => `<div class="nsv-v70-friend-row"><div><b>${esc(f.name || 'FRIEND')}</b><div class="text-xs text-gray-400">SCORE: ${Number(f.bestScore||0).toLocaleString()} / TIME: ${Number(f.bestTime||0).toLocaleString()}</div></div><button class="nsv-v70-remove-friend" data-index="${i}">DELETE</button></div>`).join('') : `<p class="text-sm text-gray-400">"\u8ffd\u52a0\u6e08\u307f\u306e\u53cb\u9054\u306f\u307e\u3060\u3044\u307e\u305b\u3093\u3002"</p>`);
+    grid.prepend(box);
+    box.querySelectorAll('.nsv-v70-remove-friend').forEach(btn => btn.addEventListener('click', () => removeFriend(Number(btn.dataset.index))));
+  }
+  function cleanBadgesV70() {
+    try {
+      document.querySelectorAll('[id^="nsvV"][id$="Badge"]').forEach(el => { if (el.id !== 'nsvV70Badge') el.remove(); });
+      document.querySelectorAll('body > div').forEach(el => {
+        if (el.id === 'nsvV70Badge') return;
+        const txt = (el.textContent || '').trim();
+        if (!/V\d+\s*(?:AIM\s*)?STABLE|STABLE\s*CORE/i.test(txt)) return;
+        const cs = getComputedStyle(el); const r = el.getBoundingClientRect();
+        if (cs.position === 'fixed' && r.left < 300 && (innerHeight - r.bottom) < 140) el.remove();
+      });
+      let b = $('nsvV70Badge');
+      if (!b) { b = document.createElement('div'); b.id = 'nsvV70Badge'; document.body.appendChild(b); }
+      b.textContent = TAG;
+    } catch(e) {}
+  }
+  function normalizePassWords(root=document.body) {
+    try {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach(n => { n.nodeValue = (n.nodeValue || '').replace(/BATTLE PASS/g, 'NEON PASS').replace(/Battle Pass/g, 'Neon Pass').replace(/\u30d0\u30c8\u30eb\u30d1\u30b9/g, '\u30cd\u30aa\u30f3\u30d1\u30b9'); });
+    } catch(e) {}
+  }
+  function bootV70() {
+    cleanBadgesV70();
+    normalizePassWords();
+    try { window.NEON_SURVIVOR_SET_COLLECTION_RENDERER?.(renderCollectionV70); } catch(e) {}
+    window.renderCollectionV70 = renderCollectionV70;
+    const c = $('collectionScreen'); if (c && !c.classList.contains('hidden')) renderCollectionV70();
+    decorateRankingV70();
+  }
+  document.addEventListener('DOMContentLoaded', bootV70, { once:false });
+  window.addEventListener('load', bootV70, { passive:true });
+  window.addEventListener('pageshow', bootV70, { passive:true });
+  document.addEventListener('click', () => setTimeout(bootV70, 70), true);
+  setTimeout(bootV70, 120);
+  setTimeout(bootV70, 800);
+  setInterval(bootV70, 800);
+  window.NEON_SURVIVOR_V70_STABLE = { renderCollectionV70, decorateRankingV70, cleanBadgesV70 };
+})();
+</script>
+
+
+<script>
+(function(){
+  function clean(){
+    try{
+      document.querySelectorAll('[id*="Badge"]').forEach(function(el){ if(el.id!=='nsvV71Badge' && /V\d+|STABLE|CORE|AIM/i.test(el.textContent||'')) el.remove(); });
+      var b=document.getElementById('nsvV71Badge');
+      if(!b){ b=document.createElement('div'); b.id='nsvV71Badge'; document.body.appendChild(b); }
+      b.textContent='V71 PLAY STABLE';
+      b.style.cssText='display:block!important;position:fixed!important;left:10px!important;bottom:8px!important;z-index:1000000!important;pointer-events:none!important;color:#a7f3d0!important;background:rgba(2,6,23,.90)!important;border:1px solid rgba(52,211,153,.70)!important;border-radius:999px!important;padding:4px 10px!important;font:900 11px/1.2 Orbitron,monospace!important;letter-spacing:.08em!important;box-shadow:0 0 13px rgba(16,185,129,.38)!important;white-space:nowrap!important;';
+    }catch(e){}
+  }
+  clean(); setInterval(clean, 800);
+})();
+</script>
 </body>
 </html>
