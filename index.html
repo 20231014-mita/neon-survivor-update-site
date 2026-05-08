@@ -16528,5 +16528,357 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 })();
 </script>
 
+<script>
+// V56: FORTNITE-STYLE ITEM SHOP & RANKING FIX
+(() => {
+    const V56_TAG = 'V56 SHOP & RANK FIX';
+
+    function enforceBadgeV56() {
+        try {
+            if (!document.getElementById('nsvV56BadgeStyle')) {
+                const st = document.createElement('style');
+                st.id = 'nsvV56BadgeStyle';
+                st.textContent = `
+                    div[id$="Badge"]:not(#nsvFinalBadgeV56) { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+                    #nsvFinalBadgeV56 { display: block !important; opacity: 1 !important; position: fixed !important; left: 10px !important; bottom: 8px !important; z-index: 99999 !important; pointer-events: none !important; color: #fde047 !important; background: rgba(66,32,6,.9) !important; border: 1px solid rgba(250,204,21,.6) !important; border-radius: 999px !important; padding: 4px 9px !important; font: 900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif !important; letter-spacing: .08em !important; box-shadow: 0 0 13px rgba(250,204,21,.32) !important; }
+                `;
+                document.head.appendChild(st);
+            }
+            let badge = document.getElementById('nsvFinalBadgeV56');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'nsvFinalBadgeV56';
+                document.body.appendChild(badge);
+            }
+            badge.textContent = V56_TAG;
+        } catch(e) {}
+    }
+
+    // ==========================================
+    // 1. ランキングの友達削除の確実化と表示被り修正
+    // ==========================================
+    
+    // 古いMutationObserverによるボタン追加を無効化
+    if (typeof window.observeLeaderboardForDeleteButtons !== 'undefined') {
+        window.observeLeaderboardForDeleteButtons = function() {}; 
+    }
+
+    // 全く新しいランキング描画関数で上書き
+    window.renderRankingStableV37 = function() {
+        try {
+            const n = (v) => Number.isFinite(Number(v)) ? Number(v) : 0;
+            const esc = (s) => String(s ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+            
+            // データ取得
+            const friends = typeof migrateFriendsV37 === 'function' ? migrateFriendsV37() : [];
+            let deleted = [];
+            try { deleted = JSON.parse(localStorage.getItem('nsv_deleted_friends_v56') || '[]'); } catch(e) {}
+            const filteredFriends = friends.filter(f => !deleted.includes(f.name));
+            
+            let selfRow = null;
+            if (typeof selfRankRowV37 === 'function') selfRow = selfRankRowV37();
+            else selfRow = { name: 'YOU', bestScore: 0, totalBoss: 0, totalKills: 0, bestTime: 0, totalCoins: 0, bestLevel: 0, date: 'YOU' };
+            
+            const rows = [selfRow, ...filteredFriends];
+
+            let div = document.getElementById('leaderboardScreen');
+            if (!div) {
+                div = document.createElement('div'); div.id = 'leaderboardScreen'; div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3'; document.body.appendChild(div);
+            }
+
+            // 被らない専用レイアウトのカード生成関数
+            const makeRankCard = (title, rws, key, unit='') => {
+                const sorted = rws.slice().sort((a,b) => (n(b[key])) - (n(a[key]))).slice(0, 15);
+                return `<div class="nsv-v37-rank-card p-3">
+                    <h3 class="text-xl font-bold text-cyan-300 mb-2">${esc(title)}</h3>
+                    ${sorted.map((r,i) => {
+                        const isSelf = r.date === 'YOU' || r.name === selfRow.name;
+                        // 4列のグリッドにして被りを完全に防止
+                        return `<div class="rounded-lg px-2 mt-1 py-1" style="display:grid;grid-template-columns:30px 1fr auto 24px;gap:6px;align-items:center;border-bottom:1px solid rgba(255,255,255,0.1);${isSelf?'background:rgba(6,182,212,0.15);':''}">
+                            <div class="text-yellow-300 font-black text-sm">#${i+1}</div>
+                            <div class="overflow-hidden">
+                                <b class="truncate block text-sm" style="max-width:120px;">${esc(r.name)}</b>
+                                <div class="text-[10px] text-gray-400">${esc(r.date || '')}</div>
+                            </div>
+                            <div class="text-right font-black text-white text-sm">${Math.floor(n(r[key])).toLocaleString()}${unit}</div>
+                            <div class="text-center">
+                                ${!isSelf ? `<button class="v56-del-btn text-red-500 hover:text-red-400 font-black text-lg px-1 py-0 leading-none cursor-pointer pointer-events-auto" data-name="${esc(r.name)}" title="\u524A\u9664">&times;</button>` : ''}
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>`;
+            };
+
+            div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4">
+                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+                    <div>
+                        <h2 class="text-4xl md:text-5xl font-bold text-cyan-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #22d3ee;">RANKING</h2>
+                        <p class="text-gray-300 text-sm mt-2">友達と全ての部門で勝負できます。</p>
+                    </div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button id="copyFriendCodeBtnV56" class="btn-gold px-4 py-2 rounded font-bold">COPY</button>
+                        <button id="addFriendCodeBtnV56" class="btn-green px-4 py-2 rounded font-bold">ADD FRIEND</button>
+                        <button id="closeLeaderboardBtnV56" class="btn-neon px-4 py-2 rounded font-bold">BACK</button>
+                    </div>
+                </div>
+                <div id="leaderboardListContainer" class="nsv-v37-rank-grid overflow-y-auto max-h-[72vh] pr-1">
+                    ${makeRankCard('スコア部門', rows, 'bestScore')}
+                    ${makeRankCard('ボス討伐部門', rows, 'totalBoss', '体')}
+                    ${makeRankCard('討伐数部門', rows, 'totalKills', '体')}
+                    ${makeRankCard('生存時間部門', rows, 'bestTime', '秒')}
+                    ${makeRankCard('コイン部門', rows, 'totalCoins', '枚')}
+                    ${makeRankCard('最高レベル部門', rows, 'bestLevel', 'Lv')}
+                </div>
+            </div>`;
+
+            // イベントのバインド
+            document.getElementById('closeLeaderboardBtnV56')?.addEventListener('click', () => { if(typeof stableShowV37==='function') stableShowV37('startScreen'); });
+            document.getElementById('copyFriendCodeBtnV56')?.addEventListener('click', () => { 
+                if(typeof encodeFriendV37==='function') {
+                    const code = encodeFriendV37(); try { navigator.clipboard?.writeText(code); } catch(e) {} alert('友達コードをコピーしました。\n' + code); 
+                }
+            });
+            document.getElementById('addFriendCodeBtnV56')?.addEventListener('click', () => { 
+                const btn = document.getElementById('addFriendCodeBtnV37');
+                if (btn) btn.click();
+                else alert('追加処理が見つかりません');
+                setTimeout(() => window.renderRankingStableV37(), 100);
+            });
+
+            // 削除ボタンの確実なバインド
+            div.querySelectorAll('.v56-del-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    const name = e.target.dataset.name;
+                    if (!confirm(`友達「${name}」をランキングから削除しますか？`)) return;
+                    let d = [];
+                    try { d = JSON.parse(localStorage.getItem('nsv_deleted_friends_v56') || '[]'); } catch(e){}
+                    if (!d.includes(name)) d.push(name);
+                    localStorage.setItem('nsv_deleted_friends_v56', JSON.stringify(d));
+                    window.renderRankingStableV37(); // 即座に再描画
+                });
+            });
+        } catch(e) { console.warn(e); }
+    };
+    // エイリアスの上書き
+    window.renderRankingV30 = window.renderRankingStableV37;
+
+    // ==========================================
+    // 2. Fortnite風 アイテムショップの実装
+    // ==========================================
+    function getDailyShopItemsV56() {
+        const d = new Date();
+        const seedStr = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+        let seed = 0;
+        for (let i = 0; i < seedStr.length; i++) seed = ((seed << 5) - seed) + seedStr.charCodeAt(i);
+        
+        const random = () => { const x = Math.sin(seed++) * 10000; return x - Math.floor(x); };
+
+        const allSkins = (typeof SKIN_DEFS !== 'undefined' ? SKIN_DEFS : []).filter(s => s.id !== 'classic' && !s.id.includes('treasure'));
+        const allAuras = (typeof AURA_DEFS !== 'undefined' ? AURA_DEFS : []).filter(a => a.id !== 'none');
+        const allCapes = (typeof CAPE_DEFS !== 'undefined' ? CAPE_DEFS : []).filter(c => c.id !== 'none');
+
+        const pool = [];
+        allSkins.forEach(s => pool.push(Object.assign({}, s, { itemType: 'skin', price: 150000, rarity:'EPIC', bg:'bg-purple-900/60', border:'border-purple-400/80', glow:'shadow-[0_0_15px_rgba(192,132,252,0.4)]' })));
+        allAuras.forEach(a => pool.push(Object.assign({}, a, { itemType: 'aura', price: 120000, rarity:'RARE', bg:'bg-blue-900/60', border:'border-blue-400/80', glow:'shadow-[0_0_15px_rgba(96,165,250,0.4)]' })));
+        allCapes.forEach(c => pool.push(Object.assign({}, c, { itemType: 'cape', price: 80000, rarity:'UNCOMMON', bg:'bg-green-900/60', border:'border-green-400/80', glow:'shadow-[0_0_15px_rgba(74,222,128,0.4)]' })));
+
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        return pool.slice(0, 4);
+    }
+
+    if (typeof window.renderShopStableV37 !== 'undefined') {
+        window.renderShopStableV37 = function(force = false) {
+            if (window.shopRenderLockV37) return;
+            window.shopRenderLockV37 = true;
+            try {
+                let u = (typeof userData !== 'undefined') ? userData : null;
+                if (!u) { try { u = JSON.parse(localStorage.getItem('neon_survivor_save')); } catch(e) {} }
+                if (!u) return;
+                
+                let div = document.getElementById('shopScreen');
+                if (!div) {
+                    div = document.createElement('div'); div.id = 'shopScreen'; div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3'; document.body.appendChild(div);
+                }
+                if (!force && div.classList.contains('hidden')) return;
+                
+                const coins = Math.floor(Number(u.coins || 0));
+                const tickets = Math.floor(Number(u.passTickets || 0));
+                const premium = !!(u.battlePassV2?.premium || u.battlePass?.premium);
+                const PASS_TICKET_COST = 1000000;
+                
+                const dailyItems = getDailyShopItemsV56();
+                let dailyHtml = '';
+                dailyItems.forEach((item, idx) => {
+                    let owned = false;
+                    if (item.itemType === 'skin' && u.unlocks?.skins?.[item.id]) owned = true;
+                    if (item.itemType === 'aura' && u.unlocks?.auras?.[item.id]) owned = true;
+                    if (item.itemType === 'cape' && u.unlocks?.capes?.[item.id]) owned = true;
+                    
+                    const canBuy = !owned && coins >= item.price;
+                    const typeLabel = item.itemType === 'skin' ? 'SKIN' : item.itemType === 'aura' ? 'AURA' : 'CAPE';
+                    
+                    dailyHtml += `
+                        <div class="border ${owned ? 'border-gray-600 bg-gray-900/60' : item.border + ' ' + item.bg} rounded-xl p-3 flex flex-col justify-between ${owned ? '' : item.glow} relative overflow-hidden transform transition hover:scale-105">
+                            <div class="absolute top-0 right-0 bg-black/50 text-[10px] font-bold px-2 py-1 rounded-bl-lg text-white">${item.rarity}</div>
+                            ${owned ? '<div class="absolute -left-6 top-4 bg-green-500 text-black text-xs font-bold px-8 py-1 transform -rotate-45 z-10">OWNED</div>' : ''}
+                            
+                            <div class="text-center mb-2 z-10 relative pt-3">
+                                <div class="text-5xl drop-shadow-lg mb-2">${item.icon}</div>
+                                <div class="text-[10px] font-bold text-gray-300 tracking-wider">${typeLabel}</div>
+                                <h5 class="text-sm font-bold text-white mt-1 leading-tight h-10 flex items-center justify-center">${item.name}</h5>
+                            </div>
+                            
+                            <div class="z-10 relative mt-auto">
+                                <button class="buy-daily-item-btn w-full py-2 rounded font-black text-sm ${owned ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : canBuy ? 'bg-yellow-400 text-black hover:bg-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.6)]' : 'bg-gray-800 text-gray-500 border border-gray-600 cursor-not-allowed'}" data-idx="${idx}" ${owned || !canBuy ? 'disabled' : ''}>
+                                    ${owned ? '所有済み' : `🪙 ${item.price.toLocaleString()}`}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4">
+                    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+                        <div>
+                            <h2 class="text-4xl md:text-5xl font-black text-white italic" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">ITEM SHOP</h2>
+                            <p class="text-gray-300 text-sm mt-1">日替わりアイテムとパス・チケットを入手しよう。</p>
+                        </div>
+                        <button id="closeShopBtnV56" class="btn-neon px-4 py-2 rounded font-bold">BACK</button>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center justify-center gap-6 bg-slate-900/80 border border-slate-600 rounded-xl p-3 shadow-inner">
+                        <div class="text-center px-4">
+                            <div class="text-xs text-gray-400 font-bold tracking-widest mb-1">COINS</div>
+                            <div class="text-2xl font-black text-yellow-300">🪙 ${coins.toLocaleString()}</div>
+                        </div>
+                        <div class="w-px h-10 bg-slate-700 hidden md:block"></div>
+                        <div class="text-center px-4">
+                            <div class="text-xs text-gray-400 font-bold tracking-widest mb-1">TICKETS</div>
+                            <div class="text-2xl font-black text-cyan-300">🎟️ ${tickets.toLocaleString()}</div>
+                        </div>
+                    </div>
+
+                    <!-- 🎫 TICKETS & PASS -->
+                    <h3 class="text-xl font-bold text-gray-300 mt-2 border-b border-gray-600 pb-1">TICKETS & PASS</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gradient-to-r from-yellow-900/40 to-black border border-yellow-500/50 rounded-xl p-4 flex flex-col justify-between">
+                            <div class="flex items-center gap-4 mb-2">
+                                <div class="text-5xl drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]">🎟️</div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-white">バトルパスチケット</h4>
+                                    <p class="text-xs text-gray-300 mt-1">NEON PASSの解放に必要です。</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mt-3">
+                                <span class="text-lg font-black text-yellow-300">🪙 ${PASS_TICKET_COST.toLocaleString()}</span>
+                                <button id="buyPassTicketBtnV56" class="btn-gold px-6 py-2 rounded font-bold ${coins >= PASS_TICKET_COST ? '' : 'opacity-50'}" ${coins >= PASS_TICKET_COST ? '' : 'disabled'}>交換</button>
+                            </div>
+                        </div>
+                        <div class="bg-gradient-to-r from-cyan-900/40 to-black border border-cyan-500/50 rounded-xl p-4 flex flex-col justify-between">
+                            <div class="flex items-center gap-4 mb-2">
+                                <div class="text-5xl drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">⭐</div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-white">NEON PASS</h4>
+                                    <p class="text-xs text-gray-300 mt-1">現在のプレミアム報酬を解放します。</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mt-3">
+                                <span class="text-sm font-bold ${premium ? 'text-green-400' : 'text-gray-400'}">${premium ? '✓ 解放済み' : '未解放'}</span>
+                                <div class="flex gap-2">
+                                    <button id="buyNeonPassBtnV56" class="btn-neon px-4 py-2 rounded font-bold text-sm ${(tickets > 0 && !premium) ? '' : 'opacity-50'}" ${(tickets > 0 && !premium) ? '' : 'disabled'}>解放</button>
+                                    <button id="openPassFromShopBtnV56" class="btn-purple px-4 py-2 rounded font-bold text-sm">確認</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 🛒 DAILY ITEMS -->
+                    <div class="flex justify-between items-end mt-4 border-b border-gray-600 pb-1">
+                        <h3 class="text-xl font-bold text-gray-300">DAILY SHOP</h3>
+                        <span class="text-xs font-bold text-yellow-400 bg-yellow-900/30 px-2 py-1 rounded">毎日0時更新</span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        ${dailyHtml}
+                    </div>
+                </div>`;
+
+                // イベントリスナー
+                document.getElementById('closeShopBtnV56')?.addEventListener('click', () => {
+                    if (typeof stableShowV37 === 'function') stableShowV37('startScreen');
+                });
+                
+                document.getElementById('buyPassTicketBtnV56')?.addEventListener('click', () => {
+                    if (Number(u.coins || 0) < PASS_TICKET_COST) return;
+                    u.coins = Math.floor(Number(u.coins) - PASS_TICKET_COST);
+                    u.passTickets = Math.floor(Number(u.passTickets || 0) + 1);
+                    if (typeof saveNowV37 === 'function') saveNowV37();
+                    window.renderShopStableV37(true);
+                });
+                
+                document.getElementById('buyNeonPassBtnV56')?.addEventListener('click', () => {
+                    const already = !!(u.battlePassV2?.premium || u.battlePass?.premium);
+                    if (already || Number(u.passTickets || 0) <= 0) return;
+                    u.passTickets = Math.floor(Number(u.passTickets) - 1);
+                    u.battlePassV2 = u.battlePassV2 || {}; u.battlePassV2.premium = true;
+                    u.battlePass = u.battlePass || {}; u.battlePass.premium = true;
+                    if (typeof saveNowV37 === 'function') saveNowV37();
+                    window.renderShopStableV37(true);
+                });
+                
+                document.getElementById('openPassFromShopBtnV56')?.addEventListener('click', () => {
+                    if (typeof renderBattlePassV2 === 'function') renderBattlePassV2('base');
+                    if (typeof stableShowV37 === 'function') stableShowV37('battlePassScreen');
+                });
+
+                div.querySelectorAll('.buy-daily-item-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const idx = e.target.dataset.idx;
+                        const item = dailyItems[idx];
+                        if (!item || Number(u.coins || 0) < item.price) return;
+                        
+                        u.coins -= item.price;
+                        if (item.itemType === 'skin') {
+                            u.unlocks = u.unlocks || {}; u.unlocks.skins = u.unlocks.skins || {};
+                            u.unlocks.skins[item.id] = true;
+                        } else if (item.itemType === 'aura') {
+                            u.unlocks = u.unlocks || {}; u.unlocks.auras = u.unlocks.auras || {};
+                            u.unlocks.auras[item.id] = true;
+                        } else if (item.itemType === 'cape') {
+                            u.unlocks = u.unlocks || {}; u.unlocks.capes = u.unlocks.capes || {};
+                            u.unlocks.capes[item.id] = true;
+                        }
+                        
+                        if (typeof saveNowV37 === 'function') saveNowV37();
+                        if (typeof showMissionToast === 'function') showMissionToast('PURCHASED!', `${item.name} を購入しました！`);
+                        window.renderShopStableV37(true);
+                    });
+                });
+
+            } catch(e) {}
+            finally { window.shopRenderLockV37 = false; }
+        };
+        
+        window.renderShopV2 = window.renderShopStableV37;
+        window.renderShopScreen20260504 = window.renderShopStableV37;
+    }
+
+    function bootV56() {
+        enforceBadgeV56();
+        if (typeof window.renderRankingStableV37 === 'function') window.renderRankingStableV37();
+        const shop = document.getElementById('shopScreen');
+        if (shop && !shop.classList.contains('hidden')) {
+            if (typeof window.renderShopStableV37 === 'function') window.renderShopStableV37(true);
+        }
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV56, {once:true}); else bootV56();
+    setInterval(enforceBadgeV56, 1000);
+})();
+</script>
+
 </body>
 </html>
