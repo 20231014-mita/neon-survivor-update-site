@@ -2603,7 +2603,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 const card = document.createElement('div');
                 card.className = 'upgrade-card p-6 rounded-lg w-64 text-center cursor-pointer flex flex-col items-center justify-between pointer-events-auto';
                 card.innerHTML = `<div class="text-4xl mb-3">${upgrade.icon}</div><h3 class="text-xl font-bold mb-2" style="color:${upgrade.color}">${upgrade.name}</h3><p class="text-sm text-gray-300 leading-relaxed">${upgrade.desc}</p>`;
-                card.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); recordWeaponCodexUse(upgrade.name, true); upgrade.apply(); floatingTexts.push(new FloatingText(player.x, player.y, upgrade.name, upgrade.color, 16)); closeLevelUpScreen(); });
+                card.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); if (card.dataset.nsvPicked === '1') return; card.dataset.nsvPicked = '1'; try { recordWeaponCodexUse(upgrade.name, true); upgrade.apply(); if (player) floatingTexts.push(new FloatingText(player.x, player.y, upgrade.name, upgrade.color, 16)); } catch(err) { console.warn('V59 level-up apply failed:', err); try { if (player) player.hp = Math.min(player.maxHp || player.hp || 1, (player.hp || 0) + 20); } catch(_) {} } finally { closeLevelUpScreen(); } });
                 container.appendChild(card);
             });
             showScreen('levelUpScreen');
@@ -3267,10 +3267,18 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 `;
                 card.addEventListener('click', (e) => {
                     e.preventDefault(); e.stopPropagation();
-                    recordWeaponCodexUse(upgrade.name, true);
-                    upgrade.apply();
-                    floatingTexts.push(new FloatingText(player.x, player.y, upgrade.name, upgrade.color, 16));
-                    closeLevelUpScreen();
+                    if (card.dataset.nsvPicked === '1') return;
+                    card.dataset.nsvPicked = '1';
+                    try {
+                        recordWeaponCodexUse(upgrade.name, true);
+                        upgrade.apply();
+                        if (player) floatingTexts.push(new FloatingText(player.x, player.y, upgrade.name, upgrade.color, 16));
+                    } catch(err) {
+                        console.warn('V59 level-up apply failed:', err);
+                        try { if (player) player.hp = Math.min(player.maxHp || player.hp || 1, (player.hp || 0) + 20); } catch(_) {}
+                    } finally {
+                        closeLevelUpScreen();
+                    }
                 });
                 container.appendChild(card);
             });
@@ -7368,7 +7376,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             ctx.save();
             ctx.font = 'bold 12px Orbitron, Noto Sans JP'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
             ctx.shadowBlur = 10; ctx.shadowColor = '#000';
-            ctx.fillText(boss.isApeOverlordSecondPhase ? '第二形態' : (boss.isApeOverlord ? 'OVERLORD' : (boss.isMonkey ? 'MONKEY' : 'BOSS')), edgeX, edgeY - 22);
+            ctx.fillText(boss.isApeOverlordSecondPhase ? '隨ｬ莠悟ｽ｢諷�' : (boss.isApeOverlord ? 'OVERLORD' : (boss.isMonkey ? 'MONKEY' : 'BOSS')), edgeX, edgeY - 22);
             ctx.restore();
         }
 
@@ -14599,6 +14607,634 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             setInterval(() => { try { setBadgeV39(); updateOnlineHudV39(); } catch(e) {} }, 1500);
         })();
 
+
+
+        // ==========================================
+        // V59: STABLE CORE�亥ｮ牙ｮ壽ｧ繝ｻ菫晏ｭ倥�陦ｨ遉ｺ謨ｴ逅��螳牙�陬�ｽｮ繧呈悽菴薙せ繧ｳ繝ｼ繝励↓邨ｱ蜷茨ｼ�
+        // ==========================================
+        ;(() => {
+            const V59_TAG = 'V59 STABLE CORE';
+            const PASS_TICKET_COST_V59 = 1000000;
+            const SAVE_KEYS_V59 = [
+                'neon_survivor_save',
+                'neon_survivor_save_backup_v14',
+                'neon_survivor_save_backup_v59',
+                'neon_survivor_save_mirror_v59',
+                'neon_survivor_autosave_v13'
+            ];
+            const FRIEND_KEYS_V59 = [
+                'neon_survivor_friends_stable_v37',
+                'neon_survivor_friend_rows_v30',
+                'neon_survivor_friend_rows_v26',
+                'neon_survivor_friends_v13',
+                'neon_survivor_friend_rows'
+            ];
+            const SCREEN_IDS_V59 = [
+                'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen',
+                'onlineRoomScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen','shopScreen','battlePassScreen',
+                'leaderboardScreen','eventModeScreen','dailyEventScreen'
+            ];
+            const q59 = (id) => document.getElementById(id);
+            const esc59 = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+            const n59 = (v, d = 0) => Number.isFinite(Number(v)) ? Number(v) : d;
+            const clampInt59 = (v, min = 0, max = 999999999) => Math.max(min, Math.min(max, Math.floor(n59(v, min))));
+            const safeJson59 = (text, fallback = null) => { try { return JSON.parse(text); } catch(e) { return fallback; } };
+
+            function installStyleV59() {
+                if (q59('nsvV59Style')) return;
+                const st = document.createElement('style');
+                st.id = 'nsvV59Style';
+                st.textContent = `
+                    .nsv-v59-force-button, #startScreen button, #pauseScreen button, #gameOverScreen button,
+                    #upgradeScreen button, #missionsScreen button, #collectionScreen button, #weaponCodexScreen button,
+                    #shopScreen button, #leaderboardScreen button, #battlePassScreen button, #onlineRoleScreen button,
+                    #onlineRoomScreen button {
+                        visibility: visible !important;
+                        opacity: 1 !important;
+                        pointer-events: auto !important;
+                        touch-action: manipulation !important;
+                        -webkit-tap-highlight-color: transparent !important;
+                    }
+                    #startScreen:not(.hidden), #pauseScreen:not(.hidden), #levelUpScreen:not(.hidden),
+                    #gameOverScreen:not(.hidden), #shopScreen:not(.hidden), #leaderboardScreen:not(.hidden),
+                    #battlePassScreen:not(.hidden), #onlineRoleScreen:not(.hidden), #onlineRoomScreen:not(.hidden),
+                    #upgradeScreen:not(.hidden), #missionsScreen:not(.hidden), #collectionScreen:not(.hidden),
+                    #weaponCodexScreen:not(.hidden) { pointer-events: auto !important; }
+                    #uiLayer.hidden, #pauseScreen.hidden, #levelUpScreen.hidden, #gameOverScreen.hidden,
+                    #startScreen.hidden, #shopScreen.hidden, #leaderboardScreen.hidden { pointer-events: none !important; }
+                    .nsv-v59-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+                    .nsv-v59-card { background:rgba(15,23,42,.88); border:1px solid rgba(6,182,212,.42); border-radius:16px; padding:14px; box-shadow:0 0 14px rgba(6,182,212,.14); }
+                    .nsv-v59-badge { position:fixed; left:10px; bottom:8px; z-index:999999; pointer-events:none; color:#dcfce7; background:rgba(2,6,23,.90); border:1px solid rgba(74,222,128,.75); border-radius:999px; padding:5px 11px; font:900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif; letter-spacing:.08em; box-shadow:0 0 14px rgba(34,197,94,.34); }
+                    @media (max-width:760px){ .nsv-v59-grid{grid-template-columns:1fr;} .menu-panel{padding:16px!important;} }
+                `;
+                document.head.appendChild(st);
+            }
+
+            function showBadgeV59() {
+                try {
+                    document.querySelectorAll('div[id$="Badge"]').forEach(b => { if (b.id !== 'nsvV59Badge') b.remove(); });
+                    let b = q59('nsvV59Badge');
+                    if (!b) { b = document.createElement('div'); b.id = 'nsvV59Badge'; b.className = 'nsv-v59-badge'; document.body.appendChild(b); }
+                    b.textContent = V59_TAG;
+                } catch(e) {}
+            }
+
+            function normalizeFriendsV59() {
+                const rows = [];
+                const addRows = (arr) => {
+                    if (!Array.isArray(arr)) return;
+                    arr.forEach(r => {
+                        if (!r || typeof r !== 'object') return;
+                        const row = {
+                            name: String(r.name || r.nickname || 'FRIEND').slice(0, 12),
+                            bestScore: clampInt59(r.bestScore ?? r.score ?? r.s ?? 0),
+                            totalBoss: clampInt59(r.totalBoss ?? r.boss ?? r.b ?? 0),
+                            totalKills: clampInt59(r.totalKills ?? r.kills ?? r.k ?? 0),
+                            bestTime: clampInt59(r.bestTime ?? r.time ?? r.t ?? 0),
+                            totalCoins: clampInt59(r.totalCoins ?? r.coins ?? r.c ?? 0),
+                            bestLevel: clampInt59(r.bestLevel ?? r.level ?? r.l ?? 1, 1),
+                            date: String(r.date || r.d || new Date().toLocaleDateString('ja-JP'))
+                        };
+                        rows.push(row);
+                    });
+                };
+                try { addRows(userData?.leaderboards?.friends); } catch(e) {}
+                try { addRows(userData?.friendBook?.friends); } catch(e) {}
+                FRIEND_KEYS_V59.forEach(k => addRows(safeJson59(localStorage.getItem(k), [])));
+                const mine = createFriendRowV59();
+                const map = new Map();
+                rows.concat([mine]).forEach(r => {
+                    const key = `${r.name}|${r.bestScore}|${r.totalKills}|${r.bestLevel}`;
+                    if (!map.has(key)) map.set(key, r);
+                });
+                return Array.from(map.values()).filter(r => r.name !== mine.name).slice(-100);
+            }
+
+            function createFriendRowV59() {
+                const stats = userData?.stats || {};
+                return {
+                    name: normalizeNickname(userData?.nickname || localStorage.getItem('neon_survivor_nickname') || 'YOU') || 'YOU',
+                    bestScore: clampInt59(userData?.score || 0),
+                    totalBoss: clampInt59(stats.totalBossLikeKills || stats.totalBossKills || 0),
+                    totalKills: clampInt59(stats.totalKills || 0),
+                    bestTime: clampInt59(stats.bestSurvivalTime || stats.totalPlayTime || 0),
+                    totalCoins: clampInt59(stats.totalCoinsEarned || userData?.coins || 0),
+                    bestLevel: clampInt59(stats.bestLevel || 1, 1),
+                    date: new Date().toLocaleDateString('ja-JP')
+                };
+            }
+
+            function normalizeUserDataV59() {
+                try {
+                    if (!userData || typeof userData !== 'object') userData = createFreshUserData(localStorage.getItem('neon_survivor_nickname') || '');
+                    userData.score = clampInt59(userData.score || userData.bestScore || 0);
+                    userData.coins = clampInt59(userData.coins || 0);
+                    userData.nickname = normalizeNickname(userData.nickname || localStorage.getItem('neon_survivor_nickname') || '');
+                    userData.upgrades = userData.upgrades || {};
+                    (upgradeDef || []).forEach(u => { if (u?.id) userData.upgrades[u.id] = clampInt59(userData.upgrades[u.id] || 0, 0, 999); });
+                    userData.stats = Object.assign({ totalKills:0,totalBossKills:0,totalBossLikeKills:0,totalCoinsEarned:0,bestLevel:1,bestSurvivalTime:0 }, userData.stats || {});
+                    userData.missions = userData.missions || { completed:{}, claimed:{} };
+                    userData.missions.completed = userData.missions.completed || {};
+                    userData.missions.claimed = userData.missions.claimed || {};
+                    userData.daily = userData.daily || {};
+                    userData.unlocks = userData.unlocks || {};
+                    userData.unlocks.legendaryWeapons = userData.unlocks.legendaryWeapons || {};
+                    userData.unlocks.skins = Object.assign({ classic:true }, userData.unlocks.skins || {});
+                    userData.unlocks.auras = Object.assign({ none:true }, userData.unlocks.auras || {});
+                    userData.unlocks.capes = Object.assign({}, userData.unlocks.capes || {});
+                    userData.codex = userData.codex || { weapons:{} };
+                    userData.codex.weapons = Object.assign({ 'base_0_騾壼ｸｸ蠑ｾ': true }, userData.codex.weapons || {});
+                    userData.settings = userData.settings || {};
+                    userData.cheats = userData.cheats || { flags:{} };
+                    userData.cheats.flags = userData.cheats.flags || {};
+                    userData.leaderboards = userData.leaderboards || {};
+                    userData.friendBook = userData.friendBook || {};
+                    const friends = normalizeFriendsV59();
+                    userData.leaderboards.friends = friends;
+                    userData.friendBook.friends = friends;
+                    userData.passTickets = clampInt59(userData.passTickets || 0);
+                    userData.battlePass = userData.battlePass || {};
+                    userData.battlePassV2 = userData.battlePassV2 || {};
+                    userData.resetVersion = SAVE_RESET_VERSION;
+                } catch(e) { console.warn('V59 normalize skipped', e); }
+                return userData;
+            }
+
+            function scoreSaveCandidateV59(d) {
+                if (!d || typeof d !== 'object') return -1;
+                const st = d.stats || {};
+                return n59(d.score) * 4 + n59(d.coins) + n59(st.totalKills) * 2 + n59(st.totalBossLikeKills || st.totalBossKills) * 500 + n59(st.bestLevel) * 200;
+            }
+
+            function recoverBestSaveV59() {
+                const savedNick = normalizeNickname(localStorage.getItem('neon_survivor_nickname') || userData?.nickname || '');
+                let best = userData && typeof userData === 'object' ? userData : null;
+                SAVE_KEYS_V59.forEach(key => {
+                    const text = localStorage.getItem(key);
+                    if (!text) return;
+                    try {
+                        const parsed = JSON.parse(text);
+                        const raw = parsed && parsed.userData ? parsed.userData : parsed;
+                        const migrated = typeof migrateSaveDataV14 === 'function' ? migrateSaveDataV14(raw, savedNick) : raw;
+                        if (scoreSaveCandidateV59(migrated) > scoreSaveCandidateV59(best)) best = migrated;
+                    } catch(e) {}
+                });
+                if (best && best !== userData) userData = best;
+                normalizeUserDataV59();
+            }
+
+            function writeSaveV59() {
+                try {
+                    normalizeUserDataV59();
+                    const text = JSON.stringify(userData);
+                    ['neon_survivor_save','neon_survivor_save_backup_v14','neon_survivor_save_backup_v59','neon_survivor_save_mirror_v59'].forEach(k => localStorage.setItem(k, text));
+                    localStorage.setItem('neon_survivor_save_last_saved_at', String(Date.now()));
+                    if (userData.nickname) localStorage.setItem('neon_survivor_nickname', userData.nickname);
+                    const friendsText = JSON.stringify(userData.leaderboards?.friends || []);
+                    FRIEND_KEYS_V59.forEach(k => localStorage.setItem(k, friendsText));
+                    const best = q59('currentBestDisplay');
+                    if (best) best.innerText = String(userData.score || 0);
+                } catch(e) { console.warn('V59 save mirror failed', e); }
+            }
+
+            function patchSaveLoadV59() {
+                try {
+                    if (typeof saveData === 'function' && !saveData.__v59Stable) {
+                        const oldSave = saveData;
+                        saveData = function() {
+                            const capesCopy = JSON.parse(JSON.stringify(userData?.unlocks?.capes || {}));
+                            const equippedCapeCopy = userData?.equippedCape;
+                            let result;
+                            try { normalizeUserDataV59(); result = oldSave.apply(this, arguments); } catch(e) { console.warn('V59 old save failed, mirror save used', e); }
+                            try {
+                                userData.unlocks = userData.unlocks || {};
+                                userData.unlocks.capes = Object.assign({}, capesCopy, userData.unlocks.capes || {});
+                                if (equippedCapeCopy) userData.equippedCape = equippedCapeCopy;
+                            } catch(e) {}
+                            writeSaveV59();
+                            return result;
+                        };
+                        saveData.__v59Stable = true;
+                    }
+                    if (typeof loadData === 'function' && !loadData.__v59Stable) {
+                        const oldLoad = loadData;
+                        loadData = function() {
+                            let result;
+                            try { result = oldLoad.apply(this, arguments); } catch(e) { console.warn('V59 old load failed, recovery used', e); }
+                            recoverBestSaveV59();
+                            writeSaveV59();
+                            return result;
+                        };
+                        loadData.__v59Stable = true;
+                    }
+                } catch(e) { console.warn('V59 save/load patch skipped', e); }
+            }
+
+            function setUiForStateV59(screenId) {
+                try {
+                    const inGame = (gameState === 'playing' || gameState === 'paused' || screenId === 'pauseScreen' || screenId === 'levelUpScreen');
+                    q59('uiLayer')?.classList.toggle('hidden', !inGame);
+                    if (!inGame) {
+                        q59('bossHpContainer')?.classList.add('hidden');
+                        q59('bossWarning')?.classList.add('hidden');
+                        q59('domainTimerContainer')?.classList.add('hidden');
+                    }
+                    if (screenId === 'startScreen' || screenId === 'gameOverScreen') {
+                        q59('joystickZone')?.classList.add('hidden');
+                    } else {
+                        try { syncJoystickVisibility(); } catch(e) {}
+                    }
+                } catch(e) {}
+            }
+
+            function patchShowScreenV59() {
+                try {
+                    if (typeof showScreen !== 'function' || showScreen.__v59Stable) return;
+                    const oldShow = showScreen;
+                    showScreen = function(screenId) {
+                        try {
+                            const ids = Array.from(new Set(SCREEN_IDS_V59.concat(Array.from(document.querySelectorAll('div[id$="Screen"]')).map(el => el.id))));
+                            ids.forEach(id => {
+                                const el = q59(id);
+                                if (!el) return;
+                                if (id === screenId) {
+                                    el.classList.remove('hidden');
+                                    el.style.pointerEvents = 'auto';
+                                } else {
+                                    el.classList.add('hidden');
+                                    el.style.pointerEvents = 'none';
+                                }
+                            });
+                            setUiForStateV59(screenId);
+                            return true;
+                        } catch(e) {
+                            try { return oldShow.apply(this, arguments); } catch(_) {}
+                        }
+                    };
+                    showScreen.__v59Stable = true;
+                } catch(e) { console.warn('V59 showScreen patch skipped', e); }
+            }
+
+            function pruneGameArraysV59(force = false) {
+                try {
+                    const light = !!isLightMode || !!window.nsvUltraSafeModeV59;
+                    const factor = light ? 0.42 : 1;
+                    const groups = [
+                        [particles, 260], [floatingTexts, 90], [effects, 45], [bullets, 220], [enemyBullets, 180], [enemies, 380], [gems, 180],
+                        [ironBlasters, 65], [voidTempests, 20], [hollowMurasakis, 18], [orbitalStrikes, 25], [kamehamehas, 14], [infinitySnaps, 14],
+                        [infiniteBladeSwords, 120], [unibeams, 12], [keraunosStorms, 14], [vaderSkills, 28], [stormbreakers, 28], [disneyMagics, 26],
+                        [muryokushos, 6], [bounceBombs, 34], [poisonClouds, 30], [blackholes, 7], [divineSwords, 7], [sniperBullets, 80],
+                        [phantomDaggers, 55], [gravityPulsars, 14], [mapBlackholes, 1], [bananaPeels, 25], [onlineLegendaryChests, 2],
+                        [astralJudgements, 5], [harisenNovas, 5], [overlordFlames, 20], [cosmicSushiStorms, 4]
+                    ];
+                    groups.forEach(([arr, cap]) => {
+                        if (!Array.isArray(arr)) return;
+                        const limit = Math.max(1, Math.floor(cap * factor));
+                        if (force || arr.length > limit) arr.splice(0, Math.max(0, arr.length - limit));
+                    });
+                } catch(e) {}
+            }
+
+            function enableSafeModeV59(reason = '') {
+                if (window.nsvUltraSafeModeV59) return;
+                window.nsvUltraSafeModeV59 = true;
+                try {
+                    isLightMode = true;
+                    document.body.classList.add('light-mode');
+                    localStorage.setItem('neon_survivor_light_mode', '1');
+                    q59('lightModeToggle') && (q59('lightModeToggle').checked = true);
+                    q59('pauseLightModeToggle') && (q59('pauseLightModeToggle').checked = true);
+                    pruneGameArraysV59(true);
+                    if (typeof showMissionToast === 'function') showMissionToast('SAFE MODE', reason || '驥阪＆繧呈､懃衍縺励◆縺溘ａ縲√お繝輔ぉ繧ｯ繝医ｒ霆ｽ縺上＠縺ｾ縺励◆縲�');
+                } catch(e) {}
+            }
+
+            function patchRuntimeSafetyV59() {
+                try {
+                    if (typeof updateLogic === 'function' && !updateLogic.__v59Stable) {
+                        const oldUpdate = updateLogic;
+                        updateLogic = function() {
+                            try { return oldUpdate.apply(this, arguments); }
+                            catch(e) { console.warn('V59 update rescued:', e); enableSafeModeV59('蜃ｦ逅�お繝ｩ繝ｼ縺九ｉ閾ｪ蜍募ｾｩ蟶ｰ縺励∪縺励◆縲�'); pruneGameArraysV59(true); }
+                        };
+                        updateLogic.__v59Stable = true;
+                    }
+                    if (typeof drawAll === 'function' && !drawAll.__v59Stable) {
+                        const oldDraw = drawAll;
+                        let heavyFrames = 0;
+                        drawAll = function() {
+                            const start = performance.now();
+                            try { return oldDraw.apply(this, arguments); }
+                            catch(e) {
+                                console.warn('V59 draw rescued:', e);
+                                try { ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle = '#050505'; ctx.fillRect(0,0,width || 800,height || 600); } catch(_) {}
+                            } finally {
+                                const cost = performance.now() - start;
+                                if (cost > 34) heavyFrames++; else heavyFrames = Math.max(0, heavyFrames - 1);
+                                if (heavyFrames >= 8) enableSafeModeV59('謠冗判縺碁㍾縺上↑縺｣縺溘◆繧√∬�蜍輔〒霆ｽ驥丞喧縺励∪縺励◆縲�');
+                                if (frameCount % 90 === 0) pruneGameArraysV59(false);
+                            }
+                        };
+                        drawAll.__v59Stable = true;
+                    }
+                    if (typeof gameLoop === 'function' && !gameLoop.__v59Stable) {
+                        const oldLoop = gameLoop;
+                        gameLoop = function(t) { window.__nsvV59LastLoopBeat = performance.now(); return oldLoop.apply(this, arguments); };
+                        gameLoop.__v59Stable = true;
+                    }
+                } catch(e) { console.warn('V59 runtime patch skipped', e); }
+            }
+
+            function patchInitGameV59() {
+                try {
+                    if (typeof initGame !== 'function' || initGame.__v59Stable) return;
+                    const oldInit = initGame;
+                    initGame = function(mode = 'solo') {
+                        if (window.__nsvV59Starting) return;
+                        window.__nsvV59Starting = true;
+                        try {
+                            normalizeUserDataV59();
+                            writeSaveV59();
+                            const result = oldInit.apply(this, arguments);
+                            setTimeout(() => {
+                                try {
+                                    gameState = 'playing';
+                                    setUiForStateV59(null);
+                                    q59('startScreen')?.classList.add('hidden');
+                                    q59('pauseScreen')?.classList.add('hidden');
+                                    q59('gameOverScreen')?.classList.add('hidden');
+                                    q59('levelUpScreen')?.classList.add('hidden');
+                                    if (player) updateUI();
+                                    syncJoystickVisibility();
+                                    writeSaveV59();
+                                } catch(e) {}
+                            }, 80);
+                            return result;
+                        } finally {
+                            setTimeout(() => { window.__nsvV59Starting = false; }, 360);
+                        }
+                    };
+                    initGame.__v59Stable = true;
+                } catch(e) { console.warn('V59 init patch skipped', e); }
+            }
+
+
+            function patchLevelUpCloseV59() {
+                try {
+                    if (typeof closeLevelUpScreen !== 'function' || closeLevelUpScreen.__v59Stable) return;
+                    const oldClose = closeLevelUpScreen;
+                    closeLevelUpScreen = function() {
+                        let result;
+                        try { result = oldClose.apply(this, arguments); }
+                        finally {
+                            setTimeout(() => {
+                                try {
+                                    gameState = 'playing';
+                                    q59('levelUpScreen')?.classList.add('hidden');
+                                    setUiForStateV59(null);
+                                    if (animationId) cancelAnimationFrame(animationId);
+                                    lastTime = performance.now();
+                                    animationId = requestAnimationFrame(gameLoop);
+                                } catch(e) {}
+                            }, 0);
+                        }
+                        return result;
+                    };
+                    closeLevelUpScreen.__v59Stable = true;
+                } catch(e) { console.warn('V59 level-up close patch skipped', e); }
+            }
+
+            function ensureHomeButtonsV59() {
+                try {
+                    const start = q59('startScreen');
+                    const panel = start?.querySelector('.menu-panel');
+                    const grid = panel?.querySelector('.nsv-v37-menu-grid') || panel?.querySelector('.nsv-v30-grid') || panel?.querySelector('.menu-grid');
+                    if (!grid) return;
+                    const defs = [
+                        ['openShopBtn','btn-gold','SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β</span>'],
+                        ['openLeaderboardBtn','btn-neon','RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>']
+                    ];
+                    defs.forEach(([id, cls, html]) => {
+                        let b = q59(id);
+                        if (!b) { b = document.createElement('button'); b.id = id; grid.appendChild(b); }
+                        b.className = `${cls} menu-secondary px-6 py-3 font-bold rounded cursor-pointer transition-all nsv-v59-force-button`;
+                        b.innerHTML = html;
+                        b.disabled = false;
+                    });
+                    grid.querySelectorAll('button').forEach(b => { b.disabled = false; b.style.pointerEvents = 'auto'; b.style.visibility = 'visible'; });
+                } catch(e) {}
+            }
+
+            function getDailyItemsV59() {
+                const pool = [];
+                try { (SKIN_DEFS || []).filter(x => x.id !== 'classic').forEach(x => pool.push(Object.assign({ itemType:'skin', price:150000, typeLabel:'SKIN' }, x))); } catch(e) {}
+                try { (AURA_DEFS || []).filter(x => x.id !== 'none').forEach(x => pool.push(Object.assign({ itemType:'aura', price:120000, typeLabel:'AURA' }, x))); } catch(e) {}
+                let seed = Number(new Date().toISOString().slice(0,10).replace(/-/g,''));
+                const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+                for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+                while (pool.length < 7) pool.push({ id:'coin_boost_' + pool.length, itemType:'boost', typeLabel:'BOOST', name:'繧ｳ繧､繝ｳ螳牙�繝代ャ繧ｯ', icon:'ｪ�', desc:'蟆代＠縺�縺代さ繧､繝ｳ繧貞｢励ｄ縺呎舞貂医い繧､繝�Β', price:50000 });
+                return pool.slice(0, 7);
+            }
+
+            function renderShopV59() {
+                normalizeUserDataV59();
+                let div = q59('shopScreen');
+                if (!div) { div = document.createElement('div'); div.id = 'shopScreen'; div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3'; document.body.appendChild(div); }
+                const coins = clampInt59(userData.coins || 0);
+                const tickets = clampInt59(userData.passTickets || 0);
+                const premium = !!(userData.battlePassV2?.premium || userData.battlePass?.premium);
+                const items = getDailyItemsV59();
+                const itemHtml = items.map((item, idx) => {
+                    const owned = item.itemType === 'skin' ? !!userData.unlocks?.skins?.[item.id] : item.itemType === 'aura' ? !!userData.unlocks?.auras?.[item.id] : false;
+                    const canBuy = !owned && coins >= item.price;
+                    return `<div class="nsv-v59-card flex flex-col justify-between min-h-[180px]">
+                        <div class="text-center"><div class="text-5xl mb-2">${esc59(item.icon || '笨ｨ')}</div><div class="text-[10px] font-black text-cyan-200 tracking-widest">${esc59(item.typeLabel || 'ITEM')}</div><h4 class="font-black text-white mt-1">${esc59(item.name || 'ITEM')}</h4><p class="text-xs text-gray-300 mt-2">${esc59(item.desc || '')}</p></div>
+                        <button class="buyDailyV59 mt-3 ${owned ? 'bg-gray-700 text-gray-400' : canBuy ? 'btn-gold' : 'bg-gray-800 text-gray-500 border border-gray-600'} px-3 py-2 rounded font-black" data-idx="${idx}" ${owned || !canBuy ? 'disabled' : ''}>${owned ? '謇譛画ｸ医∩' : 'ｪ� ' + Number(item.price).toLocaleString()}</button>
+                    </div>`;
+                }).join('');
+                div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4">
+                    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-black text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">SHOP</h2><p class="text-gray-300 text-sm mt-2">繧ｳ繧､繝ｳ繝ｻ繝√こ繝�ヨ繝ｻ譌･譖ｿ繧上ｊ繧｢繧､繝�Β繧貞ｮ牙�縺ｫ菫晏ｭ倥＠縺ｾ縺吶�</p></div><button id="closeShopBtnV59" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div>
+                    <div class="nsv-v59-grid"><div class="nsv-v59-card text-center"><div class="text-xs text-gray-400 font-bold">COINS</div><div class="text-3xl font-black text-yellow-300">ｪ� ${coins.toLocaleString()}</div></div><div class="nsv-v59-card text-center"><div class="text-xs text-gray-400 font-bold">TICKETS</div><div class="text-3xl font-black text-cyan-300">次�� ${tickets.toLocaleString()}</div></div></div>
+                    <div class="nsv-v59-grid"><div class="nsv-v59-card"><h3 class="font-black text-white text-xl">繝舌ヨ繝ｫ繝代せ繝√こ繝�ヨ</h3><p class="text-sm text-gray-300 mt-1">NEON PASS縺ｮ隗｣謾ｾ縺ｫ菴ｿ縺�∪縺吶�</p><button id="buyTicketBtnV59" class="btn-gold w-full px-4 py-3 rounded font-black mt-4" ${coins >= PASS_TICKET_COST_V59 ? '' : 'disabled'}>ｪ� ${PASS_TICKET_COST_V59.toLocaleString()} 縺ｧ莠､謠�</button></div><div class="nsv-v59-card"><h3 class="font-black text-white text-xl">NEON PASS</h3><p class="text-sm text-gray-300 mt-1">繝√こ繝�ヨ1譫壹〒繝励Ξ繝溘い繝�繧定ｧ｣謾ｾ縲�</p><button id="buyPassBtnV59" class="btn-neon w-full px-4 py-3 rounded font-black mt-4" ${(tickets > 0 && !premium) ? '' : 'disabled'}>${premium ? '隗｣謾ｾ貂医∩' : '次�� 1譫壹〒隗｣謾ｾ'}</button></div></div>
+                    <div class="flex items-center justify-between border-b border-gray-600 pb-2"><h3 class="text-xl font-black text-cyan-200">DAILY ITEMS</h3><span class="text-xs text-yellow-200">7 items / 豈取律譖ｴ譁ｰ</span></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 overflow-y-auto max-h-[48vh] pr-1">${itemHtml}</div>
+                </div>`;
+                q59('closeShopBtnV59')?.addEventListener('click', () => showScreen('startScreen'));
+                q59('buyTicketBtnV59')?.addEventListener('click', () => {
+                    if (userData.coins < PASS_TICKET_COST_V59) return;
+                    userData.coins -= PASS_TICKET_COST_V59;
+                    userData.passTickets = clampInt59(userData.passTickets || 0) + 1;
+                    saveData(); renderShopV59();
+                });
+                q59('buyPassBtnV59')?.addEventListener('click', () => {
+                    if (userData.passTickets <= 0 || userData.battlePassV2?.premium || userData.battlePass?.premium) return;
+                    userData.passTickets -= 1;
+                    userData.battlePassV2 = userData.battlePassV2 || {}; userData.battlePassV2.premium = true;
+                    userData.battlePass = userData.battlePass || {}; userData.battlePass.premium = true;
+                    saveData(); renderShopV59();
+                });
+                div.querySelectorAll('.buyDailyV59').forEach(btn => btn.addEventListener('click', () => {
+                    const item = items[Number(btn.dataset.idx)];
+                    if (!item || userData.coins < item.price) return;
+                    userData.coins -= item.price;
+                    if (item.itemType === 'skin') userData.unlocks.skins[item.id] = true;
+                    else if (item.itemType === 'aura') userData.unlocks.auras[item.id] = true;
+                    else if (item.itemType === 'boost') userData.coins += 70000;
+                    saveData(); renderShopV59();
+                }));
+            }
+
+            function encodeFriendCodeV59(row) {
+                const text = JSON.stringify({n:row.name,s:row.bestScore,b:row.totalBoss,k:row.totalKills,t:row.bestTime,c:row.totalCoins,l:row.bestLevel,d:row.date});
+                try { return 'NF59.' + btoa(unescape(encodeURIComponent(text))); } catch(e) { return text; }
+            }
+            function decodeFriendCodeV59(code) {
+                const raw = String(code || '').trim();
+                const text = raw.startsWith('NF59.') ? decodeURIComponent(escape(atob(raw.slice(5)))) : raw;
+                return JSON.parse(text);
+            }
+            function renderLeaderboardV59() {
+                normalizeUserDataV59();
+                let div = q59('leaderboardScreen');
+                if (!div) { div = document.createElement('div'); div.id = 'leaderboardScreen'; div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3'; document.body.appendChild(div); }
+                const rows = [createFriendRowV59()].concat(userData.leaderboards?.friends || []);
+                const card = (title, key, unit = '') => {
+                    const sorted = rows.slice().sort((a,b) => n59(b[key]) - n59(a[key])).slice(0, 20);
+                    return `<div class="nsv-v59-card"><h3 class="text-cyan-200 font-black mb-2">${title}</h3>${sorted.map((r,i)=>`<div class="grid grid-cols-[32px_1fr_auto] gap-2 py-2 border-b border-slate-700/60"><span class="text-yellow-300 font-black">${i+1}</span><span>${esc59(r.name)}</span><span class="font-black">${Number(r[key]||0).toLocaleString()}${unit}</span></div>`).join('')}</div>`;
+                };
+                div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-black text-cyan-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #22d3ee;">RANKING</h2><p class="text-gray-300 text-sm mt-2">蜿矩＃繝��繧ｿ縺ｯ繝悶Λ繧ｦ繧ｶ縺ｫ菫晏ｭ倥＆繧後∪縺吶�</p></div><div class="flex gap-2 flex-wrap"><button id="copyFriendCodeBtnV59" class="btn-gold px-4 py-2 rounded font-bold">COPY</button><button id="addFriendCodeBtnV59" class="btn-green px-4 py-2 rounded font-bold">ADD FRIEND</button><button id="closeLeaderboardBtnV59" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div></div><div class="nsv-v59-grid overflow-y-auto max-h-[72vh] pr-1">${card('繧ｹ繧ｳ繧｢驛ｨ髢','bestScore')}${card('繝懊せ險惹ｼ宣Κ髢','totalBoss','菴�')}${card('險惹ｼ先焚驛ｨ髢','totalKills','菴�')}${card('逕溷ｭ俶凾髢馴Κ髢','bestTime','遘�')}${card('繧ｳ繧､繝ｳ驛ｨ髢','totalCoins','譫�')}${card('譛鬮倥Ξ繝吶Ν驛ｨ髢','bestLevel','Lv')}</div></div>`;
+                q59('closeLeaderboardBtnV59')?.addEventListener('click', () => showScreen('startScreen'));
+                q59('copyFriendCodeBtnV59')?.addEventListener('click', () => {
+                    const code = encodeFriendCodeV59(createFriendRowV59());
+                    try { navigator.clipboard?.writeText(code); } catch(e) {}
+                    alert('蜿矩＃繧ｳ繝ｼ繝峨ｒ繧ｳ繝斐�縺励∪縺励◆縲�\n' + code);
+                });
+                q59('addFriendCodeBtnV59')?.addEventListener('click', () => {
+                    const code = prompt('蜿矩＃繧ｳ繝ｼ繝峨ｒ蜈･蜉帙＠縺ｦ縺上□縺輔＞');
+                    if (!code) return;
+                    try {
+                        const d = decodeFriendCodeV59(code);
+                        const row = { name:String(d.n || 'FRIEND').slice(0,12), bestScore:clampInt59(d.s), totalBoss:clampInt59(d.b), totalKills:clampInt59(d.k), bestTime:clampInt59(d.t), totalCoins:clampInt59(d.c), bestLevel:clampInt59(d.l,1), date:String(d.d || new Date().toLocaleDateString('ja-JP')) };
+                        userData.leaderboards.friends = (userData.leaderboards.friends || []).filter(r => r.name !== row.name);
+                        userData.leaderboards.friends.push(row);
+                        userData.friendBook.friends = userData.leaderboards.friends;
+                        saveData(); renderLeaderboardV59();
+                    } catch(e) { alert('蜿矩＃繧ｳ繝ｼ繝峨′豁｣縺励￥縺ゅｊ縺ｾ縺帙ｓ縲�'); }
+                });
+            }
+
+            function renderBattlePassFallbackV59() {
+                let div = q59('battlePassScreen');
+                if (!div) { div = document.createElement('div'); div.id = 'battlePassScreen'; div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3'; document.body.appendChild(div); }
+                const premium = !!(userData.battlePassV2?.premium || userData.battlePass?.premium);
+                div.innerHTML = `<div class="menu-panel w-full text-center"><h2 class="text-5xl font-black text-purple-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #c084fc;">NEON PASS</h2><p class="mt-4 text-gray-300">迥ｶ諷�: <b class="${premium ? 'text-green-300' : 'text-yellow-300'}">${premium ? '隗｣謾ｾ貂医∩' : '譛ｪ隗｣謾ｾ'}</b></p><p class="mt-2 text-gray-400 text-sm">繧ｷ繝ｧ繝��縺ｧ繝√こ繝�ヨ繧剃ｺ､謠帙☆繧九→隗｣謾ｾ縺ｧ縺阪∪縺吶�</p><button id="closeBattlePassBtnV59" class="btn-neon px-6 py-3 rounded font-bold mt-6">BACK</button></div>`;
+                q59('closeBattlePassBtnV59')?.addEventListener('click', () => showScreen('startScreen'));
+            }
+
+            function routeButtonV59(id) {
+                switch(id) {
+                    case 'startBtn': if (gameState !== 'playing' && gameState !== 'paused') initGame('solo'); return true;
+                    case 'onlineStartBtn': if (gameState !== 'playing' && gameState !== 'paused') openOnlineRoleSelect(); return true;
+                    case 'openUpgradeBtn': renderUpgradeScreen(); showScreen('upgradeScreen'); return true;
+                    case 'closeUpgradeBtn': showScreen('startScreen'); return true;
+                    case 'openMissionBtn': renderMissionScreen(); showScreen('missionsScreen'); return true;
+                    case 'closeMissionsBtn': showScreen('startScreen'); return true;
+                    case 'claimAllMissionsBtn': claimAllMissions(); return true;
+                    case 'openCollectionBtn': renderCollectionScreen(); showScreen('collectionScreen'); return true;
+                    case 'closeCollectionBtn': showScreen('startScreen'); return true;
+                    case 'openWeaponCodexBtn': renderWeaponCodexScreen(); showScreen('weaponCodexScreen'); return true;
+                    case 'closeWeaponCodexBtn': showScreen('startScreen'); return true;
+                    case 'openShopBtn': renderShopV59(); showScreen('shopScreen'); return true;
+                    case 'openLeaderboardBtn': renderLeaderboardV59(); showScreen('leaderboardScreen'); return true;
+                    case 'openBattlePassBtn': if (typeof renderBattlePassV2 === 'function') renderBattlePassV2('base'); else renderBattlePassFallbackV59(); showScreen('battlePassScreen'); return true;
+                    case 'closeOnlineRoleBtn': selectedOnlineRoleId = null; showScreen('startScreen'); return true;
+                    case 'pauseBtn': if (gameState === 'playing' || gameState === 'paused') pauseAction(); return true;
+                    case 'resumeBtn': if (gameState === 'paused') pauseAction(); return true;
+                    case 'titleFromPauseBtn': endRunAndReturnToMenu(); return true;
+                    case 'restartBtn': gameState = 'start'; stopOnlineMode(); selectedOnlineRoleId = null; currentOnlineRole = null; syncJoystickVisibility(); loadData(); showScreen('startScreen'); return true;
+                    default: return false;
+                }
+            }
+
+            function installButtonRouterV59() {
+                if (window.__nsvV59ButtonRouter) return;
+                window.__nsvV59ButtonRouter = true;
+                const routeIds = new Set(['startBtn','onlineStartBtn','openUpgradeBtn','closeUpgradeBtn','openMissionBtn','closeMissionsBtn','claimAllMissionsBtn','openCollectionBtn','closeCollectionBtn','openWeaponCodexBtn','closeWeaponCodexBtn','openShopBtn','openLeaderboardBtn','openBattlePassBtn','closeOnlineRoleBtn','pauseBtn','resumeBtn','titleFromPauseBtn','restartBtn']);
+                const last = new Map();
+                const handler = (ev) => {
+                    try {
+                        const btn = ev.target?.closest?.('button');
+                        if (!btn || !routeIds.has(btn.id)) return;
+                        ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.();
+                        const now = Date.now();
+                        if (now - (last.get(btn.id) || 0) < 260) return;
+                        last.set(btn.id, now);
+                        routeButtonV59(btn.id);
+                    } catch(e) { console.warn('V59 button rescue failed', e); }
+                };
+                window.addEventListener('pointerup', handler, true);
+                window.addEventListener('click', handler, true);
+            }
+
+            function cleanupUiV59() {
+                try {
+                    showBadgeV59();
+                    ensureHomeButtonsV59();
+                    document.querySelectorAll('button').forEach(b => { b.disabled = false; b.style.pointerEvents = 'auto'; b.style.visibility = 'visible'; });
+                    const startVisible = q59('startScreen') && !q59('startScreen').classList.contains('hidden');
+                    if (startVisible) {
+                        q59('uiLayer')?.classList.add('hidden');
+                        q59('pauseScreen')?.classList.add('hidden');
+                        q59('levelUpScreen')?.classList.add('hidden');
+                        q59('bossHpContainer')?.classList.add('hidden');
+                        q59('bossWarning')?.classList.add('hidden');
+                        q59('joystickZone')?.classList.add('hidden');
+                    }
+                    if (gameState === 'playing' && !q59('startScreen')?.classList.contains('hidden')) q59('startScreen')?.classList.add('hidden');
+                } catch(e) {}
+            }
+
+            function installGlobalRescueV59() {
+                if (window.__nsvV59GlobalRescue) return;
+                window.__nsvV59GlobalRescue = true;
+                window.addEventListener('error', (ev) => {
+                    try { if (gameState === 'playing') { enableSafeModeV59('繧ｨ繝ｩ繝ｼ繧呈､懃衍縺励◆縺溘ａ縲∬�蜍輔〒霆ｽ驥丞喧縺励∪縺励◆縲�'); pruneGameArraysV59(true); } } catch(e) {}
+                }, true);
+                window.addEventListener('unhandledrejection', () => {
+                    try { if (gameState === 'playing') { enableSafeModeV59('騾壻ｿ｡縺ｾ縺溘�髱槫酔譛溷�逅��繧ｨ繝ｩ繝ｼ縺九ｉ菫晁ｭｷ縺励∪縺励◆縲�'); pruneGameArraysV59(true); } } catch(e) {}
+                });
+                setInterval(() => {
+                    try {
+                        if (gameState === 'playing' && performance.now() - (window.__nsvV59LastLoopBeat || performance.now()) > 2500) {
+                            lastTime = performance.now();
+                            if (animationId) cancelAnimationFrame(animationId);
+                            animationId = requestAnimationFrame(gameLoop);
+                        }
+                    } catch(e) {}
+                }, 1200);
+                setInterval(() => { try { if (gameState === 'playing') { writeSaveV59(); pruneGameArraysV59(false); } } catch(e) {} }, 5000);
+            }
+
+            function bootV59() {
+                installStyleV59();
+                patchSaveLoadV59();
+                patchShowScreenV59();
+                patchRuntimeSafetyV59();
+                patchInitGameV59();
+                patchLevelUpCloseV59();
+                installButtonRouterV59();
+                installGlobalRescueV59();
+                recoverBestSaveV59();
+                cleanupUiV59();
+                writeSaveV59();
+            }
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV59, { once:true }); else bootV59();
+            window.addEventListener('pageshow', bootV59, { passive:true });
+            window.addEventListener('resize', () => setTimeout(cleanupUiV59, 120), { passive:true });
+            setInterval(cleanupUiV59, 1200);
+            window.NEON_SURVIVOR_STABLE_CORE = { tag: V59_TAG, save: writeSaveV59, shop: renderShopV59, ranking: renderLeaderboardV59, safeMode: enableSafeModeV59 };
+        })();
 </script>
 
 
@@ -14616,2269 +15252,36 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
     pointer-events: none !important;
   }
 </style>
-<script>
-(() => {
-  'use strict';
-  const EVENT_BUTTON_IDS_V40 = [
-    'openDailyEventBtnV13',
-    'openDailyEventBtnV30',
-    'openDailyEventBtnV31',
-    'openDailyEventBtnV33',
-    'openDailyEventBtnV35',
-    'openEventModeBtn'
-  ];
-  const EVENT_TEXT_RE_V40 = /DAILY\s*EVENT|EVENT\s*MODE|\u65E5\u66FF\u308F\u308A\u30A4\u30D9\u30F3\u30C8|\u30A4\u30D9\u30F3\u30C8\u30E2\u30FC\u30C9/i;
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
-  function removeHomeEventButtonsV40() {
-    try {
-      const start = document.getElementById('startScreen');
-      if (!start) return;
-      EVENT_BUTTON_IDS_V40.forEach((id) => {
-        const el = document.getElementById(id);
-        if (el && start.contains(el)) el.remove();
-      });
-      start.querySelectorAll('button, a').forEach((el) => {
-        const txt = String(el.textContent || '').replace(/\s+/g, ' ').trim();
-        if (EVENT_TEXT_RE_V40.test(txt)) el.remove();
-      });
-    } catch (e) {}
-  }
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
-  function bootV40() {
-    removeHomeEventButtonsV40();
-    setTimeout(removeHomeEventButtonsV40, 80);
-    setTimeout(removeHomeEventButtonsV40, 300);
-    setTimeout(removeHomeEventButtonsV40, 1000);
-    setTimeout(removeHomeEventButtonsV40, 2500);
-    try {
-      const start = document.getElementById('startScreen') || document.body;
-      const mo = new MutationObserver(removeHomeEventButtonsV40);
-      mo.observe(start, { childList: true, subtree: true });
-      window.nsvV40NoHomeEventButtonObserver = mo;
-    } catch (e) {}
-  }
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bootV40, { once: true });
-  } else {
-    bootV40();
-  }
-  window.addEventListener('load', removeHomeEventButtonsV40, { once: true });
-})();
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
-        ;(() => {
-            const V41_TAG = 'V41 CHEAT PAUSE STABLE';
-            const q41 = (s) => document.querySelector(s);
-            const all41 = (s) => Array.from(document.querySelectorAll(s));
-            function markV41(){
-                try {
-                    const ids = ['nsvV30Badge','nsvV31Badge','nsvV33Badge','nsvV34Badge'];
-                    ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = V41_TAG; });
-                } catch(e) {}
-            }
-            function patchCheatBoxesV41(){
-                try {
-                    all41('.nsv-v30-cheat, .nsv-v13-cheat-box').forEach(box => {
-                        if (box.dataset.v41CheatFixed === '1') return;
-                        box.dataset.v41CheatFixed = '1';
-                        const input = box.querySelector('input');
-                        const btn = box.querySelector('button');
-                        if (!input || !btn) return;
-                        input.addEventListener('input', () => { input.value = String(input.value || '').replace(/\D/g, '').slice(0, 7); }, { passive:true });
-                    });
-                } catch(e) {}
-            }
-            // Capture phase guard: prevents old pointerup+click handlers from running twice after the code was already applied.
-            let lastBtn = null, lastAt = 0;
-            window.addEventListener('click', (ev) => {
-                try {
-                    const btn = ev.target && ev.target.closest && ev.target.closest('.nsv-v30-cheat button, .nsv-v13-cheat-box button');
-                    if (!btn) return;
-                    const now = Date.now();
-                    if (btn === lastBtn && now - lastAt < 600) {
-                        ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation && ev.stopImmediatePropagation();
-                        return;
-                    }
-                    lastBtn = btn; lastAt = now;
-                } catch(e) {}
-            }, true);
-            function bootV41(){ markV41(); patchCheatBoxesV41(); }
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV41, {once:true}); else bootV41();
-        window.addEventListener('pageshow', bootV41, {passive:true});
-        setInterval(bootV41, 1500);
-    })();
-</script>
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
-<script>
-// V42: 確実なオンライン同期パッチ（人数制限等のチェックをバイパスし確実に繋ぐ）
-(() => {
-    const V42_TAG = 'V42 ONLINE STABLE';
-    const V42_ROOM_KEY = 'nsv_online_room_v42';
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
-    function getCodeV42() {
-        const input = document.getElementById('onlineRoomInput');
-        let raw = input ? input.value : (localStorage.getItem(V42_ROOM_KEY) || '123');
-        let code = String(raw).replace(/\D/g, '').slice(0, 3);
-        if (code.length === 0) code = '123';
-        code = code.padStart(3, '0');
-        if (input && input.value !== code) input.value = code;
-        localStorage.setItem(V42_ROOM_KEY, code);
-        return code;
-    }
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
-    function getDocRefV42(id) {
-        return fbDoc(db, 'artifacts', appId, 'public', 'data', 'nsv_room_' + getCodeV42(), id);
-    }
-    function getColRefV42() {
-        return fbCollection(db, 'artifacts', appId, 'public', 'data', 'nsv_room_' + getCodeV42());
-    }
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
-    function patchOnlineV42() {
-        const updateHudV42 = () => {
-            const countEl = document.getElementById('onlinePlayerCount');
-            if (countEl) countEl.innerText = String(1 + (typeof remotePlayers !== 'undefined' && remotePlayers ? remotePlayers.size : 0));
-            const hud = document.getElementById('onlineHud');
-            if (hud) {
-                let row = document.getElementById('onlineRoomLabelRow');
-                if (!row) { row = document.createElement('div'); row.id = 'onlineRoomLabelRow'; hud.appendChild(row); }
-                row.innerHTML = `ROOM: <span class="text-yellow-300 font-bold tracking-widest">${getCodeV42()}</span>`;
-            }
-        };
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
-        // 人数制限やその他のバリデーションを無効化し、直接オンラインモードを開始する
-        startOnlineMode = function() {
-            isOnlineMode = true;
-            if (typeof setOnlineHudVisible === 'function') setOnlineHudVisible(true);
-            remotePlayers = new Map();
-            onlineProcessedHitIds = new Set();
-            onlineLastDamagePollFrame = 0;
-            
-            updateHudV42();
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
-            if (typeof ensureFirebaseReadyV39 === 'function') {
-                ensureFirebaseReadyV39().then(ok => {
-                    if (ok) {
-                        try { startOnlinePresence(); syncOnlinePresence(); } catch(e) {}
-                    } else {
-                        if (typeof showMissionToast === 'function') showMissionToast('ONLINE', 'Firebase未接続。ローカルモードで動作します。');
-                    }
-                });
-            }
-        };
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
-        stopOnlineMode = function() {
-            if (typeof onlineUnsubscribe !== 'undefined' && onlineUnsubscribe) { try { onlineUnsubscribe(); } catch(e) {} onlineUnsubscribe = null; }
-            if (typeof db !== 'undefined' && db && typeof fbDeleteDoc === 'function' && typeof onlinePlayerId !== 'undefined') { 
-                try { fbDeleteDoc(getDocRefV42(onlinePlayerId)).catch(() => {}); } catch(e) {} 
-            }
-            isOnlineMode = false;
-            remotePlayers = new Map();
-            if (typeof setOnlineHudVisible === 'function') setOnlineHudVisible(false);
-        };
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
-        startOnlinePresence = function() {
-            if (typeof db === 'undefined' || !db || !fbCollection || !fbOnSnapshot) return;
-            if (typeof onlineUnsubscribe !== 'undefined' && onlineUnsubscribe) onlineUnsubscribe();
-            
-            onlineUnsubscribe = fbOnSnapshot(getColRefV42(), (snap) => {
-                const now = Date.now();
-                const next = new Map();
-                snap.forEach(docSnap => {
-                    if (docSnap.id === onlinePlayerId) return;
-                    const d = docSnap.data() || {};
-                    // 15秒以上更新がないプレイヤーは除外
-                    if (now - Number(d.updatedAt || 0) > 15000) return;
-                    
-                    next.set(docSnap.id, {
-                        id: docSnap.id,
-                        nickname: (typeof normalizeNickname === 'function' ? normalizeNickname(d.nickname || 'PLAYER') : d.nickname || 'PLAYER'),
-                        x: Number(d.x || 0), y: Number(d.y || 0),
-                        hp: Number(d.hp || 1), maxHp: Number(d.maxHp || 1),
-                        level: Number(d.level || 1),
-                        shieldLevel: Number(d.shieldLevel || 0),
-                        score: Number(d.score || 0),
-                        role: String(d.role || ''),
-                        roleName: String(d.roleName || ''),
-                        lastHitFlash: 0
-                    });
-                });
-                remotePlayers = next;
-                updateHudV42();
-            });
-        };
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
-        syncOnlinePresence = function() {
-            if (!isOnlineMode || typeof player === 'undefined' || !player || typeof db === 'undefined' || !db || !fbSetDoc) return;
-            if (typeof frameCount !== 'undefined' && typeof onlineLastSyncFrame !== 'undefined' && frameCount - onlineLastSyncFrame < 12) return;
-            onlineLastSyncFrame = typeof frameCount !== 'undefined' ? frameCount : 0;
-            try {
-                fbSetDoc(getDocRefV42(onlinePlayerId), {
-                    nickname: (typeof getNickname === 'function' ? getNickname() : 'PLAYER') || 'PLAYER',
-                    x: player.x, y: player.y,
-                    hp: player.hp, maxHp: player.maxHp,
-                    level: player.level,
-                    shieldLevel: player.onlineShieldLevel || 0,
-                    score: Math.floor(typeof score !== 'undefined' ? score : 0),
-                    role: player.onlineRole || '',
-                    roleName: player.onlineRoleName || '',
-                    updatedAt: Date.now()
-                }, { merge:true }).catch(()=>{});
-            } catch(e) {}
-        };
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 
-        sendOnlineHit = function(targetId, baseDamage) {
-            if (!isOnlineMode || !targetId || typeof db === 'undefined' || !db || !fbSetDoc) return 0;
-            let damage = baseDamage;
-            if (typeof calcOnlinePvpDamage === 'function') damage = calcOnlinePvpDamage(baseDamage);
-            if (damage <= 0) return 0;
-            const hitId = `${onlinePlayerId}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
-            try {
-                fbSetDoc(getDocRefV42(targetId), {
-                    hits: { [hitId]: { from: onlinePlayerId, fromName: (typeof getNickname === 'function' ? getNickname() : 'PLAYER') || 'PLAYER', damage: damage, at: Date.now() } }
-                }, { merge:true }).catch(()=>{});
-                return damage;
-            } catch(e) { return 0; }
-        };
-
-        processOnlineIncomingDamage = async function() {
-            if (!isOnlineMode || typeof player === 'undefined' || !player || typeof db === 'undefined' || !db || !fbGetDoc) return;
-            if (typeof frameCount !== 'undefined' && typeof onlineLastDamagePollFrame !== 'undefined' && frameCount - onlineLastDamagePollFrame < 10) return;
-            onlineLastDamagePollFrame = typeof frameCount !== 'undefined' ? frameCount : 0;
-            try {
-                const snap = await fbGetDoc(getDocRefV42(onlinePlayerId));
-                if (!snap.exists()) return;
-                const data = snap.data() || {};
-                const hits = data.hits || {};
-                const now = Date.now();
-                const clearFields = {};
-                let hpBefore = player.hp;
-                for (const [hitId, hit] of Object.entries(hits)) {
-                    if (!hit || (typeof onlineProcessedHitIds !== 'undefined' && onlineProcessedHitIds.has(hitId))) continue;
-                    if (typeof onlineProcessedHitIds !== 'undefined') onlineProcessedHitIds.add(hitId);
-                    
-                    if (now - Number(hit.at || 0) > 10000) { if (typeof fbDeleteField !== 'undefined' && fbDeleteField) clearFields[`hits.${hitId}`] = fbDeleteField(); continue; }
-                    if (hit.from === onlinePlayerId) continue;
-                    
-                    const damage = Math.max(1, Number(hit.damage || 0));
-                    player.takeDamage(damage);
-                    if (player.hp < hpBefore && typeof FloatingText !== 'undefined' && typeof floatingTexts !== 'undefined') {
-                        floatingTexts.push(new FloatingText(player.x, player.y - 48, `${hit.fromName || 'PLAYER'} -${Math.floor(damage)}`, '#f87171', 15));
-                    }
-                    hpBefore = player.hp;
-                    if (typeof fbDeleteField !== 'undefined' && fbDeleteField) clearFields[`hits.${hitId}`] = fbDeleteField();
-                }
-                if (Object.keys(clearFields).length && typeof fbUpdateDoc !== 'undefined' && fbUpdateDoc) {
-                    fbUpdateDoc(getDocRefV42(onlinePlayerId), clearFields).catch(()=>{});
-                }
-                if (typeof onlineProcessedHitIds !== 'undefined' && onlineProcessedHitIds.size > 600) {
-                    onlineProcessedHitIds = new Set(Array.from(onlineProcessedHitIds).slice(-300));
-                }
-            } catch(e) {}
-        };
-
-        // ボタンのイベントを上書きして、制限チェックなしに直接次へ進める
-        const confirmBtn = document.getElementById('confirmOnlineRoomBtn');
-        if (confirmBtn) {
-            const newBtn = confirmBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
-            newBtn.addEventListener('click', () => {
-                getCodeV42(); 
-                if (typeof renderOnlineRoleScreen === 'function') {
-                    renderOnlineRoleScreen();
-                    if (typeof showScreen === 'function') showScreen('onlineRoleScreen');
-                } else {
-                    if (typeof initGame === 'function') initGame('online');
-                }
-            });
-        }
-        
-        const randomBtn = document.getElementById('randomOnlineRoomBtn');
-        if (randomBtn) {
-            const newRnd = randomBtn.cloneNode(true);
-            randomBtn.parentNode.replaceChild(newRnd, randomBtn);
-            newRnd.addEventListener('click', () => {
-                const input = document.getElementById('onlineRoomInput');
-                if (input) {
-                    input.value = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
-                    getCodeV42();
-                }
-            });
-        }
-    }
-
-    function markV42() {
-        try {
-            if (!document.getElementById('nsvBadgeCleanupStyle')) {
-                const st = document.createElement('style');
-                st.id = 'nsvBadgeCleanupStyle';
-                st.textContent = `
-                    [id^="nsvV"][id$="Badge"] { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-                    #nsvFinalBadge { display: block !important; opacity: 1 !important; }
-                `;
-                document.head.appendChild(st);
-            }
-
-            let badge = document.getElementById('nsvFinalBadge');
-            if (!badge) {
-                badge = document.createElement('div');
-                badge.id = 'nsvFinalBadge';
-                badge.style.cssText = "position:fixed;left:10px;bottom:8px;z-index:9999;pointer-events:none;color:#bfdbfe;background:rgba(2,6,23,.86);border:1px solid rgba(96,165,250,.6);border-radius:999px;padding:4px 9px;font:900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif;letter-spacing:.08em;box-shadow:0 0 13px rgba(59,130,246,.32)";
-                document.body.appendChild(badge);
-            }
-            badge.textContent = V42_TAG;
-        } catch(e) {}
-    }
-
-    function bootV42() {
-        markV42();
-        patchOnlineV42();
-    }
-
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV42, {once:true}); else bootV42();
-    window.addEventListener('pageshow', bootV42, {passive:true});
-    setInterval(markV42, 1500);
-})();
-</script>
-
-<script>
-// V43: SHOP表示のクリーンアップ（所持コインとチケットを統合して1つだけにする）
-(() => {
-    const V43_TAG = 'V43 SHOP CLEANUP';
-    
-    // 既存の古いコイン表示処理を無効化
-    window.patchShopCoin = function() {};
-    if (typeof patchShopCoinV13 !== 'undefined') window.patchShopCoinV13 = function() {};
-
-    // V37のショップ描画関数を上書き
-    if (typeof renderShopStableV37 !== 'undefined') {
-        const oldRenderShop = renderShopStableV37;
-        window.renderShopStableV37 = function(force = false) {
-            // 元の描画ロジックをバイパスして新しいHTMLを注入する
-            if (window.shopRenderLockV37) return;
-            window.shopRenderLockV37 = true;
-            try {
-                const u = (typeof ensureUserV37 === 'function') ? ensureUserV37() : userData;
-                let div = document.getElementById('shopScreen');
-                if (!div) {
-                    div = document.createElement('div');
-                    div.id = 'shopScreen';
-                    div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3';
-                    document.body.appendChild(div);
-                }
-                if (!force && div.classList.contains('hidden')) return;
-                
-                const coins = Math.floor(Number(u?.coins) || 0);
-                const tickets = Math.floor(Number(u?.passTickets) || 0);
-                const premium = !!(u?.battlePassV2?.premium || u?.battlePass?.premium);
-                const PASS_TICKET_COST = (typeof PASS_TICKET_COST_V37 !== 'undefined') ? PASS_TICKET_COST_V37 : 100000;
-                
-                div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4">
-                    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-                        <div>
-                            <h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">GAME SHOP</h2>
-                            <p class="text-gray-300 text-sm mt-2">銀コインをチケットやパスに使えます。</p>
-                        </div>
-                        <button id="closeShopBtnV43" class="btn-neon px-4 py-2 rounded font-bold">BACK</button>
-                    </div>
-                    
-                    <!-- 統合された1つだけの所持情報欄 -->
-                    <div class="flex flex-wrap items-center justify-center gap-8 bg-black/60 border border-yellow-400/50 rounded-2xl p-5 shadow-[0_0_20px_rgba(250,204,21,0.2)]">
-                        <div class="text-center">
-                            <div class="text-sm text-yellow-400 font-bold tracking-widest mb-1">所持コイン</div>
-                            <div class="text-3xl md:text-4xl font-black text-yellow-200">🪙 ${coins.toLocaleString()}</div>
-                        </div>
-                        <div class="w-px h-16 bg-gray-600/50 hidden md:block"></div>
-                        <div class="text-center">
-                            <div class="text-sm text-cyan-400 font-bold tracking-widest mb-1">所持チケット</div>
-                            <div class="text-3xl md:text-4xl font-black text-cyan-200">🎟️ ${tickets.toLocaleString()}</div>
-                        </div>
-                    </div>
-
-                    <div id="shopListContainer" class="nsv-v37-shop-grid">
-                        <div class="nsv-v37-shop-card flex flex-col justify-between">
-                            <div>
-                                <div class="text-5xl mb-2">🎟️</div>
-                                <h3 class="text-2xl font-bold text-yellow-300">バトルパスチケット</h3>
-                                <p class="text-sm text-gray-300 mt-2">価格はいつでも固定です。</p>
-                                <p class="text-xl font-black text-yellow-200 mt-3">必要コイン：${PASS_TICKET_COST.toLocaleString()}</p>
-                            </div>
-                            <button id="buyPassTicketBtnV43" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${coins >= PASS_TICKET_COST ? '' : 'opacity-50'}">チケットを1枚交換</button>
-                        </div>
-                        <div class="nsv-v37-shop-card flex flex-col justify-between">
-                            <div>
-                                <div class="text-5xl mb-2">⭐</div>
-                                <h3 class="text-2xl font-bold text-cyan-300">NEON PASS</h3>
-                                <p class="text-sm text-gray-300 mt-2">チケット1枚で現在のパスを購入できます。</p>
-                                <p class="text-sm text-gray-300 mt-3">状態：<b class="${premium ? 'text-green-300' : 'text-gray-300'}">${premium ? '購入済み' : '未購入'}</b></p>
-                            </div>
-                            <div>
-                                <button id="buyNeonPassBtnV43" class="btn-neon px-5 py-3 rounded font-bold mt-4 w-full ${(tickets > 0 && !premium) ? '' : 'opacity-50'}">NEON PASSを購入</button>
-                                <button id="openPassFromShopBtnV43" class="btn-purple px-5 py-3 rounded font-bold mt-3 w-full">NEON PASSを見る</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-
-                // 古いヘッダーが残っていたら強制削除
-                const oldHeaders = div.querySelectorAll('#nsvV13ShopCoinHeader, #nsvV30ShopCoinHeader');
-                oldHeaders.forEach(el => el.remove());
-
-                document.getElementById('closeShopBtnV43')?.addEventListener('click', () => {
-                    if (typeof stableShowV37 === 'function') stableShowV37('startScreen');
-                    else if (typeof showScreen === 'function') showScreen('startScreen');
-                });
-                document.getElementById('buyPassTicketBtnV43')?.addEventListener('click', () => {
-                    if (Number(u.coins || 0) < PASS_TICKET_COST) { alert('コインが足りません。'); return; }
-                    u.coins = Math.floor(Number(u.coins) - PASS_TICKET_COST);
-                    u.passTickets = Math.floor(Number(u.passTickets || 0) + 1);
-                    if (typeof saveNowV37 === 'function') saveNowV37();
-                    else if (typeof saveData === 'function') saveData();
-                    window.renderShopStableV37(true);
-                });
-                document.getElementById('buyNeonPassBtnV43')?.addEventListener('click', () => {
-                    const already = !!(u.battlePassV2?.premium || u.battlePass?.premium);
-                    if (already) { alert('すでに購入済みです。'); return; }
-                    if (Number(u.passTickets || 0) <= 0) { alert('チケットが足りません。'); return; }
-                    u.passTickets = Math.floor(Number(u.passTickets) - 1);
-                    u.battlePassV2 = u.battlePassV2 || {}; u.battlePassV2.premium = true;
-                    u.battlePass = u.battlePass || {}; u.battlePass.premium = true;
-                    if (typeof saveNowV37 === 'function') saveNowV37();
-                    else if (typeof saveData === 'function') saveData();
-                    window.renderShopStableV37(true);
-                });
-                document.getElementById('openPassFromShopBtnV43')?.addEventListener('click', () => {
-                    if (typeof renderBattlePassV2 === 'function') renderBattlePassV2('base');
-                    if (typeof stableShowV37 === 'function') stableShowV37('battlePassScreen');
-                    else if (typeof showScreen === 'function') showScreen('battlePassScreen');
-                });
-            } catch(e) {}
-            finally { window.shopRenderLockV37 = false; }
-        };
-        
-        // 別の場所から呼ばれるエイリアスも上書き
-        window.renderShopV2 = window.renderShopStableV37;
-        window.renderShopScreen20260504 = window.renderShopStableV37;
-    }
-
-    function markV43() {
-        try {
-            if (!document.getElementById('nsvShopCleanupStyle')) {
-                const st = document.createElement('style');
-                st.id = 'nsvShopCleanupStyle';
-                st.textContent = `
-                    #nsvV13ShopCoinHeader, #nsvV30ShopCoinHeader { display: none !important; }
-                    [id^="nsvV"][id$="Badge"] { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-                    #nsvFinalBadge { display: block !important; opacity: 1 !important; }
-                `;
-                document.head.appendChild(st);
-            }
-
-            let badge = document.getElementById('nsvFinalBadge');
-            if (!badge) {
-                badge = document.createElement('div');
-                badge.id = 'nsvFinalBadge';
-                badge.style.cssText = "position:fixed;left:10px;bottom:8px;z-index:9999;pointer-events:none;color:#fde047;background:rgba(66,32,6,.86);border:1px solid rgba(250,204,21,.6);border-radius:999px;padding:4px 9px;font:900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif;letter-spacing:.08em;box-shadow:0 0 13px rgba(250,204,21,.32)";
-                document.body.appendChild(badge);
-            }
-            badge.textContent = V43_TAG;
-        } catch(e) {}
-    }
-
-    function bootV43() {
-        markV43();
-        // 万が一、画面が開かれていたら再描画する
-        const shop = document.getElementById('shopScreen');
-        if (shop && !shop.classList.contains('hidden')) {
-            if (typeof window.renderShopStableV37 === 'function') window.renderShopStableV37(true);
-        }
-    }
-
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV43, {once:true}); else bootV43();
-    setInterval(markV43, 1500);
-})();
-</script>
-
-<script>
-// V44: ネオンパスのスペシャル報酬を常に確認できるようにするパッチ
-(() => {
-    const V44_TAG = 'V44 PASS VIEW';
-
-    if (typeof passV21RewardCard === 'function') {
-        window.passV21RewardCard = function(r, p, special, unlockedSpecial) {
-            const claimed = !!(special ? p.specialClaimed?.[r.id] : p.claimed?.[r.id]);
-            const canClaim = (special ? unlockedSpecial : p.premium) && !claimed && Number(p.battleStars || 0) >= Number(r.cost || 0);
-            let state = 'locked', stateText = '\u672A\u89E3\u653E';
-            if (claimed) { state = 'claimed'; stateText = '\u5165\u624B\u6E08\u307F'; }
-            else if (canClaim) { state = 'ready'; stateText = '\u53D7\u3051\u53D6\u308AOK'; }
-            else if (!special && !p.premium) { stateText = '\u30D1\u30B9\u8CFC\u5165\u304C\u5FC5\u8981'; }
-            else if (special && !unlockedSpecial) { stateText = '\u57FA\u672C\u5831\u916C\u306E\u5168\u53D7\u53D6\u304C\u5FC5\u8981'; }
-            else if (Number(p.battleStars || 0) < Number(r.cost || 0)) { stateText = `\u30B9\u30BF\u30FC\u4E0D\u8DB3\uFF1A\u3042\u3068${Math.max(0, Number(r.cost || 0) - Number(p.battleStars || 0))}`; }
-            const buttonText = claimed ? '\u5165\u624B\u6E08\u307F' : canClaim ? '\u53D7\u3051\u53D6\u308B' : stateText;
-            
-            return `<div class="nsv-v21-reward ${special ? 'special' : ''} ${state}">
-                <div class="nsv-v21-topline"><span class="nsv-v21-kind">${passV21Escape(cosmeticTypeLabel(r.type))}</span><span class="nsv-v21-cost">\u2B50 ${Math.floor(Number(r.cost || 0))}</span></div>
-                <div class="flex items-center gap-3"><div class="nsv-v21-icon">${passV21Escape(r.icon || '\uD83C\uDF81')}</div><div><div class="nsv-v21-name">${passV21Escape(r.name)}</div><span class="nsv-v2-rarity nsv-rarity-${passV21Escape(r.rarity || 'RARE')}">${passV21Escape(r.rarity || 'RARE')}</span></div></div>
-                <p class="nsv-v21-desc">${passV21Escape(r.desc || '')}</p>
-                <span class="nsv-v21-state ${state}">${passV21Escape(stateText)}</span>
-                <button class="claim-pass-v2 nsv-v21-claim ${special ? 'btn-purple' : 'btn-gold'} px-3 py-2 rounded text-sm font-bold" data-id="${passV21Escape(r.id)}" data-special="${special ? '1':'0'}" ${canClaim ? '' : 'disabled'}>${passV21Escape(buttonText)}</button>
-            </div>`;
-        };
-    }
-
-    if (typeof renderBattlePassV2 === 'function') {
-        window.renderBattlePassV2 = function(tab='base') {
-            ensurePassV2Data();
-            ensurePassScreenV2();
-            const s = fridaySeasonInfoV2();
-            const p = userData.battlePassV2;
-            const top = document.getElementById('battlePassTopContainer');
-            const box = document.getElementById('battlePassTrackContainer');
-            ['passTabBase','passTabSpecial','passTabLocker'].forEach(id => document.getElementById(id)?.classList.remove('active'));
-            document.getElementById(tab === 'special' ? 'passTabSpecial' : tab === 'locker' ? 'passTabLocker' : 'passTabBase')?.classList.add('active');
-            const baseTotal = s.theme.rewards.length;
-            const baseCount = s.theme.rewards.filter(r => p.claimed?.[r.id]).length;
-            const specialUnlocked = p.specialUnlocked || allBaseClaimedV2();
-            const activeList = tab === 'special' ? s.theme.special : s.theme.rewards;
-            const readyCount = tab === 'locker' ? 0 : passV21ReadyCount(activeList, p, tab === 'special');
-            const progressPct = Math.min(100, Math.max(0, (baseCount / Math.max(1, baseTotal)) * 100));
-            
-            top.innerHTML = `<div class="nsv-pass-v21-hero" style="border-color:${s.theme.color};box-shadow:0 0 24px ${s.theme.color}44">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                    <div>
-                        <div class="text-xs text-yellow-300 font-bold">${passV21Escape(s.theme.icon)} SEASON 1 / \u6B8B\u308A\u7D04${Math.floor(s.remain || 0)}\u65E5</div>
-                        <h3 class="text-2xl font-black text-white mt-1">${passV21Escape(s.theme.name)}</h3>
-                        <p class="text-sm text-gray-300 mt-1">${passV21Escape(s.theme.sub)}</p>
-                    </div>
-                    <button id="buyPassTopBtnV2" class="btn-gold px-5 py-3 rounded font-bold ${(userData.passTickets > 0 && !p.premium) ? '' : 'opacity-40 cursor-not-allowed'}" ${(userData.passTickets > 0 && !p.premium) ? '' : 'disabled'}>${p.premium ? '\u8CFC\u5165\u6E08\u307F' : '\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u8CFC\u5165'}</button>
-                </div>
-                <div class="nsv-pass-v21-summary">
-                    <div class="nsv-pass-v21-stat"><small>\u6240\u6301\u30B9\u30BF\u30FC</small><b>\u2B50 ${Math.floor(Number(p.battleStars || 0))}</b></div>
-                    <div class="nsv-pass-v21-stat"><small>\u30C1\u30B1\u30C3\u30C8</small><b>\uD83C\uDF9F\uFE0F ${Math.floor(Number(userData.passTickets || 0))}</b></div>
-                    <div class="nsv-pass-v21-stat"><small>\u57FA\u672C\u5831\u916C</small><b>\uD83C\uDF81 ${baseCount}/${baseTotal}</b></div>
-                    <div class="nsv-pass-v21-stat"><small>\u6B21\u306E\u30B9\u30BF\u30FC</small><b>${passV21Escape(passV21NextStarText(p))}</b></div>
-                </div>
-                <div class="nsv-pass-v21-progress"><div style="width:${progressPct}%"></div></div>
-                <p class="text-xs text-gray-300 mt-2">\u53D7\u3051\u53D6\u308A\u53EF\u80FD\uFF1A<b class="text-green-300">${readyCount}</b> / \u8A0E\u4F10\u6570\uFF1A<b class="text-cyan-300">${Math.floor(Number(p.seasonKills || 0))}</b>\u4F53 / 60\u4F53\u3054\u3068\u306B\u30B9\u30BF\u30FC+1</p>
-            </div>`;
-            document.getElementById('buyPassTopBtnV2')?.addEventListener('click', buyNeonPassV2);
-            
-            if (tab === 'locker') return renderLockerV2(box);
-            
-            const special = tab === 'special';
-            const list = special ? s.theme.special : s.theme.rewards;
-            
-            let html = '';
-            if (special && !specialUnlocked) {
-                html += `<div class="nsv-v21-empty mb-3 py-4" style="border:1px dashed rgba(168,85,247,0.4); background:rgba(88,28,135,0.15);">
-                    <div class="text-2xl mb-1">\uD83D\uDD12</div>
-                    <h3 class="text-lg font-bold text-purple-300">\u30B9\u30DA\u30B7\u30E3\u30EB\u672A\u89E3\u653E</h3>
-                    <p class="text-xs text-gray-300 mt-1">\u57FA\u672C\u5831\u916C\u3092\u5168\u90E8\u5165\u624B\u3059\u308B\u3068\u3001\u53D7\u3051\u53D6\u308A\u53EF\u80FD\u306B\u306A\u308A\u307E\u3059\u3002</p>
-                </div>`;
-            }
-            
-            html += `<div class="nsv-v21-reward-grid">${list.map(r => window.passV21RewardCard(r, p, special, specialUnlocked)).join('')}</div>`;
-            box.innerHTML = html;
-            
-            box.querySelectorAll('.claim-pass-v2').forEach(btn => btn.addEventListener('click', () => claimV2Reward(btn.dataset.id, btn.dataset.special === '1')));
-        };
-    }
-
-    function markV44() {
-        try {
-            let badge = document.getElementById('nsvFinalBadge');
-            if (badge) {
-                badge.textContent = V44_TAG;
-            }
-        } catch(e) {}
-    }
-
-    function bootV44() {
-        markV44();
-        const passScreen = document.getElementById('battlePassScreen');
-        if (passScreen && !passScreen.classList.contains('hidden')) {
-            if (typeof window.renderBattlePassV2 === 'function') {
-                const activeTab = document.querySelector('.nsv-pass-v21-tab.active');
-                const tab = activeTab?.id === 'passTabSpecial' ? 'special' : activeTab?.id === 'passTabLocker' ? 'locker' : 'base';
-                window.renderBattlePassV2(tab);
-            }
-        }
-    }
-
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV44, {once:true}); else bootV44();
-    setInterval(markV44, 1500);
-})();
-</script>
-
-<script>
-// V45: WEAPON CODEXにおける未解放武器のON/OFF切り替えバグの修正
-(() => {
-    const V45_TAG = 'V45 WEAPON LOCK FIX';
-
-    // 既存のカード描画関数を完全に安全なものに上書きする
-    window.makeWeaponCodexCard = function(w) {
-        if (typeof ensureProgressionData === 'function') ensureProgressionData();
-        if (typeof ensureWeaponSpawnSettings20260504 === 'function') ensureWeaponSpawnSettings20260504();
-        
-        const used = typeof isWeaponCodexUsed === 'function' ? isWeaponCodexUsed(w.id) : false;
-        
-        let locked = false;
-        // 未解放の条件を厳密にチェック
-        if (typeof ultimateUnlockedV35 === 'function' && typeof ULTIMATE_IDS_V35 !== 'undefined' && ULTIMATE_IDS_V35.has(w.id)) {
-            locked = !ultimateUnlockedV35(w.id);
-        } else if (typeof isWeaponMissionLocked20260504 === 'function') {
-            locked = isWeaponMissionLocked20260504(w.id);
-        } else if (typeof MISSION_LOCKED_WEAPON_IDS_20260504 !== 'undefined' && typeof userData !== 'undefined') {
-            locked = MISSION_LOCKED_WEAPON_IDS_20260504.has(w.id) && !(userData.unlocks && userData.unlocks.legendaryWeapons && userData.unlocks.legendaryWeapons[w.id]);
-        }
-
-        let enabled = true;
-        if (typeof isWeaponSpawnEnabled20260504 === 'function') {
-            enabled = isWeaponSpawnEnabled20260504(w.id);
-        }
-
-        // ミッションの進行状況表示
-        let progressHtml = '';
-        if (locked && typeof requirementForUltimateV35 === 'function') {
-            const req = requirementForUltimateV35(w.id);
-            if (req) {
-                const progress = Math.min(req.target, Math.floor(metricValueV35(req.metric)));
-                progressHtml = `<p class="text-[11px] text-gray-300 mt-1">\u89E3\u653E\u6761\u4EF6\uFF1A${req.desc || '\u30DF\u30C3\u30B7\u30E7\u30F3\u9054\u6210'}\uFF08${progress}/${req.target}\uFF09</p>`;
-            }
-        }
-
-        const toggleHtml = `
-            <div class="mt-3 border-t border-slate-700 pt-3">
-                ${locked ? `<p class="text-xs text-red-200 font-bold">\u672A\u89E3\u653E</p>${progressHtml}` : `
-                <label class="flex items-center justify-between gap-3 cursor-pointer">
-                    <span class="text-xs font-bold ${enabled?'text-green-300':'text-red-300'}">\u51FA\u73FE\uFF1A${enabled?'ON':'OFF'}</span>
-                    <input type="checkbox" class="weapon-spawn-toggle w-5 h-5" data-id="${w.id}" ${enabled?'checked':''}>
-                </label>
-                <p class="text-[11px] text-gray-300 mt-2 leading-relaxed">${enabled ? 'ON\uFF1A\u3053\u306E\u6B66\u5668\u304C\u30EC\u30D9\u30EB\u30A2\u30C3\u30D7\u5019\u88DC\u306B\u51FA\u307E\u3059\u3002' : 'OFF\uFF1A\u3053\u306E\u6B66\u5668\u306F\u5019\u88DC\u306B\u51FA\u307E\u305B\u3093\u3002\u91CD\u3044\u6B66\u5668\u3092\u5916\u3059\u6642\u306B\u3082\u4F7F\u3048\u307E\u3059\u3002'}</p>`}
-            </div>`;
-            
-        return `<div class="collection-card ${used || !locked ? 'unlocked':''}">
-            <div class="flex items-start justify-between gap-2">
-                <div class="text-3xl">${w.icon || '\u2754'}</div>
-                <span class="text-[11px] font-bold px-2 py-1 rounded ${locked?'bg-red-950/80 text-red-200 border border-red-400/50':used?'bg-green-900/70 text-green-200 border border-green-400/50':'bg-slate-800 text-gray-300 border border-gray-500/40'}">${locked?'\u672A\u89E3\u653E':used?'\u4F7F\u7528\u6E08\u307F':'\u672A\u4F7F\u7528'}</span>
-            </div>
-            <h3 class="font-bold text-white mt-1">${w.name}</h3>
-            <p class="text-xs text-purple-200 font-bold mt-1">${w.type || 'WEAPON'}</p>
-            <p class="text-sm text-gray-300 mt-1">${w.desc || ''}</p>
-            <div class="text-xs text-gray-300 mt-3 space-y-1">
-                <p>\u653B\u6483\u30BF\u30A4\u30D7\uFF1A${w.attackType || '\u7279\u6B8A'}</p>
-                <p>\u5F37\u3044\u5834\u9762\uFF1A${w.strong || '\u72B6\u6CC1\u6B21\u7B2C'}</p>
-                <p>\u5F31\u3044\u5834\u9762\uFF1A${w.weak || '\u4F7F\u3044\u65B9\u6B21\u7B2C'}</p>
-                <p>\u5165\u624B\u30FB\u9032\u5316\u6761\u4EF6\uFF1A${w.unlock || '\u30B2\u30FC\u30E0\u4E2D\u306B\u5165\u624B'}</p>
-            </div>
-            ${toggleHtml}
-        </div>`;
-    };
-
-    function markV45() {
-        try {
-            let badge = document.getElementById('nsvFinalBadge');
-            if (badge) {
-                badge.textContent = V45_TAG;
-            }
-        } catch(e) {}
-    }
-
-    function bootV45() {
-        markV45();
-        // 現在開かれている場合は再描画する
-        const codexScreen = document.getElementById('weaponCodexScreen');
-        if (codexScreen && !codexScreen.classList.contains('hidden')) {
-            if (typeof renderWeaponCodexScreen === 'function') renderWeaponCodexScreen();
-        }
-    }
-
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV45, {once:true}); else bootV45();
-    setInterval(markV45, 1500);
-})();
-</script>
-
-<script>
-// V47: アルティメット武器の未解放表示バグの完全修正
-(() => {
-    const V47_TAG = 'V47 WEAPON LOCK FIX FINAL';
-
-    // モジュール内に隠蔽された武器データを再構築する
-    const BASE_WEAPONS = [
-        { type:'BASIC', name:'通常弾', icon:'\uD83D\uDD39', desc:'一番基本の自動攻撃。攻撃力・連射・貫通の強化が乗る。', attackType:'単体・遠距離', strong:'序盤、狙った敵', weak:'敵が多すぎる場面', unlock:'最初から' },
-        { type:'BASIC', name:'円環の刃界', icon:'\uD83C\uDF00', desc:'周囲を回る刃で近くの敵を削る。', attackType:'近距離・周囲', strong:'囲まれた時', weak:'遠い敵', unlock:'レベルアップ' },
-        { type:'BASIC', name:'破滅の雷域', icon:'\u26A1', desc:'一定間隔で周囲へ雷ダメージ。', attackType:'範囲・自動', strong:'ザコ敵の群れ', weak:'単体ボス', unlock:'レベルアップ' },
-        { type:'BASIC', name:'虚空次元の暴風', icon:'\uD83C\uDF2A\uFE0F', desc:'巨大竜巻で敵を巻き込み、ジェムも集めやすくなる。', attackType:'吸引・範囲', strong:'ジェム回収、密集敵', weak:'離れたボス', unlock:'レベルアップ' },
-        { type:'BASIC', name:'ファントムステップ', icon:'\uD83D\uDC7B\uD83D\uDCA8', desc:'残像を残しながら神速移動する強力な回避武器。発動中は短時間ダメージを受けにくい。', attackType:'移動・回避・接触斬り', strong:'囲まれた時、ボス接近、オンラインのロック外し', weak:'クールダウン中は効果がない', unlock:'ミッション「幻影歩法の試練」達成で解放', id:'phantomStep' }
-    ];
-
-    const ULTIMATE_WEAPONS = [
-        { type:'ULTIMATE', name:'深淵の重力刃', icon:'\u2694\uFE0F', desc:'敵を吸い寄せて巨大な刃で攻撃。', attackType:'吸引・斬撃', strong:'敵をまとめる場面', weak:'高速敵', unlock:'ミッション「暗黒卿の試練」で解放', id:'vader' },
-        { type:'ULTIMATE', name:'雷霆砕破・轟', icon:'\uD83E\uDE93', desc:'雷神の斧を投げて広範囲を攻撃。', attackType:'投てき・広範囲', strong:'中盤以降の群れ', weak:'狙いがずれる場面', unlock:'ミッション「轟のハンマー」で解放', id:'thor' },
-        { type:'ULTIMATE', name:'龍星・崩命破', icon:'\uD83C\uDF0A', desc:'狙った方向に強力なビームを放つ。', attackType:'ビーム・直線', strong:'ボス、一直線の敵', weak:'横から来る敵', unlock:'ミッション「崩命破の継承」で解放', id:'kamehameha' },
-        { type:'ULTIMATE', name:'創世の光芒', icon:'\uD83E\uDD16', desc:'高速ブラスターと極太ユニビームで攻撃する。', attackType:'連射・ビーム', strong:'中盤以降の敵の群れ', weak:'出現率が低い', unlock:'ミッション「機神起動」で解放', id:'ironBlaster' },
-        { type:'ULTIMATE', name:'星砕きの流星群', icon:'\uD83D\uDEF0\uFE0F', desc:'敵を自動追尾して連続爆破する。', attackType:'追尾・爆破', strong:'動き回る敵', weak:'単体火力は状況次第', unlock:'ミッション「流星群観測」で解放', id:'funnel' },
-        { type:'ULTIMATE', name:'星夢の輪舞曲', icon:'\uD83E\uDE84', desc:'敵を味方にして大きく強化する特殊武器。', attackType:'魅了・味方化', strong:'敵が多い時', weak:'出現率がかなり低い', unlock:'ミッション「星夢のステージ」で解放', id:'disneyMagic' },
-        { type:'ULTIMATE', name:'無量空処', icon:'\u267E\uFE0F', desc:'領域で敵を止めて大ダメージを与える。', attackType:'停止・範囲', strong:'ピンチの時、ボス戦', weak:'発動待ちが必要', unlock:'ミッション「領域到達」で解放', id:'muryoku' },
-        { type:'ULTIMATE', name:'絶対防壁の反響', icon:'\uD83D\uDEE1\uFE0F', desc:'盾を投げて敵の間を跳ね返らせる。', attackType:'反射・防御寄り', strong:'敵が横に広がる場面', weak:'狙いが分散する場面', unlock:'ミッション「不壊の守り」で解放', id:'shieldThrow' },
-        { type:'ULTIMATE', name:'終焉の指弾', icon:'\uD83E\uDEF0', desc:'強力な衝撃で大量の敵を一気に削る。', attackType:'全体攻撃寄り', strong:'敵が多すぎる時', weak:'発動タイミングに左右される', unlock:'ミッション「終焉の合図」で解放', id:'infinitySnap' },
-        { type:'ULTIMATE', name:'無限の剣陣', icon:'\uD83D\uDDE1\uFE0F', desc:'黄金の剣を大量に射出する。', attackType:'弾幕・範囲', strong:'広い範囲の敵', weak:'単体特化ではない', unlock:'ミッション「無限剣の契約」で解放', id:'infiniteBlade' },
-        { type:'ULTIMATE', name:'天帝の裁界・霹靂', icon:'\u26A1', desc:'画面全体に強力な雷を落とす。', attackType:'全体・雷', strong:'大量の敵', weak:'出現率が低い', unlock:'ミッション「天帝の雷」で解放', id:'keraunos' },
-        { type:'ULTIMATE', name:'虚式「茈」', icon:'\uD83D\uDFE3', desc:'巨大な紫の攻撃で広範囲を消し飛ばす。', attackType:'超火力・範囲', strong:'ボス、密集敵', weak:'出現率が低い', unlock:'ミッション「虚式解放試練」で解放', id:'hollowMurasaki' }
-    ];
-
-    const ONLINE_WEAPONS = [
-        { type:'ONLINE', name:'スナイパー', icon:'\uD83C\uDFAF', desc:'オンライン向けの高威力・超貫通弾。', attackType:'遠距離・高火力', strong:'ボス戦、オンライン', weak:'敵が多すぎる時', unlock:'オンラインのレベルアップ', id:'onlineSniper' },
-        { type:'ONLINE', name:'跳弾ボム', icon:'\uD83D\uDCA3', desc:'跳ねながら爆発する範囲攻撃。', attackType:'爆発・範囲', strong:'密集した敵', weak:'単体狙い', unlock:'オンラインのレベルアップ', id:'onlineBounceBomb' },
-        { type:'ONLINE', name:'毒雲', icon:'\u2623\uFE0F', desc:'範囲内に継続ダメージ。', attackType:'継続ダメージ', strong:'範囲内に留まる敵', weak:'高速敵', unlock:'オンラインのレベルアップ', id:'onlinePoison' },
-        { type:'ONLINE', name:'重力パルサー', icon:'\uD83D\uDFE3', desc:'敵や相手を吸い寄せる範囲攻撃。', attackType:'吸引・妨害', strong:'相手の動きを崩す', weak:'火力だけ欲しい場面', unlock:'オンラインのレベルアップ', id:'onlineGravity' },
-        { type:'ONLINE', name:'ファントムダガー', icon:'\uD83D\uDDE1\uFE0F', desc:'誘導弾で相手を追い込むオンライン武器。', attackType:'追尾弾', strong:'逃げる相手', weak:'盾持ち相手', unlock:'オンラインのレベルアップ', id:'onlinePhantomDagger' },
-        { type:'ONLINE', name:'バナナスリップ砲', icon:'\uD83C\uDF4C', desc:'バナナをばらまいて相手にダメージを与えるネタ武器。', attackType:'設置・妨害', strong:'相手の移動を崩す', weak:'まっすぐ火力は低め', unlock:'オンラインのレベルアップ', id:'onlineBanana' },
-        { type:'ONLINE', name:'アストラル・ジャッジメント', icon:'\u2604\uFE0F', desc:'星の槍を落として広範囲を攻撃する。', attackType:'範囲・落下攻撃', strong:'相手のいる場所を狙う', weak:'避けられることがある', unlock:'オンラインのレベルアップ', id:'onlineAstral' },
-        { type:'ONLINE', name:'ネビュラ・ハリセンノヴァ', icon:'\uD83E\uDEAD', desc:'巨大な衝撃波を落とすオンライン武器。', attackType:'範囲・衝撃波', strong:'密集、対人妨害', weak:'発動位置に左右される', unlock:'オンラインのレベルアップ', id:'onlineHarisen' },
-        { type:'ONLINE', name:'コズミック・スシレイン', icon:'\uD83C\uDF63', desc:'寿司メテオを降らせる見た目も派手な範囲武器。', attackType:'範囲・落下攻撃', strong:'広い場所の制圧', weak:'狙い撃ちは苦手', unlock:'オンラインのレベルアップ', id:'onlineSushi' }
-    ];
-
-    const LEGENDARY_WEAPONS = [
-        { type:'LEGENDARY', name:'ネオンランス', icon:'\uD83D\uDD31', desc:'通常弾が黄金の貫通弾になる。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'KILL系ミッションで解放', id:'neonLance' },
-        { type:'LEGENDARY', name:'フェニックスコア', icon:'\uD83D\uDD25', desc:'1回だけ復活し、周囲に大爆発を起こす。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'BOSS系ミッションで解放', id:'phoenixCore' },
-        { type:'LEGENDARY', name:'星落としの王冠', icon:'\uD83D\uDC51', desc:'一定間隔で星の爆発を起こす。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'RUN系ミッションで解放', id:'starfallCrown' },
-        { type:'LEGENDARY', name:'虚空コレクター', icon:'\uD83C\uDF0C', desc:'経験値回収と成長速度が大きく上がる。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'高難度BOSS/FINALミッションで解放', id:'voidCollector' },
-        { type:'MYTHIC', name:'レールキャノン', icon:'\uD83D\uDD2D', desc:'通常弾が超高速・超貫通のレール弾になる。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'敵を大量討伐すると解放', id:'railCannon' },
-        { type:'MYTHIC', name:'ブラックホールエンペラー', icon:'\u26AB', desc:'一定間隔で強力な重力核を発生させ、敵を吸い込みながら削る。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'長時間生存と高レベル到達で解放', id:'blackholeEmperor' },
-        { type:'MYTHIC', name:'サンダーイージス', icon:'\uD83D\uDEE1\uFE0F\u26A1', desc:'防御力を上げ、周囲へ雷の反撃を出す守りの神話武器。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'ボスを大量に倒すと解放', id:'thunderAegis' },
-        { type:'MYTHIC', name:'ソーラードリル', icon:'\u2600\uFE0F', desc:'敵の密集地に太陽レーザーを落とす超火力武器。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'超高スコアで解放', id:'solarDrill' },
-        { type:'MYTHIC', name:'クロノロータス', icon:'\uD83E\uDEB7', desc:'一定間隔で時間波を広げ、敵に大ダメージを与える。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'ミッションを大量達成すると解放', id:'chronoLotus' }
-    ];
-
-    const EVOLUTION_WEAPONS = [
-        { type:'EVOLUTION', name:'ブラックホール・ノヴァ', icon:'\uD83C\uDF0C', desc:'全てを吸い込む最上位の範囲攻撃。', attackType:'合成進化', strong:'条件を満たした後の終盤', weak:'素材武器のレベル上げが必要', unlock:'虚空次元の暴風 Lv3 + 虚式系 Lv3', id:'evoBlackhole' },
-        { type:'EVOLUTION', name:'超重力・崩命破', icon:'\uD83C\uDF0C\uD83C\uDF0A', desc:'敵を中心線に吸い寄せるビーム。', attackType:'合成進化', strong:'条件を満たした後の終盤', weak:'素材武器のレベル上げが必要', unlock:'深淵の重力刃 Lv3 + 龍星・崩命破 Lv3', id:'evoGravityBeam' },
-        { type:'EVOLUTION', name:'雷鳴の剣域', icon:'\u26A1\uD83C\uDF00', desc:'回転刃と雷が合体した常時攻撃。', attackType:'合成進化', strong:'条件を満たした後の終盤', weak:'素材武器のレベル上げが必要', unlock:'円環の刃界 Lv3 + 破滅の雷域 Lv3', id:'evoThunderBlade' },
-        { type:'EVOLUTION', name:'星核レールバースト', icon:'\uD83D\uDD2D', desc:'超高速の貫通弾が一直線に敵を削る。', attackType:'合成進化', strong:'条件を満たした後の終盤', weak:'素材武器のレベル上げが必要', unlock:'レールキャノン Lv3 + ネオンランス Lv3', id:'evoRailBurst' },
-        { type:'EVOLUTION', name:'終焉ブラックホール', icon:'\u26AB', desc:'吸引と経験値回収が同時に強化される。', attackType:'合成進化', strong:'条件を満たした後の終盤', weak:'素材武器のレベル上げが必要', unlock:'ブラックホールエンペラー Lv3 + 虚空コレクター Lv3', id:'evoEndBlackhole' },
-        { type:'EVOLUTION', name:'跳弾スナイパー', icon:'\uD83C\uDFAF\uD83D\uDCAB', desc:'狙撃と反射爆弾が合体した進化武器。', attackType:'貫通・反射', strong:'直線上と反射が刺さる場面', weak:'進化条件が必要', unlock:'スナイパー Lv3 + バウンスボム Lv3', id:'evoRicochetSniper' },
-        { type:'EVOLUTION', name:'猛毒アイギス', icon:'\uD83D\uDEE1\uFE0F\u2623\uFE0F', desc:'盾と毒が合体した守り寄りの進化武器。', attackType:'防御・毒範囲', strong:'近づく敵や相手', weak:'遠距離だけの相手', unlock:'蒼盾アイギス Lv2 + トキシックトラップ Lv3', id:'evoToxicAegis' },
-        { type:'EVOLUTION', name:'重力追尾刃グラビトン・ダガー', icon:'\uD83D\uDDE1\uFE0F\uD83C\uDF0C', desc:'追尾刃と重力場が合体した進化武器。', attackType:'追尾・拘束', strong:'動き回る相手', weak:'進化条件が必要', unlock:'ファントムダガー Lv3 + グラビティ・パルサー Lv3', id:'evoGravitonDagger' },
-        { type:'EVOLUTION', name:'特異点ボム・メテオ', icon:'\uD83D\uDCA3\uD83C\uDF0C', desc:'反射爆弾と重力場が合体した広範囲進化武器。', attackType:'爆発・重力', strong:'密集地帯', weak:'進化条件が必要', unlock:'バウンスボム Lv3 + グラビティ・パルサー Lv3', id:'evoSingularityBomb' }
-    ];
-
-    const ALL_WEAPONS = [...BASE_WEAPONS, ...ULTIMATE_WEAPONS, ...ONLINE_WEAPONS, ...LEGENDARY_WEAPONS, ...EVOLUTION_WEAPONS];
-
-    // userDataを安全に取得
-    function getSafeUserData() {
-        try {
-            if (typeof userData !== 'undefined' && userData) return userData;
-            return JSON.parse(localStorage.getItem('neon_survivor_save') || '{}');
-        } catch(e) { return {}; }
-    }
-
-    // 武器が解放されているか
-    function isWeaponUnlockedV47(id, type) {
-        const u = getSafeUserData();
-        if (type === 'ULTIMATE' || type === 'LEGENDARY' || type === 'MYTHIC') {
-            const unlocks = (u.unlocks && u.unlocks.legendaryWeapons) || {};
-            // ミッション完了フラグもチェック
-            const missions = u.missions || { completed: {} };
-            const mid = 'unlock_v35_' + id;
-            if (missions.completed[mid] || unlocks[id]) return true;
-            return false;
-        }
-        return true; // BASIC, ONLINE, EVOLUTION はデフォルトで解放扱い（図鑑上）
-    }
-
-    // 武器が使用可能か（設定でOFFになっていないか）
-    function isWeaponEnabledV47(id) {
-        const u = getSafeUserData();
-        const disabled = (u.settings && u.settings.disabledWeapons) || {};
-        const legDisabled = (u.settings && u.settings.disabledLegendaryWeapons) || {};
-        return !disabled[id] && !legDisabled[id];
-    }
-
-    // トグルを切り替えたとき
-    window.toggleWeaponEnabledV47 = function(id, checked) {
-        const u = getSafeUserData();
-        u.settings = u.settings || {};
-        u.settings.disabledWeapons = u.settings.disabledWeapons || {};
-        u.settings.disabledLegendaryWeapons = u.settings.disabledLegendaryWeapons || {};
-        if (checked) {
-            delete u.settings.disabledWeapons[id];
-            delete u.settings.disabledLegendaryWeapons[id];
-        } else {
-            u.settings.disabledWeapons[id] = true;
-            u.settings.disabledLegendaryWeapons[id] = true;
-        }
-        try {
-            if (typeof saveData === 'function') saveData();
-            else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
-        } catch(e) {}
-        window.renderWeaponCodexScreenV47();
-    };
-
-    window.renderWeaponCodexScreenV47 = function() {
-        const summary = document.getElementById('weaponCodexSummary');
-        const container = document.getElementById('weaponCodexListContainer');
-        if (!container) return;
-
-        const u = getSafeUserData();
-        const usedWeapons = (u.codex && u.codex.weapons) || {};
-        
-        let usedCount = 0;
-        ALL_WEAPONS.forEach(w => {
-            if (usedWeapons[w.id] || usedWeapons[w.name]) usedCount++;
-        });
-
-        if (summary) summary.textContent = `解放済み・使用済み：${usedCount} / ${ALL_WEAPONS.length}`;
-
-        const order = ['BASIC', 'ULTIMATE', 'ONLINE', 'LEGENDARY', 'MYTHIC', 'EVOLUTION'];
-        const labels = { BASIC: 'BASIC WEAPONS', ULTIMATE: 'ULTIMATE WEAPONS', ONLINE: 'ONLINE WEAPONS', LEGENDARY: 'LEGENDARY WEAPONS', MYTHIC: 'MYTHIC WEAPONS', EVOLUTION: 'EVOLUTION WEAPONS' };
-
-        let html = '';
-        order.forEach(type => {
-            const list = ALL_WEAPONS.filter(w => w.type === type);
-            if (!list.length) return;
-
-            html += `<section><h3 class="text-2xl font-bold text-cyan-300 mb-2">${labels[type]}</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">`;
-            
-            list.forEach(w => {
-                const isUsed = !!(usedWeapons[w.id] || usedWeapons[w.name]);
-                const isUnlocked = isWeaponUnlockedV47(w.id, w.type);
-                const isEnabled = isWeaponEnabledV47(w.id);
-
-                let toggleHtml = '';
-                if (['ULTIMATE', 'LEGENDARY', 'MYTHIC', 'BASIC'].includes(w.type)) {
-                    if (!isUnlocked) {
-                        toggleHtml = `
-                            <div class="mt-3 border-t border-slate-700 pt-3">
-                                <p class="text-xs text-red-200 font-bold">未解放</p>
-                                <p class="text-[11px] text-gray-300 mt-1">解放条件：${w.unlock}</p>
-                            </div>`;
-                    } else {
-                        toggleHtml = `
-                            <div class="mt-3 border-t border-slate-700 pt-3">
-                                <label class="flex items-center justify-between gap-3 cursor-pointer">
-                                    <span class="text-xs font-bold ${isEnabled ? 'text-green-300' : 'text-red-300'}">出現：${isEnabled ? 'ON' : 'OFF'}</span>
-                                    <input type="checkbox" class="w-5 h-5" onchange="window.toggleWeaponEnabledV47('${w.id}', this.checked)" ${isEnabled ? 'checked' : ''}>
-                                </label>
-                                <p class="text-[11px] text-gray-300 mt-2 leading-relaxed">${isEnabled ? 'ON：この武器がレベルアップ候補に出ます。' : 'OFF：この武器は候補に出ません。重い武器を外す時にも使えます。'}</p>
-                            </div>`;
-                    }
-                }
-
-                html += `
-                    <div class="collection-card ${isUsed || isUnlocked ? 'unlocked' : ''}">
-                        <div class="flex items-start justify-between gap-2">
-                            <div class="text-3xl">${w.icon}</div>
-                            <span class="text-[11px] font-bold px-2 py-1 rounded ${!isUnlocked ? 'bg-red-950/80 text-red-200 border border-red-400/50' : isUsed ? 'bg-green-900/70 text-green-200 border border-green-400/50' : 'bg-slate-800 text-gray-300 border border-gray-500/40'}">${!isUnlocked ? '未解放' : isUsed ? '使用済み' : '未使用'}</span>
-                        </div>
-                        <h3 class="font-bold text-white mt-1">${w.name}</h3>
-                        <p class="text-xs text-purple-200 font-bold mt-1">${w.type}</p>
-                        <p class="text-sm text-gray-300 mt-1">${w.desc}</p>
-                        <div class="text-xs text-gray-300 mt-3 space-y-1">
-                            <p>攻撃タイプ：${w.attackType}</p>
-                            <p>強い場面：${w.strong}</p>
-                            <p>弱い場面：${w.weak}</p>
-                            <p>入手・進化条件：${w.unlock}</p>
-                        </div>
-                        ${toggleHtml}
-                    </div>`;
-            });
-            html += `</div></section>`;
-        });
-
-        container.innerHTML = html;
-    };
-
-    function markV47() {
-        try {
-            let badge = document.getElementById('nsvFinalBadge');
-            if (badge) {
-                badge.textContent = V47_TAG;
-            }
-        } catch(e) {}
-    }
-
-    function bootV47() {
-        markV47();
-        
-        // renderWeaponCodexScreen を上書き（他のスクリプトからも呼ばれるように）
-        window.renderWeaponCodexScreen = window.renderWeaponCodexScreenV47;
-
-        // 現在開かれている場合は再描画する
-        const codexScreen = document.getElementById('weaponCodexScreen');
-        if (codexScreen && !codexScreen.classList.contains('hidden')) {
-            window.renderWeaponCodexScreenV47();
-        }
-    }
-
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV47, {once:true}); else bootV47();
-    setInterval(markV47, 1500);
-})();
-</script>
-
-<script>
-// V48: 誤った条件でのアルティメット武器自動解放バグを修正
-(() => {
-    const V48_TAG = 'V48 WEAPON LOCK FIX 3';
-
-    // 過去のバグのある自動解放スクリプトを完全に無効化する
-    window.ensureUltimateMissionsV35 = function() {};
-
-    function cleanupWrongUnlocks() {
-        const u = typeof getSafeUserData === 'function' ? getSafeUserData() : (typeof userData !== 'undefined' ? userData : null);
-        if (!u) return;
-
-        const claimed = (u.missions && u.missions.claimed) || {};
-        
-        // 本来の正規ミッションIDと武器IDのマッピング
-        const originalMissions = {
-            'hollowMurasaki': ['m212'],
-            'kamehameha': ['m213'],
-            'vader': ['m214'],
-            'thor': ['m215'],
-            'muryoku': ['m216'],
-            'funnel': ['m217'],
-            'ironBlaster': ['m218'],
-            'disneyMagic': ['m219'],
-            'infinitySnap': ['m220'],
-            'infiniteBlade': ['m221'],
-            'shieldThrow': ['m222'],
-            'keraunos': ['m223'],
-            'phantomStep': ['m211'],
-            'neonLance': ['m007', 'm080'],
-            'phoenixCore': ['m019', 'm110'],
-            'starfallCrown': ['m013', 'm130'],
-            'voidCollector': ['m021', 'm150'],
-            'railCannon': ['m167', 'm168', 'm199'],
-            'blackholeEmperor': ['m169', 'm170', 'm192', 'm219', 'm231'],
-            'thunderAegis': ['m171', 'm185', 'm203'],
-            'solarDrill': ['m172', 'm180'],
-            'chronoLotus': ['m173', 'm188', 'm210', 'm229']
-        };
-
-        let changed = false;
-        
-        // 誤って解放された武器をロックに戻す
-        if (u.unlocks && u.unlocks.legendaryWeapons) {
-            for (const [weaponId, missionIds] of Object.entries(originalMissions)) {
-                // その武器が正規のミッション報酬として受け取られているか確認
-                const isClaimed = missionIds.some(mid => claimed[mid]);
-                
-                // 過去パッチで勝手に完了扱いになったダミーフラグ
-                const v35Mid = 'unlock_v35_' + weaponId;
-                const v30Mid = 'v30_unlock_' + weaponId;
-                
-                // 正規ミッションから受け取っていないのに解放されている場合
-                if (!isClaimed && u.unlocks.legendaryWeapons[weaponId]) {
-                    delete u.unlocks.legendaryWeapons[weaponId];
-                    // OFF設定も元に戻す（未解放なら表示されないため）
-                    if (u.settings && u.settings.disabledLegendaryWeapons) {
-                        delete u.settings.disabledLegendaryWeapons[weaponId];
-                    }
-                    if (u.settings && u.settings.disabledWeapons) {
-                        delete u.settings.disabledWeapons[weaponId];
-                    }
-                    changed = true;
-                }
-                
-                // 勝手に達成済みになったダミーミッションを未達成に戻す
-                if (u.missions && u.missions.completed) {
-                    if (u.missions.completed[v35Mid]) { delete u.missions.completed[v35Mid]; changed = true; }
-                    if (u.missions.completed[v30Mid]) { delete u.missions.completed[v30Mid]; changed = true; }
-                }
-            }
-        }
-        
-        if (changed) {
-            try {
-                if (typeof saveData === 'function') saveData();
-                else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
-            } catch(e) {}
-        }
-    }
-
-    // 武器が解放されているかを、正規の所持フラグだけを見て判定するように上書き
-    if (typeof window.isWeaponUnlockedV47 === 'function') {
-        window.isWeaponUnlockedV47 = function(id, type) {
-            const u = typeof getSafeUserData === 'function' ? getSafeUserData() : userData;
-            if (type === 'ULTIMATE' || type === 'LEGENDARY' || type === 'MYTHIC') {
-                const unlocks = (u && u.unlocks && u.unlocks.legendaryWeapons) || {};
-                return !!unlocks[id];
-            }
-            return true; 
-        };
-    }
-
-    function markV48() {
-        try {
-            let badge = document.getElementById('nsvFinalBadge');
-            if (badge) {
-                badge.textContent = V48_TAG;
-            }
-        } catch(e) {}
-    }
-
-    function bootV48() {
-        markV48();
-        cleanupWrongUnlocks();
-        
-        const codexScreen = document.getElementById('weaponCodexScreen');
-        if (codexScreen && !codexScreen.classList.contains('hidden')) {
-            if (typeof renderWeaponCodexScreenV47 === 'function') renderWeaponCodexScreenV47();
-            else if (typeof renderWeaponCodexScreen === 'function') renderWeaponCodexScreen();
-        }
-    }
-
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV48, {once:true}); else bootV48();
-    setInterval(markV48, 1500);
-})();
-</script>
-
-<script>
-// V49: 古い図鑑描画との競合を防ぎ、完全に未解放武器をロックする強制パッチ
-(() => {
-    const V49_TAG = 'V49 WEAPON LOCKDOWN';
-
-    // 全ての古いバッジ更新を停止し、V49バッジを強制する
-    function enforceBadgeV49() {
-        try {
-            let badge = document.getElementById('nsvFinalBadge');
-            if (!badge) {
-                badge = document.createElement('div');
-                badge.id = 'nsvFinalBadge';
-                badge.style.cssText = "position:fixed;left:10px;bottom:8px;z-index:9999;pointer-events:none;color:#fca5a5;background:rgba(69,10,10,.9);border:1px solid rgba(248,113,113,.6);border-radius:999px;padding:4px 9px;font:900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif;letter-spacing:.08em;box-shadow:0 0 13px rgba(248,113,113,.32)";
-                document.body.appendChild(badge);
-            }
-            badge.textContent = V49_TAG;
-
-            // 他の古いバッジ要素をすべて非表示にする
-            const oldBadges = document.querySelectorAll('[id$="Badge"]');
-            oldBadges.forEach(b => {
-                if (b.id !== 'nsvFinalBadge') {
-                    b.style.display = 'none';
-                    b.style.opacity = '0';
-                }
-            });
-        } catch(e) {}
-    }
-
-    // 不正な解放データを強制クリーンアップ
-    function forceCleanupUnlocksV49() {
-        let u = (typeof userData !== 'undefined') ? userData : null;
-        if (!u) { try { u = JSON.parse(localStorage.getItem('neon_survivor_save')); } catch(e) {} }
-        if (!u) return;
-
-        const claimed = (u.missions && u.missions.claimed) || {};
-        const unlocks = (u.unlocks && u.unlocks.legendaryWeapons) || {};
-        const disabled = (u.settings && u.settings.disabledWeapons) || {};
-        const legDisabled = (u.settings && u.settings.disabledLegendaryWeapons) || {};
-
-        const ultMissions = {
-            'hollowMurasaki': 'm212', 'kamehameha': 'm213', 'vader': 'm214', 'thor': 'm215',
-            'muryoku': 'm216', 'funnel': 'm217', 'ironBlaster': 'm218', 'disneyMagic': 'm219',
-            'infinitySnap': 'm220', 'infiniteBlade': 'm221', 'shieldThrow': 'm222', 'keraunos': 'm223',
-            'phantomStep': 'm211', 'neonLance': 'm007', 'phoenixCore': 'm019', 'starfallCrown': 'm013',
-            'voidCollector': 'm021', 'railCannon': 'm167', 'blackholeEmperor': 'm169', 'thunderAegis': 'm171',
-            'solarDrill': 'm172', 'chronoLotus': 'm173'
-        };
-
-        let modified = false;
-        for (const [weaponId, missionId] of Object.entries(ultMissions)) {
-            // ミッションがCLAIM（受け取り済み）になっていない場合は、強制的に未解放にする
-            if (!claimed[missionId]) {
-                if (unlocks[weaponId]) { delete unlocks[weaponId]; modified = true; }
-                if (disabled[weaponId]) { delete disabled[weaponId]; modified = true; }
-                if (legDisabled[weaponId]) { delete legDisabled[weaponId]; modified = true; }
-            }
-        }
-
-        if (modified) {
-            try {
-                if (typeof saveData === 'function') saveData();
-                else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
-            } catch(e) {}
-        }
-    }
-
-    // 全く新しい武器図鑑描画関数で上書き（古いロジックをバイパスする）
-    window.renderWeaponCodexScreen = function() {
-        forceCleanupUnlocksV49();
-
-        const container = document.getElementById('weaponCodexListContainer');
-        const summary = document.getElementById('weaponCodexSummary');
-        if (!container) return;
-
-        let u = (typeof userData !== 'undefined') ? userData : null;
-        if (!u) { try { u = JSON.parse(localStorage.getItem('neon_survivor_save')); } catch(e) {} }
-
-        const claimed = (u?.missions?.claimed) || {};
-        const unlocks = (u?.unlocks?.legendaryWeapons) || {};
-        const usedWeapons = (u?.codex?.weapons) || {};
-        const disabled = (u?.settings?.disabledWeapons) || {};
-
-        const ultReqs = {
-            'hollowMurasaki': { m:'m212', t:'虚式解放試練', r:18, metric:'bestLevel' },
-            'kamehameha': { m:'m213', t:'崩命破の継承', r:2200, metric:'bestRunKills' },
-            'vader': { m:'m214', t:'暗黒卿の試練', r:70, metric:'totalBossLikeKills' },
-            'thor': { m:'m215', t:'轟のハンマー', r:7, metric:'totalMonkeyKills' },
-            'muryoku': { m:'m216', t:'領域到達', r:900, metric:'bestTime' },
-            'funnel': { m:'m217', t:'流星群観測', r:9000, metric:'totalKills' },
-            'ironBlaster': { m:'m218', t:'機神起動', r:250000, metric:'bestScore' },
-            'disneyMagic': { m:'m219', t:'星夢のステージ', r:12000, metric:'totalGems' },
-            'infinitySnap': { m:'m220', t:'終焉の合図', r:700000, metric:'bestScore' },
-            'infiniteBlade': { m:'m221', t:'無限剣の契約', r:15, metric:'bestLevel' },
-            'shieldThrow': { m:'m222', t:'不壊の守り', r:120, metric:'totalBossLikeKills' },
-            'keraunos': { m:'m223', t:'天帝の雷', r:80, metric:'bestLevel' },
-            'phantomStep': { m:'m211', t:'幻影歩法の試練', r:600, metric:'totalKills' },
-            'neonLance': { m:'m007', t:'ネオンランス', r:300, metric:'totalKills' },
-            'phoenixCore': { m:'m019', t:'フェニックスコア', r:15, metric:'totalBossLikeKills' },
-            'starfallCrown': { m:'m013', t:'星落としの王冠', r:300, metric:'bestRunKills' },
-            'voidCollector': { m:'m021', t:'虚空コレクター', r:3, metric:'totalMonkeyKills' },
-            'railCannon': { m:'m167', t:'レールキャノン', r:18000, metric:'totalKills' },
-            'blackholeEmperor': { m:'m169', t:'ブラックホールエンペラー', r:70, metric:'bestLevel' },
-            'thunderAegis': { m:'m171', t:'サンダーイージス', r:320, metric:'totalBossLikeKills' },
-            'solarDrill': { m:'m172', t:'ソーラードリル', r:650000, metric:'bestScore' },
-            'chronoLotus': { m:'m173', t:'クロノロータス', r:90, metric:'completedMissionCount' }
-        };
-
-        const weapons = (typeof ALL_WEAPONS !== 'undefined') ? ALL_WEAPONS : [];
-        let usedCount = 0;
-        const htmls = { BASIC:[], ULTIMATE:[], ONLINE:[], LEGENDARY:[], MYTHIC:[], EVOLUTION:[] };
-        const labels = { BASIC: 'BASIC WEAPONS', ULTIMATE: 'ULTIMATE WEAPONS', ONLINE: 'ONLINE WEAPONS', LEGENDARY: 'LEGENDARY WEAPONS', MYTHIC: 'MYTHIC WEAPONS', EVOLUTION: 'EVOLUTION WEAPONS' };
-
-        weapons.forEach(w => {
-            const isUsed = !!(usedWeapons[w.id] || usedWeapons[w.name]);
-            if (isUsed) usedCount++;
-
-            let isUnlocked = true;
-            let reqHtml = '';
-            
-            if (['ULTIMATE', 'LEGENDARY', 'MYTHIC'].includes(w.type) || w.id === 'phantomStep') {
-                const req = ultReqs[w.id];
-                if (req) {
-                    isUnlocked = !!claimed[req.m]; // CLAIMされていなければ絶対未解放
-                    if (!isUnlocked) {
-                        let progress = 0;
-                        if (typeof getMissionProgress === 'function' && typeof MISSION_DEFS !== 'undefined') {
-                            const def = MISSION_DEFS.find(x => x.id === req.m);
-                            if (def) progress = Math.floor(getMissionProgress(def));
-                        }
-                        progress = Math.min(req.r, progress);
-                        reqHtml = `<p class="text-[11px] text-gray-300 mt-1">解放条件：ミッション「${req.t}」を達成して報酬を受け取る（${progress}/${req.r}）</p>`;
-                    }
-                } else {
-                    isUnlocked = !!unlocks[w.id];
-                }
-            }
-
-            const isEnabled = !disabled[w.id];
-            let toggleHtml = '';
-
-            if (['ULTIMATE', 'LEGENDARY', 'MYTHIC', 'BASIC'].includes(w.type) || w.id === 'phantomStep') {
-                if (!isUnlocked) {
-                    toggleHtml = `
-                        <div class="mt-3 border-t border-slate-700 pt-3">
-                            <p class="text-xs text-red-200 font-bold">未解放</p>
-                            ${reqHtml}
-                        </div>`;
-                } else {
-                    toggleHtml = `
-                        <div class="mt-3 border-t border-slate-700 pt-3">
-                            <label class="flex items-center justify-between gap-3 cursor-pointer">
-                                <span class="text-xs font-bold ${isEnabled ? 'text-green-300' : 'text-red-300'}">出現：${isEnabled ? 'ON' : 'OFF'}</span>
-                                <input type="checkbox" class="w-5 h-5" onchange="window.nsvToggleWeaponV49('${w.id}', this.checked)" ${isEnabled ? 'checked' : ''}>
-                            </label>
-                            <p class="text-[11px] text-gray-300 mt-2 leading-relaxed">${isEnabled ? 'ON：この武器がレベルアップ候補に出ます。' : 'OFF：この武器は候補に出ません。'}</p>
-                        </div>`;
-                }
-            }
-
-            const card = `
-                <div class="collection-card ${isUsed || isUnlocked ? 'unlocked' : ''}">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="text-3xl">${w.icon || '\u2754'}</div>
-                        <span class="text-[11px] font-bold px-2 py-1 rounded ${!isUnlocked ? 'bg-red-950/80 text-red-200 border border-red-400/50' : isUsed ? 'bg-green-900/70 text-green-200 border border-green-400/50' : 'bg-slate-800 text-gray-300 border border-gray-500/40'}">${!isUnlocked ? '未解放' : isUsed ? '使用済み' : '未使用'}</span>
-                    </div>
-                    <h3 class="font-bold text-white mt-1">${w.name}</h3>
-                    <p class="text-xs text-purple-200 font-bold mt-1">${w.type}</p>
-                    <p class="text-sm text-gray-300 mt-1">${w.desc || ''}</p>
-                    <div class="text-xs text-gray-300 mt-3 space-y-1">
-                        <p>攻撃タイプ：${w.attackType || '特殊'}</p>
-                        <p>強い場面：${w.strong || '状況次第'}</p>
-                        <p>弱い場面：${w.weak || '状況次第'}</p>
-                    </div>
-                    ${toggleHtml}
-                </div>`;
-            if (htmls[w.type]) htmls[w.type].push(card);
-        });
-
-        if (summary) summary.textContent = `解放済み・使用済み：${usedCount} / ${weapons.length}`;
-
-        let finalHtml = '';
-        ['BASIC', 'ULTIMATE', 'ONLINE', 'LEGENDARY', 'MYTHIC', 'EVOLUTION'].forEach(type => {
-            if (htmls[type].length > 0) {
-                finalHtml += `<section><h3 class="text-2xl font-bold text-cyan-300 mb-2">${labels[type]}</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${htmls[type].join('')}</div></section>`;
-            }
-        });
-        container.innerHTML = finalHtml;
-    };
-
-    window.nsvToggleWeaponV49 = function(id, checked) {
-        let u = (typeof userData !== 'undefined') ? userData : null;
-        if (!u) return;
-        u.settings = u.settings || {};
-        u.settings.disabledWeapons = u.settings.disabledWeapons || {};
-        u.settings.disabledLegendaryWeapons = u.settings.disabledLegendaryWeapons || {};
-        if (checked) {
-            delete u.settings.disabledWeapons[id];
-            delete u.settings.disabledLegendaryWeapons[id];
-        } else {
-            u.settings.disabledWeapons[id] = true;
-            u.settings.disabledLegendaryWeapons[id] = true;
-        }
-        try {
-            if (typeof saveData === 'function') saveData();
-            else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
-        } catch(e) {}
-        window.renderWeaponCodexScreen();
-    };
-
-    function bootV49() {
-        enforceBadgeV49();
-        forceCleanupUnlocksV49();
-        
-        // 万が一、画面が開かれていたら再描画する
-        const codexScreen = document.getElementById('weaponCodexScreen');
-        if (codexScreen && !codexScreen.classList.contains('hidden')) {
-            window.renderWeaponCodexScreen();
-        }
-    }
-
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV49, {once:true}); else bootV49();
-    setInterval(enforceBadgeV49, 1000);
-})();
-</script>
-
-<script>
-// V50: ミッション進行度と解放状態の強制整合＆バッジクリーンアップ
-(() => {
-    const V50_TAG = 'V50 LOCK FIX FINAL';
-
-    function cleanupBadgesV50() {
-        try {
-            if (!document.getElementById('nsvV50BadgeCleanupStyle')) {
-                const st = document.createElement('style');
-                st.id = 'nsvV50BadgeCleanupStyle';
-                st.textContent = `
-                    div[id$="Badge"]:not(#nsvFinalBadgeV50) { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-                    #nsvFinalBadgeV50 { display: block !important; opacity: 1 !important; position: fixed !important; left: 10px !important; bottom: 8px !important; z-index: 99999 !important; pointer-events: none !important; color: #fca5a5 !important; background: rgba(69,10,10,.9) !important; border: 1px solid rgba(248,113,113,.6) !important; border-radius: 999px !important; padding: 4px 9px !important; font: 900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif !important; letter-spacing: .08em !important; box-shadow: 0 0 13px rgba(248,113,113,.32) !important; }
-                `;
-                document.head.appendChild(st);
-            }
-
-            let badge = document.getElementById('nsvFinalBadgeV50');
-            if (!badge) {
-                badge = document.createElement('div');
-                badge.id = 'nsvFinalBadgeV50';
-                document.body.appendChild(badge);
-            }
-            badge.textContent = V50_TAG;
-        } catch(e) {}
-    }
-
-    function revokeUnearnedWeaponsV50() {
-        let u = (typeof userData !== 'undefined') ? userData : null;
-        if (!u) { try { u = JSON.parse(localStorage.getItem('neon_survivor_save')); } catch(e) {} }
-        if (!u) return;
-
-        const missions = u.missions || { completed:{}, claimed:{} };
-        const completed = missions.completed || {};
-        const claimed = missions.claimed || {};
-        const unlocks = (u.unlocks && u.unlocks.legendaryWeapons) || {};
-        const disabled = (u.settings && u.settings.disabledWeapons) || {};
-        const legDisabled = (u.settings && u.settings.disabledLegendaryWeapons) || {};
-        const stats = u.stats || {};
-        
-        // 過去のダミーミッションフラグも掃除
-        Object.keys(completed).forEach(k => { if (k.startsWith('unlock_v35_') || k.startsWith('v30_unlock_')) delete completed[k]; });
-        Object.keys(claimed).forEach(k => { if (k.startsWith('unlock_v35_') || k.startsWith('v30_unlock_')) delete claimed[k]; });
-
-        const reqs = [
-            { w:'hollowMurasaki', m:'m212', t:18, v:Math.max(Number(stats.bestLevel||0), (typeof player !== 'undefined' && player ? player.level : 0)) },
-            { w:'kamehameha', m:'m213', t:2200, v:Math.max(Number(stats.bestRunKills||0), (typeof runStats !== 'undefined' && runStats ? runStats.kills||0 : 0)) },
-            { w:'vader', m:'m214', t:70, v:(Number(stats.totalBossLikeKills||0) + Number(stats.totalBossKills||0)) },
-            { w:'thor', m:'m215', t:7, v:Number(stats.totalMonkeyKills||0) },
-            { w:'muryoku', m:'m216', t:900, v:Math.max(Number(stats.bestTime||0), Math.floor(typeof gameTime !== 'undefined' ? Number(gameTime) : 0)) },
-            { w:'funnel', m:'m217', t:9000, v:Number(stats.totalKills||0) },
-            { w:'ironBlaster', m:'m218', t:250000, v:Math.max(Number(u.score||0), Math.floor(typeof score !== 'undefined' ? Number(score) : 0)) },
-            { w:'disneyMagic', m:'m219', t:12000, v:(Number(stats.totalGems||0) + Number(stats.totalGemsCollected||0)) },
-            { w:'infinitySnap', m:'m220', t:700000, v:Math.max(Number(u.score||0), Math.floor(typeof score !== 'undefined' ? Number(score) : 0)) },
-            { w:'infiniteBlade', m:'m221', t:15, v:Math.max(Number(stats.bestLevel||0), (typeof player !== 'undefined' && player ? player.level : 0)) },
-            { w:'shieldThrow', m:'m222', t:120, v:(Number(stats.totalBossLikeKills||0) + Number(stats.totalBossKills||0)) },
-            { w:'keraunos', m:'m223', t:80, v:Math.max(Number(stats.bestLevel||0), (typeof player !== 'undefined' && player ? player.level : 0)) },
-            { w:'phantomStep', m:'m211', t:600, v:Number(stats.totalKills||0) }
-        ];
-
-        let modified = false;
-
-        for (const req of reqs) {
-            // もし実際の進行度が目標に達していないなら、強制的に未達成・未解放に戻す
-            if (req.v < req.t) {
-                if (completed[req.m]) { delete completed[req.m]; modified = true; }
-                if (claimed[req.m]) { delete claimed[req.m]; modified = true; }
-                if (unlocks[req.w]) { delete unlocks[req.w]; modified = true; }
-                if (disabled[req.w]) { delete disabled[req.w]; modified = true; }
-                if (legDisabled[req.w]) { delete legDisabled[req.w]; modified = true; }
-            }
-        }
-
-        if (modified) {
-            try {
-                if (typeof saveData === 'function') saveData();
-                else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
-            } catch(e) {}
-        }
-    }
-
-    function hookCodexRenderV50() {
-        const oldRender = window.renderWeaponCodexScreen;
-        window.renderWeaponCodexScreen = function() {
-            revokeUnearnedWeaponsV50();
-            if (typeof oldRender === 'function') oldRender.apply(this, arguments);
-        };
-    }
-
-    function bootV50() {
-        cleanupBadgesV50();
-        revokeUnearnedWeaponsV50();
-        hookCodexRenderV50();
-
-        const codexScreen = document.getElementById('weaponCodexScreen');
-        if (codexScreen && !codexScreen.classList.contains('hidden')) {
-            if (typeof window.renderWeaponCodexScreen === 'function') window.renderWeaponCodexScreen();
-        }
-    }
-
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV50, {once:true}); else bootV50();
-    setInterval(cleanupBadgesV50, 1000);
-})();
-</script>
-
-<script>
-// V51: モジュールスコープの壁を突破し、武器図鑑のロック状態を完全に正常化するパッチ
-(() => {
-    const V51_TAG = 'V51 LOCK FIX PERFECT';
-
-    function enforceBadgeV51() {
-        try {
-            if (!document.getElementById('nsvV51BadgeStyle')) {
-                const st = document.createElement('style');
-                st.id = 'nsvV51BadgeStyle';
-                st.textContent = `
-                    div[id$="Badge"]:not(#nsvFinalBadgeV51) { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-                    #nsvFinalBadgeV51 { display: block !important; opacity: 1 !important; position: fixed !important; left: 10px !important; bottom: 8px !important; z-index: 99999 !important; pointer-events: none !important; color: #fca5a5 !important; background: rgba(69,10,10,.9) !important; border: 1px solid rgba(248,113,113,.6) !important; border-radius: 999px !important; padding: 4px 9px !important; font: 900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif !important; letter-spacing: .08em !important; box-shadow: 0 0 13px rgba(248,113,113,.32) !important; }
-                `;
-                document.head.appendChild(st);
-            }
-
-            let badge = document.getElementById('nsvFinalBadgeV51');
-            if (!badge) {
-                badge = document.createElement('div');
-                badge.id = 'nsvFinalBadgeV51';
-                document.body.appendChild(badge);
-            }
-            badge.textContent = V51_TAG;
-        } catch(e) {}
-    }
-
-    window.nsvToggleWeaponV51 = function(id, checked) {
-        let u = (typeof userData !== 'undefined') ? userData : null;
-        if (!u) { try { u = JSON.parse(localStorage.getItem('neon_survivor_save')); } catch(e) {} }
-        if (!u) return;
-
-        u.settings = u.settings || {};
-        u.settings.disabledWeapons = u.settings.disabledWeapons || {};
-        u.settings.disabledLegendaryWeapons = u.settings.disabledLegendaryWeapons || {};
-        
-        if (checked) {
-            delete u.settings.disabledWeapons[id];
-            delete u.settings.disabledLegendaryWeapons[id];
-        } else {
-            u.settings.disabledWeapons[id] = true;
-            u.settings.disabledLegendaryWeapons[id] = true;
-        }
-        
-        try {
-            if (typeof saveData === 'function') saveData();
-            else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
-        } catch(e) {}
-        
-        window.nsvForceRenderWeaponCodexV51();
-    };
-
-    window.nsvForceRenderWeaponCodexV51 = function() {
-        const container = document.getElementById('weaponCodexListContainer');
-        const summary = document.getElementById('weaponCodexSummary');
-        if (!container) return;
-
-        let u = (typeof userData !== 'undefined') ? userData : null;
-        if (!u) { try { u = JSON.parse(localStorage.getItem('neon_survivor_save')); } catch(e) {} }
-
-        const missions = u?.missions || { completed:{}, claimed:{} };
-        const claimed = missions.claimed || {};
-        const unlocks = (u?.unlocks?.legendaryWeapons) || {};
-        const usedWeapons = (u?.codex?.weapons) || {};
-        const disabled = (u?.settings?.disabledWeapons) || {};
-
-        const ultReqs = {
-            'hollowMurasaki': { m:'m212', t:'虚式解放試練', r:18, metric:'bestLevel' },
-            'kamehameha': { m:'m213', t:'崩命破の継承', r:2200, metric:'bestRunKills' },
-            'vader': { m:'m214', t:'暗黒卿の試練', r:70, metric:'totalBossLikeKills' },
-            'thor': { m:'m215', t:'轟のハンマー', r:7, metric:'totalMonkeyKills' },
-            'muryoku': { m:'m216', t:'領域到達', r:900, metric:'bestTime' },
-            'funnel': { m:'m217', t:'流星群観測', r:9000, metric:'totalKills' },
-            'ironBlaster': { m:'m218', t:'機神起動', r:250000, metric:'bestScore' },
-            'disneyMagic': { m:'m219', t:'星夢のステージ', r:12000, metric:'totalGems' },
-            'infinitySnap': { m:'m220', t:'終焉の合図', r:700000, metric:'bestScore' },
-            'infiniteBlade': { m:'m221', t:'無限剣の契約', r:15, metric:'bestLevel' },
-            'shieldThrow': { m:'m222', t:'不壊の守り', r:120, metric:'totalBossLikeKills' },
-            'keraunos': { m:'m223', t:'天帝の雷', r:80, metric:'bestLevel' },
-            'phantomStep': { m:'m211', t:'幻影歩法の試練', r:600, metric:'totalKills' },
-            'neonLance': { m:'m007', t:'ネオンランス', r:300, metric:'totalKills' },
-            'phoenixCore': { m:'m019', t:'フェニックスコア', r:15, metric:'totalBossLikeKills' },
-            'starfallCrown': { m:'m013', t:'星落としの王冠', r:300, metric:'bestRunKills' },
-            'voidCollector': { m:'m021', t:'虚空コレクター', r:3, metric:'totalMonkeyKills' },
-            'railCannon': { m:'m167', t:'レールキャノン', r:18000, metric:'totalKills' },
-            'blackholeEmperor': { m:'m169', t:'ブラックホールエンペラー', r:70, metric:'bestLevel' },
-            'thunderAegis': { m:'m171', t:'サンダーイージス', r:320, metric:'totalBossLikeKills' },
-            'solarDrill': { m:'m172', t:'ソーラードリル', r:650000, metric:'bestScore' },
-            'chronoLotus': { m:'m173', t:'クロノロータス', r:90, metric:'completedMissionCount' }
-        };
-
-        // 過去のバグによる不正な解放をクリーンアップ
-        let modified = false;
-        for (const [weaponId, req] of Object.entries(ultReqs)) {
-            if (!claimed[req.m]) { 
-                if (unlocks[weaponId]) { delete unlocks[weaponId]; modified = true; }
-            }
-        }
-        if (modified) {
-            try {
-                if (typeof saveData === 'function') saveData();
-                else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
-            } catch(e) {}
-        }
-
-        const weapons = (typeof ALL_WEAPONS !== 'undefined') ? ALL_WEAPONS : [];
-        let usedCount = 0;
-        const htmls = { BASIC:[], ULTIMATE:[], ONLINE:[], LEGENDARY:[], MYTHIC:[], EVOLUTION:[] };
-        const labels = { BASIC: 'BASIC WEAPONS', ULTIMATE: 'ULTIMATE WEAPONS', ONLINE: 'ONLINE WEAPONS', LEGENDARY: 'LEGENDARY WEAPONS', MYTHIC: 'MYTHIC WEAPONS', EVOLUTION: 'EVOLUTION WEAPONS' };
-
-        weapons.forEach(w => {
-            const isUsed = !!(usedWeapons[w.id] || usedWeapons[w.name]);
-            if (isUsed) usedCount++;
-
-            let isUnlocked = true;
-            let reqHtml = '';
-            
-            if (['ULTIMATE', 'LEGENDARY', 'MYTHIC'].includes(w.type) || w.id === 'phantomStep') {
-                const req = ultReqs[w.id];
-                if (req) {
-                    // ミッション報酬を受け取っていなければ絶対に未解放
-                    isUnlocked = !!claimed[req.m]; 
-                    if (!isUnlocked) {
-                        let progress = 0;
-                        if (typeof getMissionProgress === 'function' && typeof MISSION_DEFS !== 'undefined') {
-                            const def = MISSION_DEFS.find(x => x.id === req.m);
-                            if (def) progress = Math.floor(getMissionProgress(def));
-                        }
-                        progress = Math.min(req.r, progress);
-                        reqHtml = `<p class="text-[11px] text-gray-300 mt-1">解放条件：ミッション「${req.t}」を達成して報酬を受け取る（${progress}/${req.r}）</p>`;
-                    }
-                } else {
-                    isUnlocked = !!unlocks[w.id];
-                }
-            }
-
-            const isEnabled = !disabled[w.id];
-            let toggleHtml = '';
-
-            // 未解放なら強制的にトグルを消去する
-            if (['ULTIMATE', 'LEGENDARY', 'MYTHIC', 'BASIC'].includes(w.type) || w.id === 'phantomStep') {
-                if (!isUnlocked) {
-                    toggleHtml = `
-                        <div class="mt-3 border-t border-slate-700 pt-3">
-                            <p class="text-xs text-red-200 font-bold">未解放</p>
-                            ${reqHtml}
-                        </div>`;
-                } else {
-                    toggleHtml = `
-                        <div class="mt-3 border-t border-slate-700 pt-3">
-                            <label class="flex items-center justify-between gap-3 cursor-pointer">
-                                <span class="text-xs font-bold ${isEnabled ? 'text-green-300' : 'text-red-300'}">出現：${isEnabled ? 'ON' : 'OFF'}</span>
-                                <input type="checkbox" class="w-5 h-5" onchange="window.nsvToggleWeaponV51('${w.id}', this.checked)" ${isEnabled ? 'checked' : ''}>
-                            </label>
-                            <p class="text-[11px] text-gray-300 mt-2 leading-relaxed">${isEnabled ? 'ON：この武器がレベルアップ候補に出ます。' : 'OFF：この武器は候補に出ません。'}</p>
-                        </div>`;
-                }
-            }
-
-            const card = `
-                <div class="collection-card ${isUsed || isUnlocked ? 'unlocked' : ''}">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="text-3xl">${w.icon || '\u2754'}</div>
-                        <span class="text-[11px] font-bold px-2 py-1 rounded ${!isUnlocked ? 'bg-red-950/80 text-red-200 border border-red-400/50' : isUsed ? 'bg-green-900/70 text-green-200 border border-green-400/50' : 'bg-slate-800 text-gray-300 border border-gray-500/40'}">${!isUnlocked ? '未解放' : isUsed ? '使用済み' : '未使用'}</span>
-                    </div>
-                    <h3 class="font-bold text-white mt-1">${w.name}</h3>
-                    <p class="text-xs text-purple-200 font-bold mt-1">${w.type}</p>
-                    <p class="text-sm text-gray-300 mt-1">${w.desc || ''}</p>
-                    <div class="text-xs text-gray-300 mt-3 space-y-1">
-                        <p>攻撃タイプ：${w.attackType || '特殊'}</p>
-                        <p>強い場面：${w.strong || '状況次第'}</p>
-                        <p>弱い場面：${w.weak || '状況次第'}</p>
-                    </div>
-                    ${toggleHtml}
-                </div>`;
-            if (htmls[w.type]) htmls[w.type].push(card);
-        });
-
-        if (summary) summary.textContent = `解放済み・使用済み：${usedCount} / ${weapons.length}`;
-
-        let finalHtml = '';
-        ['BASIC', 'ULTIMATE', 'ONLINE', 'LEGENDARY', 'MYTHIC', 'EVOLUTION'].forEach(type => {
-            if (htmls[type].length > 0) {
-                finalHtml += `<section><h3 class="text-2xl font-bold text-cyan-300 mb-2">${labels[type]}</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${htmls[type].join('')}</div></section>`;
-            }
-        });
-        container.innerHTML = finalHtml;
-    };
-
-    // 過去のプログラムより先にボタンクリックを横取りして、確実に最新の画面を描画する
-    window.addEventListener('click', (ev) => {
-        const btn = ev.target?.closest?.('button');
-        if (!btn) return;
-
-        if (btn.id === 'openWeaponCodexBtn') {
-            ev.preventDefault();
-            ev.stopPropagation();
-            ev.stopImmediatePropagation && ev.stopImmediatePropagation(); 
-
-            window.nsvForceRenderWeaponCodexV51();
-
-            const screens = ['startScreen', 'upgradeScreen', 'missionsScreen', 'collectionScreen', 'weaponCodexScreen', 'bossCodexScreen', 'onlineRoleScreen', 'levelUpScreen', 'gameOverScreen', 'pauseScreen', 'shopScreen', 'battlePassScreen', 'leaderboardScreen', 'eventModeScreen', 'onlineRoomScreen', 'tutorialOverlay'];
-            screens.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    if (id === 'weaponCodexScreen') { el.classList.remove('hidden'); el.style.pointerEvents = 'auto'; } 
-                    else { el.classList.add('hidden'); }
-                }
-            });
-            return;
-        }
-
-        if (btn.id === 'closeWeaponCodexBtn') {
-            ev.preventDefault();
-            ev.stopPropagation();
-            ev.stopImmediatePropagation && ev.stopImmediatePropagation();
-
-            const screens = ['startScreen', 'upgradeScreen', 'missionsScreen', 'collectionScreen', 'weaponCodexScreen', 'bossCodexScreen', 'onlineRoleScreen', 'levelUpScreen', 'gameOverScreen', 'pauseScreen', 'shopScreen', 'battlePassScreen', 'leaderboardScreen', 'eventModeScreen', 'onlineRoomScreen', 'tutorialOverlay'];
-            screens.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    if (id === 'startScreen') { el.classList.remove('hidden'); el.style.pointerEvents = 'auto'; } 
-                    else { el.classList.add('hidden'); }
-                }
-            });
-            if (typeof gameState !== 'undefined') gameState = 'start';
-            document.getElementById('uiLayer')?.classList.add('hidden');
-            document.getElementById('bossHpContainer')?.classList.add('hidden');
-            document.getElementById('mapEventForecastHud')?.classList.add('hidden');
-            document.getElementById('mapEventForecastHud')?.classList.add('force-hidden');
-            document.getElementById('bossWarning')?.classList.add('hidden');
-            return;
-        }
-    }, true); 
-
-    function bootV51() {
-        enforceBadgeV51();
-        const codexScreen = document.getElementById('weaponCodexScreen');
-        if (codexScreen && !codexScreen.classList.contains('hidden')) {
-            window.nsvForceRenderWeaponCodexV51();
-        }
-    }
-
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV51, {once:true}); else bootV51();
-    setInterval(enforceBadgeV51, 1000);
-})();
-</script>
-
-<script>
-// V52: ランキング画面での友達削除機能の追加
-(() => {
-    const V52_TAG = 'V52 FRIEND DELETE';
-
-    function enforceBadgeV52() {
-        try {
-            if (!document.getElementById('nsvV52BadgeStyle')) {
-                const st = document.createElement('style');
-                st.id = 'nsvV52BadgeStyle';
-                st.textContent = `
-                    div[id$="Badge"]:not(#nsvFinalBadgeV52) { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-                    #nsvFinalBadgeV52 { display: block !important; opacity: 1 !important; position: fixed !important; left: 10px !important; bottom: 8px !important; z-index: 99999 !important; pointer-events: none !important; color: #a7f3d0 !important; background: rgba(2,44,34,.9) !important; border: 1px solid rgba(52,211,153,.6) !important; border-radius: 999px !important; padding: 4px 9px !important; font: 900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif !important; letter-spacing: .08em !important; box-shadow: 0 0 13px rgba(52,211,153,.32) !important; }
-                `;
-                document.head.appendChild(st);
-            }
-
-            let badge = document.getElementById('nsvFinalBadgeV52');
-            if (!badge) {
-                badge = document.createElement('div');
-                badge.id = 'nsvFinalBadgeV52';
-                document.body.appendChild(badge);
-            }
-            badge.textContent = V52_TAG;
-        } catch(e) {}
-    }
-
-    // 削除処理の実行
-    window.removeFriendV52 = function(name) {
-        if (!confirm(`友達「${name}」をランキングから削除しますか？`)) return;
-        
-        const FRIEND_KEY_V37 = 'neon_survivor_friends_stable_v37';
-        let current = [];
-        try { current = JSON.parse(localStorage.getItem(FRIEND_KEY_V37) || '[]'); } catch(e) {}
-        current = current.filter(r => r.name !== name);
-        try { localStorage.setItem(FRIEND_KEY_V37, JSON.stringify(current)); } catch(e) {}
-        
-        let u = (typeof userData !== 'undefined') ? userData : null;
-        if (!u) { try { u = JSON.parse(localStorage.getItem('neon_survivor_save')); } catch(e) {} }
-        if (u) {
-            if (u.leaderboards && u.leaderboards.friends) u.leaderboards.friends = u.leaderboards.friends.filter(r => r.name !== name);
-            if (u.friendBook && u.friendBook.friends) u.friendBook.friends = u.friendBook.friends.filter(r => r.name !== name);
-            try {
-                if (typeof saveData === 'function') saveData();
-                else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
-            } catch(e) {}
-        }
-
-        // 再描画するために、見えないところでRANKINGボタンをもう一度押す
-        const openBtn = document.getElementById('openLeaderboardBtn');
-        if (openBtn) {
-            openBtn.click();
-        } else if (typeof renderRankingStableV37 === 'function') {
-            renderRankingStableV37();
-        }
-    };
-
-    // ランキング画面が描画されるたびに、自動的に「×」ボタンを差し込む
-    function observeLeaderboardForDeleteButtons() {
-        const observer = new MutationObserver(() => {
-            const rows = document.querySelectorAll('.nsv-v37-rank-row, .nsv-v13-rank-row, .nsv-v30-rank-row');
-            
-            rows.forEach(row => {
-                if (row.dataset.deleteWired === 'true') return;
-                row.dataset.deleteWired = 'true';
-                
-                const dateEl = row.querySelector('.text-xs.text-gray-400');
-                if (dateEl && dateEl.textContent === 'YOU') return; // 自分自身にはボタンを表示しない
-                
-                const nameEl = row.querySelector('b');
-                if (!nameEl) return;
-                const name = nameEl.textContent;
-
-                row.classList.add('relative', 'pr-8');
-                
-                const btn = document.createElement('button');
-                btn.className = 'delete-friend-btn absolute right-0 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-300 text-xl font-bold px-2 py-1 leading-none bg-transparent border-none cursor-pointer';
-                btn.innerHTML = '&times;';
-                btn.title = 'この友達を削除する';
-                
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation && e.stopImmediatePropagation();
-                    window.removeFriendV52(name);
-                });
-                
-                row.appendChild(btn);
-            });
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
-    }
-
-    function bootV52() {
-        enforceBadgeV52();
-        observeLeaderboardForDeleteButtons();
-    }
-
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV52, {once:true}); else bootV52();
-    setInterval(enforceBadgeV52, 1000);
-})();
-</script>
-
-<script>
-// V53: ネオンパスチケット価格の10倍化と全スキンの能力付与
-(() => {
-    const V53_TAG = 'V53 COST & SKINS';
-
-    function enforceBadgeV53() {
-        try {
-            if (!document.getElementById('nsvV53BadgeStyle')) {
-                const st = document.createElement('style');
-                st.id = 'nsvV53BadgeStyle';
-                st.textContent = `
-                    div[id$="Badge"]:not(#nsvFinalBadgeV53) { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-                    #nsvFinalBadgeV53 { display: block !important; opacity: 1 !important; position: fixed !important; left: 10px !important; bottom: 8px !important; z-index: 99999 !important; pointer-events: none !important; color: #fef08a !important; background: rgba(66,32,6,.9) !important; border: 1px solid rgba(250,204,21,.6) !important; border-radius: 999px !important; padding: 4px 9px !important; font: 900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif !important; letter-spacing: .08em !important; box-shadow: 0 0 13px rgba(250,204,21,.32) !important; }
-                `;
-                document.head.appendChild(st);
-            }
-
-            let badge = document.getElementById('nsvFinalBadgeV53');
-            if (!badge) {
-                badge = document.createElement('div');
-                badge.id = 'nsvFinalBadgeV53';
-                document.body.appendChild(badge);
-            }
-            badge.textContent = V53_TAG;
-        } catch(e) {}
-    }
-
-    function applySkinBonuses() {
-        if (typeof SKIN_BONUS_DEFS !== 'undefined') {
-            SKIN_BONUS_DEFS.classic = { label:'移動速度 +2% / 経験値 +2%', speedMult:1.02, expMult:1.02 };
-            SKIN_BONUS_DEFS.n1_skin_runner = { label:'移動速度 +4% / 連射速度 +2%', speedMult:1.04, fireRateMult:0.98 };
-            SKIN_BONUS_DEFS.n1_sp_skin_galaxy = { label:'移動速度 +6% / 連射速度 +4%', speedMult:1.06, fireRateMult:0.96 };
-        }
-    }
-
-    function applyNewShopTicketCost() {
-        if (typeof window.renderShopStableV37 !== 'undefined') {
-            window.renderShopStableV37 = function(force = false) {
-                if (window.shopRenderLockV37) return;
-                window.shopRenderLockV37 = true;
-                try {
-                    const u = (typeof ensureUserV37 === 'function') ? ensureUserV37() : userData;
-                    let div = document.getElementById('shopScreen');
-                    if (!div) {
-                        div = document.createElement('div');
-                        div.id = 'shopScreen';
-                        div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3';
-                        document.body.appendChild(div);
-                    }
-                    if (!force && div.classList.contains('hidden')) return;
-                    
-                    const coins = Math.floor(Number(u?.coins) || 0);
-                    const tickets = Math.floor(Number(u?.passTickets) || 0);
-                    const premium = !!(u?.battlePassV2?.premium || u?.battlePass?.premium);
-                    const PASS_TICKET_COST = 1000000; // 100万コイン (元の10倍)
-                    
-                    div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4">
-                        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-                            <div>
-                                <h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">GAME SHOP</h2>
-                                <p class="text-gray-300 text-sm mt-2">銀コインをチケットやパスに使えます。</p>
-                            </div>
-                            <button id="closeShopBtnV43" class="btn-neon px-4 py-2 rounded font-bold">BACK</button>
-                        </div>
-                        
-                        <div class="flex flex-wrap items-center justify-center gap-8 bg-black/60 border border-yellow-400/50 rounded-2xl p-5 shadow-[0_0_20px_rgba(250,204,21,0.2)]">
-                            <div class="text-center">
-                                <div class="text-sm text-yellow-400 font-bold tracking-widest mb-1">所持コイン</div>
-                                <div class="text-3xl md:text-4xl font-black text-yellow-200">🪙 ${coins.toLocaleString()}</div>
-                            </div>
-                            <div class="w-px h-16 bg-gray-600/50 hidden md:block"></div>
-                            <div class="text-center">
-                                <div class="text-sm text-cyan-400 font-bold tracking-widest mb-1">所持チケット</div>
-                                <div class="text-3xl md:text-4xl font-black text-cyan-200">🎟️ ${tickets.toLocaleString()}</div>
-                            </div>
-                        </div>
-    
-                        <div id="shopListContainer" class="nsv-v37-shop-grid">
-                            <div class="nsv-v37-shop-card flex flex-col justify-between">
-                                <div>
-                                    <div class="text-5xl mb-2">🎟️</div>
-                                    <h3 class="text-2xl font-bold text-yellow-300">バトルパスチケット</h3>
-                                    <p class="text-sm text-gray-300 mt-2">価格はいつでも固定です。</p>
-                                    <p class="text-xl font-black text-yellow-200 mt-3">必要コイン：${PASS_TICKET_COST.toLocaleString()}</p>
-                                </div>
-                                <button id="buyPassTicketBtnV43" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${coins >= PASS_TICKET_COST ? '' : 'opacity-50'}">チケットを1枚交換</button>
-                            </div>
-                            <div class="nsv-v37-shop-card flex flex-col justify-between">
-                                <div>
-                                    <div class="text-5xl mb-2">⭐</div>
-                                    <h3 class="text-2xl font-bold text-cyan-300">NEON PASS</h3>
-                                    <p class="text-sm text-gray-300 mt-2">チケット1枚で現在のパスを購入できます。</p>
-                                    <p class="text-sm text-gray-300 mt-3">状態：<b class="${premium ? 'text-green-300' : 'text-gray-300'}">${premium ? '購入済み' : '未購入'}</b></p>
-                                </div>
-                                <div>
-                                    <button id="buyNeonPassBtnV43" class="btn-neon px-5 py-3 rounded font-bold mt-4 w-full ${(tickets > 0 && !premium) ? '' : 'opacity-50'}">NEON PASSを購入</button>
-                                    <button id="openPassFromShopBtnV43" class="btn-purple px-5 py-3 rounded font-bold mt-3 w-full">NEON PASSを見る</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-    
-                    const oldHeaders = div.querySelectorAll('#nsvV13ShopCoinHeader, #nsvV30ShopCoinHeader');
-                    oldHeaders.forEach(el => el.remove());
-    
-                    document.getElementById('closeShopBtnV43')?.addEventListener('click', () => {
-                        if (typeof stableShowV37 === 'function') stableShowV37('startScreen');
-                        else if (typeof showScreen === 'function') showScreen('startScreen');
-                    });
-                    document.getElementById('buyPassTicketBtnV43')?.addEventListener('click', () => {
-                        if (Number(u.coins || 0) < PASS_TICKET_COST) { alert('コインが足りません。'); return; }
-                        u.coins = Math.floor(Number(u.coins) - PASS_TICKET_COST);
-                        u.passTickets = Math.floor(Number(u.passTickets || 0) + 1);
-                        if (typeof saveNowV37 === 'function') saveNowV37();
-                        else if (typeof saveData === 'function') saveData();
-                        window.renderShopStableV37(true);
-                    });
-                    document.getElementById('buyNeonPassBtnV43')?.addEventListener('click', () => {
-                        const already = !!(u.battlePassV2?.premium || u.battlePass?.premium);
-                        if (already) { alert('すでに購入済みです。'); return; }
-                        if (Number(u.passTickets || 0) <= 0) { alert('チケットが足りません。'); return; }
-                        u.passTickets = Math.floor(Number(u.passTickets) - 1);
-                        u.battlePassV2 = u.battlePassV2 || {}; u.battlePassV2.premium = true;
-                        u.battlePass = u.battlePass || {}; u.battlePass.premium = true;
-                        if (typeof saveNowV37 === 'function') saveNowV37();
-                        else if (typeof saveData === 'function') saveData();
-                        window.renderShopStableV37(true);
-                    });
-                    document.getElementById('openPassFromShopBtnV43')?.addEventListener('click', () => {
-                        if (typeof renderBattlePassV2 === 'function') renderBattlePassV2('base');
-                        if (typeof stableShowV37 === 'function') stableShowV37('battlePassScreen');
-                        else if (typeof showScreen === 'function') showScreen('battlePassScreen');
-                    });
-                } catch(e) {}
-                finally { window.shopRenderLockV37 = false; }
-            };
-            window.renderShopV2 = window.renderShopStableV37;
-            window.renderShopScreen20260504 = window.renderShopStableV37;
-        }
-    }
-
-    function bootV53() {
-        enforceBadgeV53();
-        applySkinBonuses();
-        applyNewShopTicketCost();
-        
-        // 開いている可能性のある画面を更新
-        const collectionScreen = document.getElementById('collectionScreen');
-        if (collectionScreen && !collectionScreen.classList.contains('hidden')) {
-            if (typeof renderCollectionScreen === 'function') renderCollectionScreen();
-        }
-        const shopScreen = document.getElementById('shopScreen');
-        if (shopScreen && !shopScreen.classList.contains('hidden')) {
-            if (typeof window.renderShopStableV37 === 'function') window.renderShopStableV37(true);
-        }
-    }
-
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV53, {once:true}); else bootV53();
-    setInterval(enforceBadgeV53, 1000);
-})();
-</script>
-
-<script>
-// V54: バッジ表示の完全整理と最適化
-(() => {
-    const V54_TAG = 'V54 CLEANUP STABLE';
-
-    function enforceBadgeV54() {
-        try {
-            // 古いバッジ用のスタイルタグをDOMから全て削除して競合を防ぐ
-            const oldStyles = document.querySelectorAll('style[id*="Badge"]');
-            oldStyles.forEach(st => st.remove());
-
-            // V54用のクリーンなスタイルを追加
-            if (!document.getElementById('nsvV54BadgeStyle')) {
-                const st = document.createElement('style');
-                st.id = 'nsvV54BadgeStyle';
-                st.textContent = `
-                    div[id$="Badge"]:not(#nsvFinalBadgeV54) { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-                    #nsvFinalBadgeV54 { display: block !important; opacity: 1 !important; position: fixed !important; left: 10px !important; bottom: 8px !important; z-index: 99999 !important; pointer-events: none !important; color: #bae6fd !important; background: rgba(8,47,73,.9) !important; border: 1px solid rgba(56,189,248,.6) !important; border-radius: 999px !important; padding: 4px 9px !important; font: 900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif !important; letter-spacing: .08em !important; box-shadow: 0 0 13px rgba(56,189,248,.32) !important; }
-                `;
-                document.head.appendChild(st);
-            }
-
-            // 古いバッジ要素そのものをDOMから完全に消し去る
-            const allBadges = document.querySelectorAll('div[id$="Badge"]');
-            allBadges.forEach(b => {
-                if (b.id !== 'nsvFinalBadgeV54') {
-                    b.remove();
-                }
-            });
-
-            // V54のバッジを1つだけ作成・更新
-            let badge = document.getElementById('nsvFinalBadgeV54');
-            if (!badge) {
-                badge = document.createElement('div');
-                badge.id = 'nsvFinalBadgeV54';
-                document.body.appendChild(badge);
-            }
-            badge.textContent = V54_TAG;
-        } catch(e) {}
-    }
-
-    function bootV54() {
-        enforceBadgeV54();
-    }
-
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV54, {once:true}); else bootV54();
-    setInterval(enforceBadgeV54, 1000);
-})();
-</script>
-
-<script>
-// V56: FORTNITE-STYLE ITEM SHOP & RANKING FIX
-(() => {
-    const V56_TAG = 'V56 SHOP & RANK FIX';
-
-    function enforceBadgeV56() {
-        try {
-            if (!document.getElementById('nsvV56BadgeStyle')) {
-                const st = document.createElement('style');
-                st.id = 'nsvV56BadgeStyle';
-                st.textContent = `
-                    div[id$="Badge"]:not(#nsvFinalBadgeV56) { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-                    #nsvFinalBadgeV56 { display: block !important; opacity: 1 !important; position: fixed !important; left: 10px !important; bottom: 8px !important; z-index: 99999 !important; pointer-events: none !important; color: #fde047 !important; background: rgba(66,32,6,.9) !important; border: 1px solid rgba(250,204,21,.6) !important; border-radius: 999px !important; padding: 4px 9px !important; font: 900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif !important; letter-spacing: .08em !important; box-shadow: 0 0 13px rgba(250,204,21,.32) !important; }
-                `;
-                document.head.appendChild(st);
-            }
-            let badge = document.getElementById('nsvFinalBadgeV56');
-            if (!badge) {
-                badge = document.createElement('div');
-                badge.id = 'nsvFinalBadgeV56';
-                document.body.appendChild(badge);
-            }
-            badge.textContent = V56_TAG;
-        } catch(e) {}
-    }
-
-    // ==========================================
-    // 1. ランキングの友達削除の確実化と表示被り修正
-    // ==========================================
-    
-    // 古いMutationObserverによるボタン追加を無効化
-    if (typeof window.observeLeaderboardForDeleteButtons !== 'undefined') {
-        window.observeLeaderboardForDeleteButtons = function() {}; 
-    }
-
-    // 全く新しいランキング描画関数で上書き
-    window.renderRankingStableV37 = function() {
-        try {
-            const n = (v) => Number.isFinite(Number(v)) ? Number(v) : 0;
-            const esc = (s) => String(s ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
-            
-            // データ取得
-            const friends = typeof migrateFriendsV37 === 'function' ? migrateFriendsV37() : [];
-            let deleted = [];
-            try { deleted = JSON.parse(localStorage.getItem('nsv_deleted_friends_v56') || '[]'); } catch(e) {}
-            const filteredFriends = friends.filter(f => !deleted.includes(f.name));
-            
-            let selfRow = null;
-            if (typeof selfRankRowV37 === 'function') selfRow = selfRankRowV37();
-            else selfRow = { name: 'YOU', bestScore: 0, totalBoss: 0, totalKills: 0, bestTime: 0, totalCoins: 0, bestLevel: 0, date: 'YOU' };
-            
-            const rows = [selfRow, ...filteredFriends];
-
-            let div = document.getElementById('leaderboardScreen');
-            if (!div) {
-                div = document.createElement('div'); div.id = 'leaderboardScreen'; div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3'; document.body.appendChild(div);
-            }
-
-            // 被らない専用レイアウトのカード生成関数
-            const makeRankCard = (title, rws, key, unit='') => {
-                const sorted = rws.slice().sort((a,b) => (n(b[key])) - (n(a[key]))).slice(0, 15);
-                return `<div class="nsv-v37-rank-card p-3">
-                    <h3 class="text-xl font-bold text-cyan-300 mb-2">${esc(title)}</h3>
-                    ${sorted.map((r,i) => {
-                        const isSelf = r.date === 'YOU' || r.name === selfRow.name;
-                        // 4列のグリッドにして被りを完全に防止
-                        return `<div class="rounded-lg px-2 mt-1 py-1" style="display:grid;grid-template-columns:30px 1fr auto 24px;gap:6px;align-items:center;border-bottom:1px solid rgba(255,255,255,0.1);${isSelf?'background:rgba(6,182,212,0.15);':''}">
-                            <div class="text-yellow-300 font-black text-sm">#${i+1}</div>
-                            <div class="overflow-hidden">
-                                <b class="truncate block text-sm" style="max-width:120px;">${esc(r.name)}</b>
-                                <div class="text-[10px] text-gray-400">${esc(r.date || '')}</div>
-                            </div>
-                            <div class="text-right font-black text-white text-sm">${Math.floor(n(r[key])).toLocaleString()}${unit}</div>
-                            <div class="text-center">
-                                ${!isSelf ? `<button class="v56-del-btn text-red-500 hover:text-red-400 font-black text-lg px-1 py-0 leading-none cursor-pointer pointer-events-auto" data-name="${esc(r.name)}" title="\u524A\u9664">&times;</button>` : ''}
-                            </div>
-                        </div>`;
-                    }).join('')}
-                </div>`;
-            };
-
-            div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4">
-                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-                    <div>
-                        <h2 class="text-4xl md:text-5xl font-bold text-cyan-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #22d3ee;">RANKING</h2>
-                        <p class="text-gray-300 text-sm mt-2">友達と全ての部門で勝負できます。</p>
-                    </div>
-                    <div class="flex gap-2 flex-wrap">
-                        <button id="copyFriendCodeBtnV56" class="btn-gold px-4 py-2 rounded font-bold">COPY</button>
-                        <button id="addFriendCodeBtnV56" class="btn-green px-4 py-2 rounded font-bold">ADD FRIEND</button>
-                        <button id="closeLeaderboardBtnV56" class="btn-neon px-4 py-2 rounded font-bold">BACK</button>
-                    </div>
-                </div>
-                <div id="leaderboardListContainer" class="nsv-v37-rank-grid overflow-y-auto max-h-[72vh] pr-1">
-                    ${makeRankCard('スコア部門', rows, 'bestScore')}
-                    ${makeRankCard('ボス討伐部門', rows, 'totalBoss', '体')}
-                    ${makeRankCard('討伐数部門', rows, 'totalKills', '体')}
-                    ${makeRankCard('生存時間部門', rows, 'bestTime', '秒')}
-                    ${makeRankCard('コイン部門', rows, 'totalCoins', '枚')}
-                    ${makeRankCard('最高レベル部門', rows, 'bestLevel', 'Lv')}
-                </div>
-            </div>`;
-
-            // イベントのバインド
-            document.getElementById('closeLeaderboardBtnV56')?.addEventListener('click', () => { if(typeof stableShowV37==='function') stableShowV37('startScreen'); });
-            document.getElementById('copyFriendCodeBtnV56')?.addEventListener('click', () => { 
-                if(typeof encodeFriendV37==='function') {
-                    const code = encodeFriendV37(); try { navigator.clipboard?.writeText(code); } catch(e) {} alert('友達コードをコピーしました。\n' + code); 
-                }
-            });
-            document.getElementById('addFriendCodeBtnV56')?.addEventListener('click', () => { 
-                const btn = document.getElementById('addFriendCodeBtnV37');
-                if (btn) btn.click();
-                else alert('追加処理が見つかりません');
-                setTimeout(() => window.renderRankingStableV37(), 100);
-            });
-
-            // 削除ボタンの確実なバインド
-            div.querySelectorAll('.v56-del-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault(); e.stopPropagation();
-                    const name = e.target.dataset.name;
-                    if (!confirm(`友達「${name}」をランキングから削除しますか？`)) return;
-                    let d = [];
-                    try { d = JSON.parse(localStorage.getItem('nsv_deleted_friends_v56') || '[]'); } catch(e){}
-                    if (!d.includes(name)) d.push(name);
-                    localStorage.setItem('nsv_deleted_friends_v56', JSON.stringify(d));
-                    window.renderRankingStableV37(); // 即座に再描画
-                });
-            });
-        } catch(e) { console.warn(e); }
-    };
-    // エイリアスの上書き
-    window.renderRankingV30 = window.renderRankingStableV37;
-
-    // ==========================================
-    // 2. Fortnite風 アイテムショップの実装
-    // ==========================================
-    function getDailyShopItemsV56() {
-        const d = new Date();
-        const seedStr = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-        let seed = 0;
-        for (let i = 0; i < seedStr.length; i++) seed = ((seed << 5) - seed) + seedStr.charCodeAt(i);
-        
-        const random = () => { const x = Math.sin(seed++) * 10000; return x - Math.floor(x); };
-
-        const allSkins = (typeof SKIN_DEFS !== 'undefined' ? SKIN_DEFS : []).filter(s => s.id !== 'classic' && !s.id.includes('treasure'));
-        const allAuras = (typeof AURA_DEFS !== 'undefined' ? AURA_DEFS : []).filter(a => a.id !== 'none');
-        const allCapes = (typeof CAPE_DEFS !== 'undefined' ? CAPE_DEFS : []).filter(c => c.id !== 'none');
-
-        const pool = [];
-        allSkins.forEach(s => pool.push(Object.assign({}, s, { itemType: 'skin', price: 150000, rarity:'EPIC', bg:'bg-purple-900/60', border:'border-purple-400/80', glow:'shadow-[0_0_15px_rgba(192,132,252,0.4)]' })));
-        allAuras.forEach(a => pool.push(Object.assign({}, a, { itemType: 'aura', price: 120000, rarity:'RARE', bg:'bg-blue-900/60', border:'border-blue-400/80', glow:'shadow-[0_0_15px_rgba(96,165,250,0.4)]' })));
-        allCapes.forEach(c => pool.push(Object.assign({}, c, { itemType: 'cape', price: 80000, rarity:'UNCOMMON', bg:'bg-green-900/60', border:'border-green-400/80', glow:'shadow-[0_0_15px_rgba(74,222,128,0.4)]' })));
-
-        for (let i = pool.length - 1; i > 0; i--) {
-            const j = Math.floor(random() * (i + 1));
-            [pool[i], pool[j]] = [pool[j], pool[i]];
-        }
-        return pool.slice(0, 4);
-    }
-
-    if (typeof window.renderShopStableV37 !== 'undefined') {
-        window.renderShopStableV37 = function(force = false) {
-            if (window.shopRenderLockV37) return;
-            window.shopRenderLockV37 = true;
-            try {
-                let u = (typeof userData !== 'undefined') ? userData : null;
-                if (!u) { try { u = JSON.parse(localStorage.getItem('neon_survivor_save')); } catch(e) {} }
-                if (!u) return;
-                
-                let div = document.getElementById('shopScreen');
-                if (!div) {
-                    div = document.createElement('div'); div.id = 'shopScreen'; div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3'; document.body.appendChild(div);
-                }
-                if (!force && div.classList.contains('hidden')) return;
-                
-                const coins = Math.floor(Number(u.coins || 0));
-                const tickets = Math.floor(Number(u.passTickets || 0));
-                const premium = !!(u.battlePassV2?.premium || u.battlePass?.premium);
-                const PASS_TICKET_COST = 1000000;
-                
-                const dailyItems = getDailyShopItemsV56();
-                let dailyHtml = '';
-                dailyItems.forEach((item, idx) => {
-                    let owned = false;
-                    if (item.itemType === 'skin' && u.unlocks?.skins?.[item.id]) owned = true;
-                    if (item.itemType === 'aura' && u.unlocks?.auras?.[item.id]) owned = true;
-                    if (item.itemType === 'cape' && u.unlocks?.capes?.[item.id]) owned = true;
-                    
-                    const canBuy = !owned && coins >= item.price;
-                    const typeLabel = item.itemType === 'skin' ? 'SKIN' : item.itemType === 'aura' ? 'AURA' : 'CAPE';
-                    
-                    dailyHtml += `
-                        <div class="border ${owned ? 'border-gray-600 bg-gray-900/60' : item.border + ' ' + item.bg} rounded-xl p-3 flex flex-col justify-between ${owned ? '' : item.glow} relative overflow-hidden transform transition hover:scale-105">
-                            <div class="absolute top-0 right-0 bg-black/50 text-[10px] font-bold px-2 py-1 rounded-bl-lg text-white">${item.rarity}</div>
-                            ${owned ? '<div class="absolute -left-6 top-4 bg-green-500 text-black text-xs font-bold px-8 py-1 transform -rotate-45 z-10">OWNED</div>' : ''}
-                            
-                            <div class="text-center mb-2 z-10 relative pt-3">
-                                <div class="text-5xl drop-shadow-lg mb-2">${item.icon}</div>
-                                <div class="text-[10px] font-bold text-gray-300 tracking-wider">${typeLabel}</div>
-                                <h5 class="text-sm font-bold text-white mt-1 leading-tight h-10 flex items-center justify-center">${item.name}</h5>
-                            </div>
-                            
-                            <div class="z-10 relative mt-auto">
-                                <button class="buy-daily-item-btn w-full py-2 rounded font-black text-sm ${owned ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : canBuy ? 'bg-yellow-400 text-black hover:bg-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.6)]' : 'bg-gray-800 text-gray-500 border border-gray-600 cursor-not-allowed'}" data-idx="${idx}" ${owned || !canBuy ? 'disabled' : ''}>
-                                    ${owned ? '所有済み' : `🪙 ${item.price.toLocaleString()}`}
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4">
-                    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-                        <div>
-                            <h2 class="text-4xl md:text-5xl font-black text-white italic" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">ITEM SHOP</h2>
-                            <p class="text-gray-300 text-sm mt-1">日替わりアイテムとパス・チケットを入手しよう。</p>
-                        </div>
-                        <button id="closeShopBtnV56" class="btn-neon px-4 py-2 rounded font-bold">BACK</button>
-                    </div>
-                    
-                    <div class="flex flex-wrap items-center justify-center gap-6 bg-slate-900/80 border border-slate-600 rounded-xl p-3 shadow-inner">
-                        <div class="text-center px-4">
-                            <div class="text-xs text-gray-400 font-bold tracking-widest mb-1">COINS</div>
-                            <div class="text-2xl font-black text-yellow-300">🪙 ${coins.toLocaleString()}</div>
-                        </div>
-                        <div class="w-px h-10 bg-slate-700 hidden md:block"></div>
-                        <div class="text-center px-4">
-                            <div class="text-xs text-gray-400 font-bold tracking-widest mb-1">TICKETS</div>
-                            <div class="text-2xl font-black text-cyan-300">🎟️ ${tickets.toLocaleString()}</div>
-                        </div>
-                    </div>
-
-                    <!-- 🎫 TICKETS & PASS -->
-                    <h3 class="text-xl font-bold text-gray-300 mt-2 border-b border-gray-600 pb-1">TICKETS & PASS</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-gradient-to-r from-yellow-900/40 to-black border border-yellow-500/50 rounded-xl p-4 flex flex-col justify-between">
-                            <div class="flex items-center gap-4 mb-2">
-                                <div class="text-5xl drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]">🎟️</div>
-                                <div>
-                                    <h4 class="text-lg font-bold text-white">バトルパスチケット</h4>
-                                    <p class="text-xs text-gray-300 mt-1">NEON PASSの解放に必要です。</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between mt-3">
-                                <span class="text-lg font-black text-yellow-300">🪙 ${PASS_TICKET_COST.toLocaleString()}</span>
-                                <button id="buyPassTicketBtnV56" class="btn-gold px-6 py-2 rounded font-bold ${coins >= PASS_TICKET_COST ? '' : 'opacity-50'}" ${coins >= PASS_TICKET_COST ? '' : 'disabled'}>交換</button>
-                            </div>
-                        </div>
-                        <div class="bg-gradient-to-r from-cyan-900/40 to-black border border-cyan-500/50 rounded-xl p-4 flex flex-col justify-between">
-                            <div class="flex items-center gap-4 mb-2">
-                                <div class="text-5xl drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">⭐</div>
-                                <div>
-                                    <h4 class="text-lg font-bold text-white">NEON PASS</h4>
-                                    <p class="text-xs text-gray-300 mt-1">現在のプレミアム報酬を解放します。</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between mt-3">
-                                <span class="text-sm font-bold ${premium ? 'text-green-400' : 'text-gray-400'}">${premium ? '✓ 解放済み' : '未解放'}</span>
-                                <div class="flex gap-2">
-                                    <button id="buyNeonPassBtnV56" class="btn-neon px-4 py-2 rounded font-bold text-sm ${(tickets > 0 && !premium) ? '' : 'opacity-50'}" ${(tickets > 0 && !premium) ? '' : 'disabled'}>解放</button>
-                                    <button id="openPassFromShopBtnV56" class="btn-purple px-4 py-2 rounded font-bold text-sm">確認</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 🛒 DAILY ITEMS -->
-                    <div class="flex justify-between items-end mt-4 border-b border-gray-600 pb-1">
-                        <h3 class="text-xl font-bold text-gray-300">DAILY SHOP</h3>
-                        <span class="text-xs font-bold text-yellow-400 bg-yellow-900/30 px-2 py-1 rounded">毎日0時更新</span>
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        ${dailyHtml}
-                    </div>
-                </div>`;
-
-                // イベントリスナー
-                document.getElementById('closeShopBtnV56')?.addEventListener('click', () => {
-                    if (typeof stableShowV37 === 'function') stableShowV37('startScreen');
-                });
-                
-                document.getElementById('buyPassTicketBtnV56')?.addEventListener('click', () => {
-                    if (Number(u.coins || 0) < PASS_TICKET_COST) return;
-                    u.coins = Math.floor(Number(u.coins) - PASS_TICKET_COST);
-                    u.passTickets = Math.floor(Number(u.passTickets || 0) + 1);
-                    if (typeof saveNowV37 === 'function') saveNowV37();
-                    window.renderShopStableV37(true);
-                });
-                
-                document.getElementById('buyNeonPassBtnV56')?.addEventListener('click', () => {
-                    const already = !!(u.battlePassV2?.premium || u.battlePass?.premium);
-                    if (already || Number(u.passTickets || 0) <= 0) return;
-                    u.passTickets = Math.floor(Number(u.passTickets) - 1);
-                    u.battlePassV2 = u.battlePassV2 || {}; u.battlePassV2.premium = true;
-                    u.battlePass = u.battlePass || {}; u.battlePass.premium = true;
-                    if (typeof saveNowV37 === 'function') saveNowV37();
-                    window.renderShopStableV37(true);
-                });
-                
-                document.getElementById('openPassFromShopBtnV56')?.addEventListener('click', () => {
-                    if (typeof renderBattlePassV2 === 'function') renderBattlePassV2('base');
-                    if (typeof stableShowV37 === 'function') stableShowV37('battlePassScreen');
-                });
-
-                div.querySelectorAll('.buy-daily-item-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const idx = e.target.dataset.idx;
-                        const item = dailyItems[idx];
-                        if (!item || Number(u.coins || 0) < item.price) return;
-                        
-                        u.coins -= item.price;
-                        if (item.itemType === 'skin') {
-                            u.unlocks = u.unlocks || {}; u.unlocks.skins = u.unlocks.skins || {};
-                            u.unlocks.skins[item.id] = true;
-                        } else if (item.itemType === 'aura') {
-                            u.unlocks = u.unlocks || {}; u.unlocks.auras = u.unlocks.auras || {};
-                            u.unlocks.auras[item.id] = true;
-                        } else if (item.itemType === 'cape') {
-                            u.unlocks = u.unlocks || {}; u.unlocks.capes = u.unlocks.capes || {};
-                            u.unlocks.capes[item.id] = true;
-                        }
-                        
-                        if (typeof saveNowV37 === 'function') saveNowV37();
-                        if (typeof showMissionToast === 'function') showMissionToast('PURCHASED!', `${item.name} を購入しました！`);
-                        window.renderShopStableV37(true);
-                    });
-                });
-
-            } catch(e) {}
-            finally { window.shopRenderLockV37 = false; }
-        };
-        
-        window.renderShopV2 = window.renderShopStableV37;
-        window.renderShopScreen20260504 = window.renderShopStableV37;
-    }
-
-    function bootV56() {
-        enforceBadgeV56();
-        if (typeof window.renderRankingStableV37 === 'function') window.renderRankingStableV37();
-        const shop = document.getElementById('shopScreen');
-        if (shop && !shop.classList.contains('hidden')) {
-            if (typeof window.renderShopStableV37 === 'function') window.renderShopStableV37(true);
-        }
-    }
-
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV56, {once:true}); else bootV56();
-    setInterval(enforceBadgeV56, 1000);
-})();
-</script>
-
+<!-- Removed old duplicate post-module patch script; V59 integrated stability core replaces it. -->
 </body>
 </html>
