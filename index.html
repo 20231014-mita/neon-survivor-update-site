@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V39 MOJIBAKE SAFE STABLE / no-preview build -->
+<!-- V40 NO EVENT BUTTON STABLE / no-preview build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -13381,7 +13381,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
 
         ;(() => {
-            const V35_TAG = 'V39 MOJIBAKE SAFE STABLE';
+            const V35_TAG = 'V40 NO EVENT BUTTON STABLE';
             const PASS_TICKET_COST_V35 = 100000;
             const q35 = (id) => document.getElementById(id);
             const n35 = (v, d = 0) => { const x = Number(v); return Number.isFinite(x) ? x : d; };
@@ -13834,7 +13834,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         // V37: stable home layout / stable shop / persistent friend ranking
         // ==========================================
         (() => {
-            const V37_TAG = 'V39 MOJIBAKE SAFE STABLE';
+            const V37_TAG = 'V40 NO EVENT BUTTON STABLE';
             const PASS_TICKET_COST_V37 = 100000;
             const FRIEND_KEY_V37 = 'neon_survivor_friends_stable_v37';
             const FRIEND_KEYS_OLD_V37 = ['neon_survivor_friend_rows_v30','neon_survivor_friend_rows_v26','neon_survivor_friends_v13','neon_survivor_friend_rows'];
@@ -14173,7 +14173,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         // V39: online room matching by 3-digit code / max 7 players
         // ==========================================
         ;(() => {
-            const V39_TAG = 'V39 MOJIBAKE SAFE STABLE';
+            const V39_TAG = 'V40 NO EVENT BUTTON STABLE';
             const ROOM_STORAGE_KEY_V39 = 'neon_survivor_online_room_v38';
             const ROOM_COLLECTION_NAME_V39 = 'neon_survivor_rooms_v38';
             const ROOM_CODE_LENGTH_V39 = 3;
@@ -14571,6 +14571,72 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             setInterval(() => { try { setBadgeV39(); updateOnlineHudV39(); } catch(e) {} }, 1500);
         })();
 
+</script>
+
+
+
+<!-- V40: remove home daily/event button only -->
+<style id="nsvV40NoHomeEventButtonStyle">
+  #startScreen #openDailyEventBtnV13,
+  #startScreen #openDailyEventBtnV30,
+  #startScreen #openDailyEventBtnV31,
+  #startScreen #openDailyEventBtnV33,
+  #startScreen #openDailyEventBtnV35,
+  #startScreen #openEventModeBtn {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+</style>
+<script>
+(() => {
+  'use strict';
+  const EVENT_BUTTON_IDS_V40 = [
+    'openDailyEventBtnV13',
+    'openDailyEventBtnV30',
+    'openDailyEventBtnV31',
+    'openDailyEventBtnV33',
+    'openDailyEventBtnV35',
+    'openEventModeBtn'
+  ];
+  const EVENT_TEXT_RE_V40 = /DAILY\s*EVENT|EVENT\s*MODE|\u65E5\u66FF\u308F\u308A\u30A4\u30D9\u30F3\u30C8|\u30A4\u30D9\u30F3\u30C8\u30E2\u30FC\u30C9/i;
+
+  function removeHomeEventButtonsV40() {
+    try {
+      const start = document.getElementById('startScreen');
+      if (!start) return;
+      EVENT_BUTTON_IDS_V40.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el && start.contains(el)) el.remove();
+      });
+      start.querySelectorAll('button, a').forEach((el) => {
+        const txt = String(el.textContent || '').replace(/\s+/g, ' ').trim();
+        if (EVENT_TEXT_RE_V40.test(txt)) el.remove();
+      });
+    } catch (e) {}
+  }
+
+  function bootV40() {
+    removeHomeEventButtonsV40();
+    setTimeout(removeHomeEventButtonsV40, 80);
+    setTimeout(removeHomeEventButtonsV40, 300);
+    setTimeout(removeHomeEventButtonsV40, 1000);
+    setTimeout(removeHomeEventButtonsV40, 2500);
+    try {
+      const start = document.getElementById('startScreen') || document.body;
+      const mo = new MutationObserver(removeHomeEventButtonsV40);
+      mo.observe(start, { childList: true, subtree: true });
+      window.nsvV40NoHomeEventButtonObserver = mo;
+    } catch (e) {}
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootV40, { once: true });
+  } else {
+    bootV40();
+  }
+  window.addEventListener('load', removeHomeEventButtonsV40, { once: true });
+})();
 </script>
 
 </body>
