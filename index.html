@@ -15299,96 +15299,916 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 </script>
 
 <script>
-// V46: WEAPON CODEXの自動生成IDによる未解放判定漏れの修正
+// V47: アルティメット武器の未解放表示バグの完全修正
 (() => {
-    const V46_TAG = 'V46 WEAPON LOCK FIX 2';
+    const V47_TAG = 'V47 WEAPON LOCK FIX FINAL';
 
-    // 既存のカード描画関数をさらに安全なものに上書きする
-    window.makeWeaponCodexCard = function(w) {
-        if (typeof ensureProgressionData === 'function') ensureProgressionData();
-        if (typeof ensureWeaponSpawnSettings20260504 === 'function') ensureWeaponSpawnSettings20260504();
-        
-        let targetId = w.id;
-        // 自動生成されたID（base_4_...など）の場合は、名前から正しいアルティメットIDを推測する
-        if (typeof weaponIdFromTextV35 === 'function') {
-            const guessedId = weaponIdFromTextV35(w.name);
-            if (guessedId) targetId = guessedId;
+    // モジュール内に隠蔽された武器データを再構築する
+    const BASE_WEAPONS = [
+        { type:'BASIC', name:'通常弾', icon:'\uD83D\uDD39', desc:'一番基本の自動攻撃。攻撃力・連射・貫通の強化が乗る。', attackType:'単体・遠距離', strong:'序盤、狙った敵', weak:'敵が多すぎる場面', unlock:'最初から' },
+        { type:'BASIC', name:'円環の刃界', icon:'\uD83C\uDF00', desc:'周囲を回る刃で近くの敵を削る。', attackType:'近距離・周囲', strong:'囲まれた時', weak:'遠い敵', unlock:'レベルアップ' },
+        { type:'BASIC', name:'破滅の雷域', icon:'\u26A1', desc:'一定間隔で周囲へ雷ダメージ。', attackType:'範囲・自動', strong:'ザコ敵の群れ', weak:'単体ボス', unlock:'レベルアップ' },
+        { type:'BASIC', name:'虚空次元の暴風', icon:'\uD83C\uDF2A\uFE0F', desc:'巨大竜巻で敵を巻き込み、ジェムも集めやすくなる。', attackType:'吸引・範囲', strong:'ジェム回収、密集敵', weak:'離れたボス', unlock:'レベルアップ' },
+        { type:'BASIC', name:'ファントムステップ', icon:'\uD83D\uDC7B\uD83D\uDCA8', desc:'残像を残しながら神速移動する強力な回避武器。発動中は短時間ダメージを受けにくい。', attackType:'移動・回避・接触斬り', strong:'囲まれた時、ボス接近、オンラインのロック外し', weak:'クールダウン中は効果がない', unlock:'ミッション「幻影歩法の試練」達成で解放', id:'phantomStep' }
+    ];
+
+    const ULTIMATE_WEAPONS = [
+        { type:'ULTIMATE', name:'深淵の重力刃', icon:'\u2694\uFE0F', desc:'敵を吸い寄せて巨大な刃で攻撃。', attackType:'吸引・斬撃', strong:'敵をまとめる場面', weak:'高速敵', unlock:'ミッション「暗黒卿の試練」で解放', id:'vader' },
+        { type:'ULTIMATE', name:'雷霆砕破・轟', icon:'\uD83E\uDE93', desc:'雷神の斧を投げて広範囲を攻撃。', attackType:'投てき・広範囲', strong:'中盤以降の群れ', weak:'狙いがずれる場面', unlock:'ミッション「轟のハンマー」で解放', id:'thor' },
+        { type:'ULTIMATE', name:'龍星・崩命破', icon:'\uD83C\uDF0A', desc:'狙った方向に強力なビームを放つ。', attackType:'ビーム・直線', strong:'ボス、一直線の敵', weak:'横から来る敵', unlock:'ミッション「崩命破の継承」で解放', id:'kamehameha' },
+        { type:'ULTIMATE', name:'創世の光芒', icon:'\uD83E\uDD16', desc:'高速ブラスターと極太ユニビームで攻撃する。', attackType:'連射・ビーム', strong:'中盤以降の敵の群れ', weak:'出現率が低い', unlock:'ミッション「機神起動」で解放', id:'ironBlaster' },
+        { type:'ULTIMATE', name:'星砕きの流星群', icon:'\uD83D\uDEF0\uFE0F', desc:'敵を自動追尾して連続爆破する。', attackType:'追尾・爆破', strong:'動き回る敵', weak:'単体火力は状況次第', unlock:'ミッション「流星群観測」で解放', id:'funnel' },
+        { type:'ULTIMATE', name:'星夢の輪舞曲', icon:'\uD83E\uDE84', desc:'敵を味方にして大きく強化する特殊武器。', attackType:'魅了・味方化', strong:'敵が多い時', weak:'出現率がかなり低い', unlock:'ミッション「星夢のステージ」で解放', id:'disneyMagic' },
+        { type:'ULTIMATE', name:'無量空処', icon:'\u267E\uFE0F', desc:'領域で敵を止めて大ダメージを与える。', attackType:'停止・範囲', strong:'ピンチの時、ボス戦', weak:'発動待ちが必要', unlock:'ミッション「領域到達」で解放', id:'muryoku' },
+        { type:'ULTIMATE', name:'絶対防壁の反響', icon:'\uD83D\uDEE1\uFE0F', desc:'盾を投げて敵の間を跳ね返らせる。', attackType:'反射・防御寄り', strong:'敵が横に広がる場面', weak:'狙いが分散する場面', unlock:'ミッション「不壊の守り」で解放', id:'shieldThrow' },
+        { type:'ULTIMATE', name:'終焉の指弾', icon:'\uD83E\uDEF0', desc:'強力な衝撃で大量の敵を一気に削る。', attackType:'全体攻撃寄り', strong:'敵が多すぎる時', weak:'発動タイミングに左右される', unlock:'ミッション「終焉の合図」で解放', id:'infinitySnap' },
+        { type:'ULTIMATE', name:'無限の剣陣', icon:'\uD83D\uDDE1\uFE0F', desc:'黄金の剣を大量に射出する。', attackType:'弾幕・範囲', strong:'広い範囲の敵', weak:'単体特化ではない', unlock:'ミッション「無限剣の契約」で解放', id:'infiniteBlade' },
+        { type:'ULTIMATE', name:'天帝の裁界・霹靂', icon:'\u26A1', desc:'画面全体に強力な雷を落とす。', attackType:'全体・雷', strong:'大量の敵', weak:'出現率が低い', unlock:'ミッション「天帝の雷」で解放', id:'keraunos' },
+        { type:'ULTIMATE', name:'虚式「茈」', icon:'\uD83D\uDFE3', desc:'巨大な紫の攻撃で広範囲を消し飛ばす。', attackType:'超火力・範囲', strong:'ボス、密集敵', weak:'出現率が低い', unlock:'ミッション「虚式解放試練」で解放', id:'hollowMurasaki' }
+    ];
+
+    const ONLINE_WEAPONS = [
+        { type:'ONLINE', name:'スナイパー', icon:'\uD83C\uDFAF', desc:'オンライン向けの高威力・超貫通弾。', attackType:'遠距離・高火力', strong:'ボス戦、オンライン', weak:'敵が多すぎる時', unlock:'オンラインのレベルアップ', id:'onlineSniper' },
+        { type:'ONLINE', name:'跳弾ボム', icon:'\uD83D\uDCA3', desc:'跳ねながら爆発する範囲攻撃。', attackType:'爆発・範囲', strong:'密集した敵', weak:'単体狙い', unlock:'オンラインのレベルアップ', id:'onlineBounceBomb' },
+        { type:'ONLINE', name:'毒雲', icon:'\u2623\uFE0F', desc:'範囲内に継続ダメージ。', attackType:'継続ダメージ', strong:'範囲内に留まる敵', weak:'高速敵', unlock:'オンラインのレベルアップ', id:'onlinePoison' },
+        { type:'ONLINE', name:'重力パルサー', icon:'\uD83D\uDFE3', desc:'敵や相手を吸い寄せる範囲攻撃。', attackType:'吸引・妨害', strong:'相手の動きを崩す', weak:'火力だけ欲しい場面', unlock:'オンラインのレベルアップ', id:'onlineGravity' },
+        { type:'ONLINE', name:'ファントムダガー', icon:'\uD83D\uDDE1\uFE0F', desc:'誘導弾で相手を追い込むオンライン武器。', attackType:'追尾弾', strong:'逃げる相手', weak:'盾持ち相手', unlock:'オンラインのレベルアップ', id:'onlinePhantomDagger' },
+        { type:'ONLINE', name:'バナナスリップ砲', icon:'\uD83C\uDF4C', desc:'バナナをばらまいて相手にダメージを与えるネタ武器。', attackType:'設置・妨害', strong:'相手の移動を崩す', weak:'まっすぐ火力は低め', unlock:'オンラインのレベルアップ', id:'onlineBanana' },
+        { type:'ONLINE', name:'アストラル・ジャッジメント', icon:'\u2604\uFE0F', desc:'星の槍を落として広範囲を攻撃する。', attackType:'範囲・落下攻撃', strong:'相手のいる場所を狙う', weak:'避けられることがある', unlock:'オンラインのレベルアップ', id:'onlineAstral' },
+        { type:'ONLINE', name:'ネビュラ・ハリセンノヴァ', icon:'\uD83E\uDEAD', desc:'巨大な衝撃波を落とすオンライン武器。', attackType:'範囲・衝撃波', strong:'密集、対人妨害', weak:'発動位置に左右される', unlock:'オンラインのレベルアップ', id:'onlineHarisen' },
+        { type:'ONLINE', name:'コズミック・スシレイン', icon:'\uD83C\uDF63', desc:'寿司メテオを降らせる見た目も派手な範囲武器。', attackType:'範囲・落下攻撃', strong:'広い場所の制圧', weak:'狙い撃ちは苦手', unlock:'オンラインのレベルアップ', id:'onlineSushi' }
+    ];
+
+    const LEGENDARY_WEAPONS = [
+        { type:'LEGENDARY', name:'ネオンランス', icon:'\uD83D\uDD31', desc:'通常弾が黄金の貫通弾になる。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'KILL系ミッションで解放', id:'neonLance' },
+        { type:'LEGENDARY', name:'フェニックスコア', icon:'\uD83D\uDD25', desc:'1回だけ復活し、周囲に大爆発を起こす。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'BOSS系ミッションで解放', id:'phoenixCore' },
+        { type:'LEGENDARY', name:'星落としの王冠', icon:'\uD83D\uDC51', desc:'一定間隔で星の爆発を起こす。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'RUN系ミッションで解放', id:'starfallCrown' },
+        { type:'LEGENDARY', name:'虚空コレクター', icon:'\uD83C\uDF0C', desc:'経験値回収と成長速度が大きく上がる。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'高難度BOSS/FINALミッションで解放', id:'voidCollector' },
+        { type:'MYTHIC', name:'レールキャノン', icon:'\uD83D\uDD2D', desc:'通常弾が超高速・超貫通のレール弾になる。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'敵を大量討伐すると解放', id:'railCannon' },
+        { type:'MYTHIC', name:'ブラックホールエンペラー', icon:'\u26AB', desc:'一定間隔で強力な重力核を発生させ、敵を吸い込みながら削る。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'長時間生存と高レベル到達で解放', id:'blackholeEmperor' },
+        { type:'MYTHIC', name:'サンダーイージス', icon:'\uD83D\uDEE1\uFE0F\u26A1', desc:'防御力を上げ、周囲へ雷の反撃を出す守りの神話武器。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'ボスを大量に倒すと解放', id:'thunderAegis' },
+        { type:'MYTHIC', name:'ソーラードリル', icon:'\u2600\uFE0F', desc:'敵の密集地に太陽レーザーを落とす超火力武器。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'超高スコアで解放', id:'solarDrill' },
+        { type:'MYTHIC', name:'クロノロータス', icon:'\uD83E\uDEB7', desc:'一定間隔で時間波を広げ、敵に大ダメージを与える。', attackType:'特殊・高性能', strong:'解放後のソロ攻略', weak:'ミッション解放が必要', unlock:'ミッションを大量達成すると解放', id:'chronoLotus' }
+    ];
+
+    const EVOLUTION_WEAPONS = [
+        { type:'EVOLUTION', name:'ブラックホール・ノヴァ', icon:'\uD83C\uDF0C', desc:'全てを吸い込む最上位の範囲攻撃。', attackType:'合成進化', strong:'条件を満たした後の終盤', weak:'素材武器のレベル上げが必要', unlock:'虚空次元の暴風 Lv3 + 虚式系 Lv3', id:'evoBlackhole' },
+        { type:'EVOLUTION', name:'超重力・崩命破', icon:'\uD83C\uDF0C\uD83C\uDF0A', desc:'敵を中心線に吸い寄せるビーム。', attackType:'合成進化', strong:'条件を満たした後の終盤', weak:'素材武器のレベル上げが必要', unlock:'深淵の重力刃 Lv3 + 龍星・崩命破 Lv3', id:'evoGravityBeam' },
+        { type:'EVOLUTION', name:'雷鳴の剣域', icon:'\u26A1\uD83C\uDF00', desc:'回転刃と雷が合体した常時攻撃。', attackType:'合成進化', strong:'条件を満たした後の終盤', weak:'素材武器のレベル上げが必要', unlock:'円環の刃界 Lv3 + 破滅の雷域 Lv3', id:'evoThunderBlade' },
+        { type:'EVOLUTION', name:'星核レールバースト', icon:'\uD83D\uDD2D', desc:'超高速の貫通弾が一直線に敵を削る。', attackType:'合成進化', strong:'条件を満たした後の終盤', weak:'素材武器のレベル上げが必要', unlock:'レールキャノン Lv3 + ネオンランス Lv3', id:'evoRailBurst' },
+        { type:'EVOLUTION', name:'終焉ブラックホール', icon:'\u26AB', desc:'吸引と経験値回収が同時に強化される。', attackType:'合成進化', strong:'条件を満たした後の終盤', weak:'素材武器のレベル上げが必要', unlock:'ブラックホールエンペラー Lv3 + 虚空コレクター Lv3', id:'evoEndBlackhole' },
+        { type:'EVOLUTION', name:'跳弾スナイパー', icon:'\uD83C\uDFAF\uD83D\uDCAB', desc:'狙撃と反射爆弾が合体した進化武器。', attackType:'貫通・反射', strong:'直線上と反射が刺さる場面', weak:'進化条件が必要', unlock:'スナイパー Lv3 + バウンスボム Lv3', id:'evoRicochetSniper' },
+        { type:'EVOLUTION', name:'猛毒アイギス', icon:'\uD83D\uDEE1\uFE0F\u2623\uFE0F', desc:'盾と毒が合体した守り寄りの進化武器。', attackType:'防御・毒範囲', strong:'近づく敵や相手', weak:'遠距離だけの相手', unlock:'蒼盾アイギス Lv2 + トキシックトラップ Lv3', id:'evoToxicAegis' },
+        { type:'EVOLUTION', name:'重力追尾刃グラビトン・ダガー', icon:'\uD83D\uDDE1\uFE0F\uD83C\uDF0C', desc:'追尾刃と重力場が合体した進化武器。', attackType:'追尾・拘束', strong:'動き回る相手', weak:'進化条件が必要', unlock:'ファントムダガー Lv3 + グラビティ・パルサー Lv3', id:'evoGravitonDagger' },
+        { type:'EVOLUTION', name:'特異点ボム・メテオ', icon:'\uD83D\uDCA3\uD83C\uDF0C', desc:'反射爆弾と重力場が合体した広範囲進化武器。', attackType:'爆発・重力', strong:'密集地帯', weak:'進化条件が必要', unlock:'バウンスボム Lv3 + グラビティ・パルサー Lv3', id:'evoSingularityBomb' }
+    ];
+
+    const ALL_WEAPONS = [...BASE_WEAPONS, ...ULTIMATE_WEAPONS, ...ONLINE_WEAPONS, ...LEGENDARY_WEAPONS, ...EVOLUTION_WEAPONS];
+
+    // userDataを安全に取得
+    function getSafeUserData() {
+        try {
+            if (typeof userData !== 'undefined' && userData) return userData;
+            return JSON.parse(localStorage.getItem('neon_survivor_save') || '{}');
+        } catch(e) { return {}; }
+    }
+
+    // 武器が解放されているか
+    function isWeaponUnlockedV47(id, type) {
+        const u = getSafeUserData();
+        if (type === 'ULTIMATE' || type === 'LEGENDARY' || type === 'MYTHIC') {
+            const unlocks = (u.unlocks && u.unlocks.legendaryWeapons) || {};
+            // ミッション完了フラグもチェック
+            const missions = u.missions || { completed: {} };
+            const mid = 'unlock_v35_' + id;
+            if (missions.completed[mid] || unlocks[id]) return true;
+            return false;
         }
+        return true; // BASIC, ONLINE, EVOLUTION はデフォルトで解放扱い（図鑑上）
+    }
 
-        const used = typeof isWeaponCodexUsed === 'function' ? isWeaponCodexUsed(targetId) : false;
-        
-        let locked = false;
-        // 未解放の条件を厳密にチェック
-        if (typeof ultimateUnlockedV35 === 'function' && typeof ULTIMATE_IDS_V35 !== 'undefined' && ULTIMATE_IDS_V35.has(targetId)) {
-            locked = !ultimateUnlockedV35(targetId);
-        } else if (typeof isWeaponMissionLocked20260504 === 'function') {
-            locked = isWeaponMissionLocked20260504(targetId);
-        } else if (typeof MISSION_LOCKED_WEAPON_IDS_20260504 !== 'undefined' && typeof userData !== 'undefined') {
-            locked = MISSION_LOCKED_WEAPON_IDS_20260504.has(targetId) && !(userData.unlocks && userData.unlocks.legendaryWeapons && userData.unlocks.legendaryWeapons[targetId]);
+    // 武器が使用可能か（設定でOFFになっていないか）
+    function isWeaponEnabledV47(id) {
+        const u = getSafeUserData();
+        const disabled = (u.settings && u.settings.disabledWeapons) || {};
+        const legDisabled = (u.settings && u.settings.disabledLegendaryWeapons) || {};
+        return !disabled[id] && !legDisabled[id];
+    }
+
+    // トグルを切り替えたとき
+    window.toggleWeaponEnabledV47 = function(id, checked) {
+        const u = getSafeUserData();
+        u.settings = u.settings || {};
+        u.settings.disabledWeapons = u.settings.disabledWeapons || {};
+        u.settings.disabledLegendaryWeapons = u.settings.disabledLegendaryWeapons || {};
+        if (checked) {
+            delete u.settings.disabledWeapons[id];
+            delete u.settings.disabledLegendaryWeapons[id];
+        } else {
+            u.settings.disabledWeapons[id] = true;
+            u.settings.disabledLegendaryWeapons[id] = true;
         }
-
-        let enabled = true;
-        if (typeof isWeaponSpawnEnabled20260504 === 'function') {
-            enabled = isWeaponSpawnEnabled20260504(targetId);
-        }
-
-        // ミッションの進行状況表示
-        let progressHtml = '';
-        if (locked && typeof requirementForUltimateV35 === 'function') {
-            const req = requirementForUltimateV35(targetId);
-            if (req) {
-                const progress = Math.min(req.target, Math.floor(metricValueV35(req.metric)));
-                progressHtml = `<p class="text-[11px] text-gray-300 mt-1">\u89E3\u653E\u6761\u4EF6\uFF1A${req.desc || '\u30DF\u30C3\u30B7\u30E7\u30F3\u9054\u6210'}\uFF08${progress}/${req.target}\uFF09</p>`;
-            }
-        }
-
-        const toggleHtml = `
-            <div class="mt-3 border-t border-slate-700 pt-3">
-                ${locked ? `<p class="text-xs text-red-200 font-bold">\u672A\u89E3\u653E</p>${progressHtml}` : `
-                <label class="flex items-center justify-between gap-3 cursor-pointer">
-                    <span class="text-xs font-bold ${enabled?'text-green-300':'text-red-300'}">\u51FA\u73FE\uFF1A${enabled?'ON':'OFF'}</span>
-                    <input type="checkbox" class="weapon-spawn-toggle w-5 h-5" data-id="${targetId}" ${enabled?'checked':''}>
-                </label>
-                <p class="text-[11px] text-gray-300 mt-2 leading-relaxed">${enabled ? 'ON\uFF1A\u3053\u306E\u6B66\u5668\u304C\u30EC\u30D9\u30EB\u30A2\u30C3\u30D7\u5019\u88DC\u306B\u51FA\u307E\u3059\u3002' : 'OFF\uFF1A\u3053\u306E\u6B66\u5668\u306F\u5019\u88DC\u306B\u51FA\u307E\u305B\u3093\u3002\u91CD\u3044\u6B66\u5668\u3092\u5916\u3059\u6642\u306B\u3082\u4F7F\u3048\u307E\u3059\u3002'}</p>`}
-            </div>`;
-            
-        return `<div class="collection-card ${used || !locked ? 'unlocked':''}">
-            <div class="flex items-start justify-between gap-2">
-                <div class="text-3xl">${w.icon || '\u2754'}</div>
-                <span class="text-[11px] font-bold px-2 py-1 rounded ${locked?'bg-red-950/80 text-red-200 border border-red-400/50':used?'bg-green-900/70 text-green-200 border border-green-400/50':'bg-slate-800 text-gray-300 border border-gray-500/40'}">${locked?'\u672A\u89E3\u653E':used?'\u4F7F\u7528\u6E08\u307F':'\u672A\u4F7F\u7528'}</span>
-            </div>
-            <h3 class="font-bold text-white mt-1">${w.name}</h3>
-            <p class="text-xs text-purple-200 font-bold mt-1">${w.type || 'WEAPON'}</p>
-            <p class="text-sm text-gray-300 mt-1">${w.desc || ''}</p>
-            <div class="text-xs text-gray-300 mt-3 space-y-1">
-                <p>\u653B\u6483\u30BF\u30A4\u30D7\uFF1A${w.attackType || '\u7279\u6B8A'}</p>
-                <p>\u5F37\u3044\u5834\u9762\uFF1A${w.strong || '\u72B6\u6CC1\u6B21\u7B2C'}</p>
-                <p>\u5F31\u3044\u5834\u9762\uFF1A${w.weak || '\u4F7F\u3044\u65B9\u6B21\u7B2C'}</p>
-                <p>\u5165\u624B\u30FB\u9032\u5316\u6761\u4EF6\uFF1A${w.unlock || '\u30B2\u30FC\u30E0\u4E2D\u306B\u5165\u624B'}</p>
-            </div>
-            ${toggleHtml}
-        </div>`;
+        try {
+            if (typeof saveData === 'function') saveData();
+            else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
+        } catch(e) {}
+        window.renderWeaponCodexScreenV47();
     };
 
-    function markV46() {
+    window.renderWeaponCodexScreenV47 = function() {
+        const summary = document.getElementById('weaponCodexSummary');
+        const container = document.getElementById('weaponCodexListContainer');
+        if (!container) return;
+
+        const u = getSafeUserData();
+        const usedWeapons = (u.codex && u.codex.weapons) || {};
+        
+        let usedCount = 0;
+        ALL_WEAPONS.forEach(w => {
+            if (usedWeapons[w.id] || usedWeapons[w.name]) usedCount++;
+        });
+
+        if (summary) summary.textContent = `解放済み・使用済み：${usedCount} / ${ALL_WEAPONS.length}`;
+
+        const order = ['BASIC', 'ULTIMATE', 'ONLINE', 'LEGENDARY', 'MYTHIC', 'EVOLUTION'];
+        const labels = { BASIC: 'BASIC WEAPONS', ULTIMATE: 'ULTIMATE WEAPONS', ONLINE: 'ONLINE WEAPONS', LEGENDARY: 'LEGENDARY WEAPONS', MYTHIC: 'MYTHIC WEAPONS', EVOLUTION: 'EVOLUTION WEAPONS' };
+
+        let html = '';
+        order.forEach(type => {
+            const list = ALL_WEAPONS.filter(w => w.type === type);
+            if (!list.length) return;
+
+            html += `<section><h3 class="text-2xl font-bold text-cyan-300 mb-2">${labels[type]}</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">`;
+            
+            list.forEach(w => {
+                const isUsed = !!(usedWeapons[w.id] || usedWeapons[w.name]);
+                const isUnlocked = isWeaponUnlockedV47(w.id, w.type);
+                const isEnabled = isWeaponEnabledV47(w.id);
+
+                let toggleHtml = '';
+                if (['ULTIMATE', 'LEGENDARY', 'MYTHIC', 'BASIC'].includes(w.type)) {
+                    if (!isUnlocked) {
+                        toggleHtml = `
+                            <div class="mt-3 border-t border-slate-700 pt-3">
+                                <p class="text-xs text-red-200 font-bold">未解放</p>
+                                <p class="text-[11px] text-gray-300 mt-1">解放条件：${w.unlock}</p>
+                            </div>`;
+                    } else {
+                        toggleHtml = `
+                            <div class="mt-3 border-t border-slate-700 pt-3">
+                                <label class="flex items-center justify-between gap-3 cursor-pointer">
+                                    <span class="text-xs font-bold ${isEnabled ? 'text-green-300' : 'text-red-300'}">出現：${isEnabled ? 'ON' : 'OFF'}</span>
+                                    <input type="checkbox" class="w-5 h-5" onchange="window.toggleWeaponEnabledV47('${w.id}', this.checked)" ${isEnabled ? 'checked' : ''}>
+                                </label>
+                                <p class="text-[11px] text-gray-300 mt-2 leading-relaxed">${isEnabled ? 'ON：この武器がレベルアップ候補に出ます。' : 'OFF：この武器は候補に出ません。重い武器を外す時にも使えます。'}</p>
+                            </div>`;
+                    }
+                }
+
+                html += `
+                    <div class="collection-card ${isUsed || isUnlocked ? 'unlocked' : ''}">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="text-3xl">${w.icon}</div>
+                            <span class="text-[11px] font-bold px-2 py-1 rounded ${!isUnlocked ? 'bg-red-950/80 text-red-200 border border-red-400/50' : isUsed ? 'bg-green-900/70 text-green-200 border border-green-400/50' : 'bg-slate-800 text-gray-300 border border-gray-500/40'}">${!isUnlocked ? '未解放' : isUsed ? '使用済み' : '未使用'}</span>
+                        </div>
+                        <h3 class="font-bold text-white mt-1">${w.name}</h3>
+                        <p class="text-xs text-purple-200 font-bold mt-1">${w.type}</p>
+                        <p class="text-sm text-gray-300 mt-1">${w.desc}</p>
+                        <div class="text-xs text-gray-300 mt-3 space-y-1">
+                            <p>攻撃タイプ：${w.attackType}</p>
+                            <p>強い場面：${w.strong}</p>
+                            <p>弱い場面：${w.weak}</p>
+                            <p>入手・進化条件：${w.unlock}</p>
+                        </div>
+                        ${toggleHtml}
+                    </div>`;
+            });
+            html += `</div></section>`;
+        });
+
+        container.innerHTML = html;
+    };
+
+    function markV47() {
         try {
             let badge = document.getElementById('nsvFinalBadge');
             if (badge) {
-                badge.textContent = V46_TAG;
+                badge.textContent = V47_TAG;
             }
         } catch(e) {}
     }
 
-    function bootV46() {
-        markV46();
+    function bootV47() {
+        markV47();
+        
+        // renderWeaponCodexScreen を上書き（他のスクリプトからも呼ばれるように）
+        window.renderWeaponCodexScreen = window.renderWeaponCodexScreenV47;
+
+        // 現在開かれている場合は再描画する
         const codexScreen = document.getElementById('weaponCodexScreen');
         if (codexScreen && !codexScreen.classList.contains('hidden')) {
-            if (typeof renderWeaponCodexScreen === 'function') renderWeaponCodexScreen();
+            window.renderWeaponCodexScreenV47();
         }
     }
 
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV46, {once:true}); else bootV46();
-    setInterval(markV46, 1500);
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV47, {once:true}); else bootV47();
+    setInterval(markV47, 1500);
+})();
+</script>
+
+<script>
+// V48: 誤った条件でのアルティメット武器自動解放バグを修正
+(() => {
+    const V48_TAG = 'V48 WEAPON LOCK FIX 3';
+
+    // 過去のバグのある自動解放スクリプトを完全に無効化する
+    window.ensureUltimateMissionsV35 = function() {};
+
+    function cleanupWrongUnlocks() {
+        const u = typeof getSafeUserData === 'function' ? getSafeUserData() : (typeof userData !== 'undefined' ? userData : null);
+        if (!u) return;
+
+        const claimed = (u.missions && u.missions.claimed) || {};
+        
+        // 本来の正規ミッションIDと武器IDのマッピング
+        const originalMissions = {
+            'hollowMurasaki': ['m212'],
+            'kamehameha': ['m213'],
+            'vader': ['m214'],
+            'thor': ['m215'],
+            'muryoku': ['m216'],
+            'funnel': ['m217'],
+            'ironBlaster': ['m218'],
+            'disneyMagic': ['m219'],
+            'infinitySnap': ['m220'],
+            'infiniteBlade': ['m221'],
+            'shieldThrow': ['m222'],
+            'keraunos': ['m223'],
+            'phantomStep': ['m211'],
+            'neonLance': ['m007', 'm080'],
+            'phoenixCore': ['m019', 'm110'],
+            'starfallCrown': ['m013', 'm130'],
+            'voidCollector': ['m021', 'm150'],
+            'railCannon': ['m167', 'm168', 'm199'],
+            'blackholeEmperor': ['m169', 'm170', 'm192', 'm219', 'm231'],
+            'thunderAegis': ['m171', 'm185', 'm203'],
+            'solarDrill': ['m172', 'm180'],
+            'chronoLotus': ['m173', 'm188', 'm210', 'm229']
+        };
+
+        let changed = false;
+        
+        // 誤って解放された武器をロックに戻す
+        if (u.unlocks && u.unlocks.legendaryWeapons) {
+            for (const [weaponId, missionIds] of Object.entries(originalMissions)) {
+                // その武器が正規のミッション報酬として受け取られているか確認
+                const isClaimed = missionIds.some(mid => claimed[mid]);
+                
+                // 過去パッチで勝手に完了扱いになったダミーフラグ
+                const v35Mid = 'unlock_v35_' + weaponId;
+                const v30Mid = 'v30_unlock_' + weaponId;
+                
+                // 正規ミッションから受け取っていないのに解放されている場合
+                if (!isClaimed && u.unlocks.legendaryWeapons[weaponId]) {
+                    delete u.unlocks.legendaryWeapons[weaponId];
+                    // OFF設定も元に戻す（未解放なら表示されないため）
+                    if (u.settings && u.settings.disabledLegendaryWeapons) {
+                        delete u.settings.disabledLegendaryWeapons[weaponId];
+                    }
+                    if (u.settings && u.settings.disabledWeapons) {
+                        delete u.settings.disabledWeapons[weaponId];
+                    }
+                    changed = true;
+                }
+                
+                // 勝手に達成済みになったダミーミッションを未達成に戻す
+                if (u.missions && u.missions.completed) {
+                    if (u.missions.completed[v35Mid]) { delete u.missions.completed[v35Mid]; changed = true; }
+                    if (u.missions.completed[v30Mid]) { delete u.missions.completed[v30Mid]; changed = true; }
+                }
+            }
+        }
+        
+        if (changed) {
+            try {
+                if (typeof saveData === 'function') saveData();
+                else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
+            } catch(e) {}
+        }
+    }
+
+    // 武器が解放されているかを、正規の所持フラグだけを見て判定するように上書き
+    if (typeof window.isWeaponUnlockedV47 === 'function') {
+        window.isWeaponUnlockedV47 = function(id, type) {
+            const u = typeof getSafeUserData === 'function' ? getSafeUserData() : userData;
+            if (type === 'ULTIMATE' || type === 'LEGENDARY' || type === 'MYTHIC') {
+                const unlocks = (u && u.unlocks && u.unlocks.legendaryWeapons) || {};
+                return !!unlocks[id];
+            }
+            return true; 
+        };
+    }
+
+    function markV48() {
+        try {
+            let badge = document.getElementById('nsvFinalBadge');
+            if (badge) {
+                badge.textContent = V48_TAG;
+            }
+        } catch(e) {}
+    }
+
+    function bootV48() {
+        markV48();
+        cleanupWrongUnlocks();
+        
+        const codexScreen = document.getElementById('weaponCodexScreen');
+        if (codexScreen && !codexScreen.classList.contains('hidden')) {
+            if (typeof renderWeaponCodexScreenV47 === 'function') renderWeaponCodexScreenV47();
+            else if (typeof renderWeaponCodexScreen === 'function') renderWeaponCodexScreen();
+        }
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV48, {once:true}); else bootV48();
+    setInterval(markV48, 1500);
+})();
+</script>
+
+<script>
+// V49: 古い図鑑描画との競合を防ぎ、完全に未解放武器をロックする強制パッチ
+(() => {
+    const V49_TAG = 'V49 WEAPON LOCKDOWN';
+
+    // 全ての古いバッジ更新を停止し、V49バッジを強制する
+    function enforceBadgeV49() {
+        try {
+            let badge = document.getElementById('nsvFinalBadge');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'nsvFinalBadge';
+                badge.style.cssText = "position:fixed;left:10px;bottom:8px;z-index:9999;pointer-events:none;color:#fca5a5;background:rgba(69,10,10,.9);border:1px solid rgba(248,113,113,.6);border-radius:999px;padding:4px 9px;font:900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif;letter-spacing:.08em;box-shadow:0 0 13px rgba(248,113,113,.32)";
+                document.body.appendChild(badge);
+            }
+            badge.textContent = V49_TAG;
+
+            // 他の古いバッジ要素をすべて非表示にする
+            const oldBadges = document.querySelectorAll('[id$="Badge"]');
+            oldBadges.forEach(b => {
+                if (b.id !== 'nsvFinalBadge') {
+                    b.style.display = 'none';
+                    b.style.opacity = '0';
+                }
+            });
+        } catch(e) {}
+    }
+
+    // 不正な解放データを強制クリーンアップ
+    function forceCleanupUnlocksV49() {
+        let u = (typeof userData !== 'undefined') ? userData : null;
+        if (!u) { try { u = JSON.parse(localStorage.getItem('neon_survivor_save')); } catch(e) {} }
+        if (!u) return;
+
+        const claimed = (u.missions && u.missions.claimed) || {};
+        const unlocks = (u.unlocks && u.unlocks.legendaryWeapons) || {};
+        const disabled = (u.settings && u.settings.disabledWeapons) || {};
+        const legDisabled = (u.settings && u.settings.disabledLegendaryWeapons) || {};
+
+        const ultMissions = {
+            'hollowMurasaki': 'm212', 'kamehameha': 'm213', 'vader': 'm214', 'thor': 'm215',
+            'muryoku': 'm216', 'funnel': 'm217', 'ironBlaster': 'm218', 'disneyMagic': 'm219',
+            'infinitySnap': 'm220', 'infiniteBlade': 'm221', 'shieldThrow': 'm222', 'keraunos': 'm223',
+            'phantomStep': 'm211', 'neonLance': 'm007', 'phoenixCore': 'm019', 'starfallCrown': 'm013',
+            'voidCollector': 'm021', 'railCannon': 'm167', 'blackholeEmperor': 'm169', 'thunderAegis': 'm171',
+            'solarDrill': 'm172', 'chronoLotus': 'm173'
+        };
+
+        let modified = false;
+        for (const [weaponId, missionId] of Object.entries(ultMissions)) {
+            // ミッションがCLAIM（受け取り済み）になっていない場合は、強制的に未解放にする
+            if (!claimed[missionId]) {
+                if (unlocks[weaponId]) { delete unlocks[weaponId]; modified = true; }
+                if (disabled[weaponId]) { delete disabled[weaponId]; modified = true; }
+                if (legDisabled[weaponId]) { delete legDisabled[weaponId]; modified = true; }
+            }
+        }
+
+        if (modified) {
+            try {
+                if (typeof saveData === 'function') saveData();
+                else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
+            } catch(e) {}
+        }
+    }
+
+    // 全く新しい武器図鑑描画関数で上書き（古いロジックをバイパスする）
+    window.renderWeaponCodexScreen = function() {
+        forceCleanupUnlocksV49();
+
+        const container = document.getElementById('weaponCodexListContainer');
+        const summary = document.getElementById('weaponCodexSummary');
+        if (!container) return;
+
+        let u = (typeof userData !== 'undefined') ? userData : null;
+        if (!u) { try { u = JSON.parse(localStorage.getItem('neon_survivor_save')); } catch(e) {} }
+
+        const claimed = (u?.missions?.claimed) || {};
+        const unlocks = (u?.unlocks?.legendaryWeapons) || {};
+        const usedWeapons = (u?.codex?.weapons) || {};
+        const disabled = (u?.settings?.disabledWeapons) || {};
+
+        const ultReqs = {
+            'hollowMurasaki': { m:'m212', t:'虚式解放試練', r:18, metric:'bestLevel' },
+            'kamehameha': { m:'m213', t:'崩命破の継承', r:2200, metric:'bestRunKills' },
+            'vader': { m:'m214', t:'暗黒卿の試練', r:70, metric:'totalBossLikeKills' },
+            'thor': { m:'m215', t:'轟のハンマー', r:7, metric:'totalMonkeyKills' },
+            'muryoku': { m:'m216', t:'領域到達', r:900, metric:'bestTime' },
+            'funnel': { m:'m217', t:'流星群観測', r:9000, metric:'totalKills' },
+            'ironBlaster': { m:'m218', t:'機神起動', r:250000, metric:'bestScore' },
+            'disneyMagic': { m:'m219', t:'星夢のステージ', r:12000, metric:'totalGems' },
+            'infinitySnap': { m:'m220', t:'終焉の合図', r:700000, metric:'bestScore' },
+            'infiniteBlade': { m:'m221', t:'無限剣の契約', r:15, metric:'bestLevel' },
+            'shieldThrow': { m:'m222', t:'不壊の守り', r:120, metric:'totalBossLikeKills' },
+            'keraunos': { m:'m223', t:'天帝の雷', r:80, metric:'bestLevel' },
+            'phantomStep': { m:'m211', t:'幻影歩法の試練', r:600, metric:'totalKills' },
+            'neonLance': { m:'m007', t:'ネオンランス', r:300, metric:'totalKills' },
+            'phoenixCore': { m:'m019', t:'フェニックスコア', r:15, metric:'totalBossLikeKills' },
+            'starfallCrown': { m:'m013', t:'星落としの王冠', r:300, metric:'bestRunKills' },
+            'voidCollector': { m:'m021', t:'虚空コレクター', r:3, metric:'totalMonkeyKills' },
+            'railCannon': { m:'m167', t:'レールキャノン', r:18000, metric:'totalKills' },
+            'blackholeEmperor': { m:'m169', t:'ブラックホールエンペラー', r:70, metric:'bestLevel' },
+            'thunderAegis': { m:'m171', t:'サンダーイージス', r:320, metric:'totalBossLikeKills' },
+            'solarDrill': { m:'m172', t:'ソーラードリル', r:650000, metric:'bestScore' },
+            'chronoLotus': { m:'m173', t:'クロノロータス', r:90, metric:'completedMissionCount' }
+        };
+
+        const weapons = (typeof ALL_WEAPONS !== 'undefined') ? ALL_WEAPONS : [];
+        let usedCount = 0;
+        const htmls = { BASIC:[], ULTIMATE:[], ONLINE:[], LEGENDARY:[], MYTHIC:[], EVOLUTION:[] };
+        const labels = { BASIC: 'BASIC WEAPONS', ULTIMATE: 'ULTIMATE WEAPONS', ONLINE: 'ONLINE WEAPONS', LEGENDARY: 'LEGENDARY WEAPONS', MYTHIC: 'MYTHIC WEAPONS', EVOLUTION: 'EVOLUTION WEAPONS' };
+
+        weapons.forEach(w => {
+            const isUsed = !!(usedWeapons[w.id] || usedWeapons[w.name]);
+            if (isUsed) usedCount++;
+
+            let isUnlocked = true;
+            let reqHtml = '';
+            
+            if (['ULTIMATE', 'LEGENDARY', 'MYTHIC'].includes(w.type) || w.id === 'phantomStep') {
+                const req = ultReqs[w.id];
+                if (req) {
+                    isUnlocked = !!claimed[req.m]; // CLAIMされていなければ絶対未解放
+                    if (!isUnlocked) {
+                        let progress = 0;
+                        if (typeof getMissionProgress === 'function' && typeof MISSION_DEFS !== 'undefined') {
+                            const def = MISSION_DEFS.find(x => x.id === req.m);
+                            if (def) progress = Math.floor(getMissionProgress(def));
+                        }
+                        progress = Math.min(req.r, progress);
+                        reqHtml = `<p class="text-[11px] text-gray-300 mt-1">解放条件：ミッション「${req.t}」を達成して報酬を受け取る（${progress}/${req.r}）</p>`;
+                    }
+                } else {
+                    isUnlocked = !!unlocks[w.id];
+                }
+            }
+
+            const isEnabled = !disabled[w.id];
+            let toggleHtml = '';
+
+            if (['ULTIMATE', 'LEGENDARY', 'MYTHIC', 'BASIC'].includes(w.type) || w.id === 'phantomStep') {
+                if (!isUnlocked) {
+                    toggleHtml = `
+                        <div class="mt-3 border-t border-slate-700 pt-3">
+                            <p class="text-xs text-red-200 font-bold">未解放</p>
+                            ${reqHtml}
+                        </div>`;
+                } else {
+                    toggleHtml = `
+                        <div class="mt-3 border-t border-slate-700 pt-3">
+                            <label class="flex items-center justify-between gap-3 cursor-pointer">
+                                <span class="text-xs font-bold ${isEnabled ? 'text-green-300' : 'text-red-300'}">出現：${isEnabled ? 'ON' : 'OFF'}</span>
+                                <input type="checkbox" class="w-5 h-5" onchange="window.nsvToggleWeaponV49('${w.id}', this.checked)" ${isEnabled ? 'checked' : ''}>
+                            </label>
+                            <p class="text-[11px] text-gray-300 mt-2 leading-relaxed">${isEnabled ? 'ON：この武器がレベルアップ候補に出ます。' : 'OFF：この武器は候補に出ません。'}</p>
+                        </div>`;
+                }
+            }
+
+            const card = `
+                <div class="collection-card ${isUsed || isUnlocked ? 'unlocked' : ''}">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="text-3xl">${w.icon || '\u2754'}</div>
+                        <span class="text-[11px] font-bold px-2 py-1 rounded ${!isUnlocked ? 'bg-red-950/80 text-red-200 border border-red-400/50' : isUsed ? 'bg-green-900/70 text-green-200 border border-green-400/50' : 'bg-slate-800 text-gray-300 border border-gray-500/40'}">${!isUnlocked ? '未解放' : isUsed ? '使用済み' : '未使用'}</span>
+                    </div>
+                    <h3 class="font-bold text-white mt-1">${w.name}</h3>
+                    <p class="text-xs text-purple-200 font-bold mt-1">${w.type}</p>
+                    <p class="text-sm text-gray-300 mt-1">${w.desc || ''}</p>
+                    <div class="text-xs text-gray-300 mt-3 space-y-1">
+                        <p>攻撃タイプ：${w.attackType || '特殊'}</p>
+                        <p>強い場面：${w.strong || '状況次第'}</p>
+                        <p>弱い場面：${w.weak || '状況次第'}</p>
+                    </div>
+                    ${toggleHtml}
+                </div>`;
+            if (htmls[w.type]) htmls[w.type].push(card);
+        });
+
+        if (summary) summary.textContent = `解放済み・使用済み：${usedCount} / ${weapons.length}`;
+
+        let finalHtml = '';
+        ['BASIC', 'ULTIMATE', 'ONLINE', 'LEGENDARY', 'MYTHIC', 'EVOLUTION'].forEach(type => {
+            if (htmls[type].length > 0) {
+                finalHtml += `<section><h3 class="text-2xl font-bold text-cyan-300 mb-2">${labels[type]}</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${htmls[type].join('')}</div></section>`;
+            }
+        });
+        container.innerHTML = finalHtml;
+    };
+
+    window.nsvToggleWeaponV49 = function(id, checked) {
+        let u = (typeof userData !== 'undefined') ? userData : null;
+        if (!u) return;
+        u.settings = u.settings || {};
+        u.settings.disabledWeapons = u.settings.disabledWeapons || {};
+        u.settings.disabledLegendaryWeapons = u.settings.disabledLegendaryWeapons || {};
+        if (checked) {
+            delete u.settings.disabledWeapons[id];
+            delete u.settings.disabledLegendaryWeapons[id];
+        } else {
+            u.settings.disabledWeapons[id] = true;
+            u.settings.disabledLegendaryWeapons[id] = true;
+        }
+        try {
+            if (typeof saveData === 'function') saveData();
+            else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
+        } catch(e) {}
+        window.renderWeaponCodexScreen();
+    };
+
+    function bootV49() {
+        enforceBadgeV49();
+        forceCleanupUnlocksV49();
+        
+        // 万が一、画面が開かれていたら再描画する
+        const codexScreen = document.getElementById('weaponCodexScreen');
+        if (codexScreen && !codexScreen.classList.contains('hidden')) {
+            window.renderWeaponCodexScreen();
+        }
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV49, {once:true}); else bootV49();
+    setInterval(enforceBadgeV49, 1000);
+})();
+</script>
+
+<script>
+// V50: ミッション進行度と解放状態の強制整合＆バッジクリーンアップ
+(() => {
+    const V50_TAG = 'V50 LOCK FIX FINAL';
+
+    function cleanupBadgesV50() {
+        try {
+            if (!document.getElementById('nsvV50BadgeCleanupStyle')) {
+                const st = document.createElement('style');
+                st.id = 'nsvV50BadgeCleanupStyle';
+                st.textContent = `
+                    div[id$="Badge"]:not(#nsvFinalBadgeV50) { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+                    #nsvFinalBadgeV50 { display: block !important; opacity: 1 !important; position: fixed !important; left: 10px !important; bottom: 8px !important; z-index: 99999 !important; pointer-events: none !important; color: #fca5a5 !important; background: rgba(69,10,10,.9) !important; border: 1px solid rgba(248,113,113,.6) !important; border-radius: 999px !important; padding: 4px 9px !important; font: 900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif !important; letter-spacing: .08em !important; box-shadow: 0 0 13px rgba(248,113,113,.32) !important; }
+                `;
+                document.head.appendChild(st);
+            }
+
+            let badge = document.getElementById('nsvFinalBadgeV50');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'nsvFinalBadgeV50';
+                document.body.appendChild(badge);
+            }
+            badge.textContent = V50_TAG;
+        } catch(e) {}
+    }
+
+    function revokeUnearnedWeaponsV50() {
+        let u = (typeof userData !== 'undefined') ? userData : null;
+        if (!u) { try { u = JSON.parse(localStorage.getItem('neon_survivor_save')); } catch(e) {} }
+        if (!u) return;
+
+        const missions = u.missions || { completed:{}, claimed:{} };
+        const completed = missions.completed || {};
+        const claimed = missions.claimed || {};
+        const unlocks = (u.unlocks && u.unlocks.legendaryWeapons) || {};
+        const disabled = (u.settings && u.settings.disabledWeapons) || {};
+        const legDisabled = (u.settings && u.settings.disabledLegendaryWeapons) || {};
+        const stats = u.stats || {};
+        
+        // 過去のダミーミッションフラグも掃除
+        Object.keys(completed).forEach(k => { if (k.startsWith('unlock_v35_') || k.startsWith('v30_unlock_')) delete completed[k]; });
+        Object.keys(claimed).forEach(k => { if (k.startsWith('unlock_v35_') || k.startsWith('v30_unlock_')) delete claimed[k]; });
+
+        const reqs = [
+            { w:'hollowMurasaki', m:'m212', t:18, v:Math.max(Number(stats.bestLevel||0), (typeof player !== 'undefined' && player ? player.level : 0)) },
+            { w:'kamehameha', m:'m213', t:2200, v:Math.max(Number(stats.bestRunKills||0), (typeof runStats !== 'undefined' && runStats ? runStats.kills||0 : 0)) },
+            { w:'vader', m:'m214', t:70, v:(Number(stats.totalBossLikeKills||0) + Number(stats.totalBossKills||0)) },
+            { w:'thor', m:'m215', t:7, v:Number(stats.totalMonkeyKills||0) },
+            { w:'muryoku', m:'m216', t:900, v:Math.max(Number(stats.bestTime||0), Math.floor(typeof gameTime !== 'undefined' ? Number(gameTime) : 0)) },
+            { w:'funnel', m:'m217', t:9000, v:Number(stats.totalKills||0) },
+            { w:'ironBlaster', m:'m218', t:250000, v:Math.max(Number(u.score||0), Math.floor(typeof score !== 'undefined' ? Number(score) : 0)) },
+            { w:'disneyMagic', m:'m219', t:12000, v:(Number(stats.totalGems||0) + Number(stats.totalGemsCollected||0)) },
+            { w:'infinitySnap', m:'m220', t:700000, v:Math.max(Number(u.score||0), Math.floor(typeof score !== 'undefined' ? Number(score) : 0)) },
+            { w:'infiniteBlade', m:'m221', t:15, v:Math.max(Number(stats.bestLevel||0), (typeof player !== 'undefined' && player ? player.level : 0)) },
+            { w:'shieldThrow', m:'m222', t:120, v:(Number(stats.totalBossLikeKills||0) + Number(stats.totalBossKills||0)) },
+            { w:'keraunos', m:'m223', t:80, v:Math.max(Number(stats.bestLevel||0), (typeof player !== 'undefined' && player ? player.level : 0)) },
+            { w:'phantomStep', m:'m211', t:600, v:Number(stats.totalKills||0) }
+        ];
+
+        let modified = false;
+
+        for (const req of reqs) {
+            // もし実際の進行度が目標に達していないなら、強制的に未達成・未解放に戻す
+            if (req.v < req.t) {
+                if (completed[req.m]) { delete completed[req.m]; modified = true; }
+                if (claimed[req.m]) { delete claimed[req.m]; modified = true; }
+                if (unlocks[req.w]) { delete unlocks[req.w]; modified = true; }
+                if (disabled[req.w]) { delete disabled[req.w]; modified = true; }
+                if (legDisabled[req.w]) { delete legDisabled[req.w]; modified = true; }
+            }
+        }
+
+        if (modified) {
+            try {
+                if (typeof saveData === 'function') saveData();
+                else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
+            } catch(e) {}
+        }
+    }
+
+    function hookCodexRenderV50() {
+        const oldRender = window.renderWeaponCodexScreen;
+        window.renderWeaponCodexScreen = function() {
+            revokeUnearnedWeaponsV50();
+            if (typeof oldRender === 'function') oldRender.apply(this, arguments);
+        };
+    }
+
+    function bootV50() {
+        cleanupBadgesV50();
+        revokeUnearnedWeaponsV50();
+        hookCodexRenderV50();
+
+        const codexScreen = document.getElementById('weaponCodexScreen');
+        if (codexScreen && !codexScreen.classList.contains('hidden')) {
+            if (typeof window.renderWeaponCodexScreen === 'function') window.renderWeaponCodexScreen();
+        }
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV50, {once:true}); else bootV50();
+    setInterval(cleanupBadgesV50, 1000);
+})();
+</script>
+
+<script>
+// V51: モジュールスコープの壁を突破し、武器図鑑のロック状態を完全に正常化するパッチ
+(() => {
+    const V51_TAG = 'V51 LOCK FIX PERFECT';
+
+    function enforceBadgeV51() {
+        try {
+            if (!document.getElementById('nsvV51BadgeStyle')) {
+                const st = document.createElement('style');
+                st.id = 'nsvV51BadgeStyle';
+                st.textContent = `
+                    div[id$="Badge"]:not(#nsvFinalBadgeV51) { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+                    #nsvFinalBadgeV51 { display: block !important; opacity: 1 !important; position: fixed !important; left: 10px !important; bottom: 8px !important; z-index: 99999 !important; pointer-events: none !important; color: #fca5a5 !important; background: rgba(69,10,10,.9) !important; border: 1px solid rgba(248,113,113,.6) !important; border-radius: 999px !important; padding: 4px 9px !important; font: 900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif !important; letter-spacing: .08em !important; box-shadow: 0 0 13px rgba(248,113,113,.32) !important; }
+                `;
+                document.head.appendChild(st);
+            }
+
+            let badge = document.getElementById('nsvFinalBadgeV51');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'nsvFinalBadgeV51';
+                document.body.appendChild(badge);
+            }
+            badge.textContent = V51_TAG;
+        } catch(e) {}
+    }
+
+    window.nsvToggleWeaponV51 = function(id, checked) {
+        let u = (typeof userData !== 'undefined') ? userData : null;
+        if (!u) { try { u = JSON.parse(localStorage.getItem('neon_survivor_save')); } catch(e) {} }
+        if (!u) return;
+
+        u.settings = u.settings || {};
+        u.settings.disabledWeapons = u.settings.disabledWeapons || {};
+        u.settings.disabledLegendaryWeapons = u.settings.disabledLegendaryWeapons || {};
+        
+        if (checked) {
+            delete u.settings.disabledWeapons[id];
+            delete u.settings.disabledLegendaryWeapons[id];
+        } else {
+            u.settings.disabledWeapons[id] = true;
+            u.settings.disabledLegendaryWeapons[id] = true;
+        }
+        
+        try {
+            if (typeof saveData === 'function') saveData();
+            else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
+        } catch(e) {}
+        
+        window.nsvForceRenderWeaponCodexV51();
+    };
+
+    window.nsvForceRenderWeaponCodexV51 = function() {
+        const container = document.getElementById('weaponCodexListContainer');
+        const summary = document.getElementById('weaponCodexSummary');
+        if (!container) return;
+
+        let u = (typeof userData !== 'undefined') ? userData : null;
+        if (!u) { try { u = JSON.parse(localStorage.getItem('neon_survivor_save')); } catch(e) {} }
+
+        const missions = u?.missions || { completed:{}, claimed:{} };
+        const claimed = missions.claimed || {};
+        const unlocks = (u?.unlocks?.legendaryWeapons) || {};
+        const usedWeapons = (u?.codex?.weapons) || {};
+        const disabled = (u?.settings?.disabledWeapons) || {};
+
+        const ultReqs = {
+            'hollowMurasaki': { m:'m212', t:'虚式解放試練', r:18, metric:'bestLevel' },
+            'kamehameha': { m:'m213', t:'崩命破の継承', r:2200, metric:'bestRunKills' },
+            'vader': { m:'m214', t:'暗黒卿の試練', r:70, metric:'totalBossLikeKills' },
+            'thor': { m:'m215', t:'轟のハンマー', r:7, metric:'totalMonkeyKills' },
+            'muryoku': { m:'m216', t:'領域到達', r:900, metric:'bestTime' },
+            'funnel': { m:'m217', t:'流星群観測', r:9000, metric:'totalKills' },
+            'ironBlaster': { m:'m218', t:'機神起動', r:250000, metric:'bestScore' },
+            'disneyMagic': { m:'m219', t:'星夢のステージ', r:12000, metric:'totalGems' },
+            'infinitySnap': { m:'m220', t:'終焉の合図', r:700000, metric:'bestScore' },
+            'infiniteBlade': { m:'m221', t:'無限剣の契約', r:15, metric:'bestLevel' },
+            'shieldThrow': { m:'m222', t:'不壊の守り', r:120, metric:'totalBossLikeKills' },
+            'keraunos': { m:'m223', t:'天帝の雷', r:80, metric:'bestLevel' },
+            'phantomStep': { m:'m211', t:'幻影歩法の試練', r:600, metric:'totalKills' },
+            'neonLance': { m:'m007', t:'ネオンランス', r:300, metric:'totalKills' },
+            'phoenixCore': { m:'m019', t:'フェニックスコア', r:15, metric:'totalBossLikeKills' },
+            'starfallCrown': { m:'m013', t:'星落としの王冠', r:300, metric:'bestRunKills' },
+            'voidCollector': { m:'m021', t:'虚空コレクター', r:3, metric:'totalMonkeyKills' },
+            'railCannon': { m:'m167', t:'レールキャノン', r:18000, metric:'totalKills' },
+            'blackholeEmperor': { m:'m169', t:'ブラックホールエンペラー', r:70, metric:'bestLevel' },
+            'thunderAegis': { m:'m171', t:'サンダーイージス', r:320, metric:'totalBossLikeKills' },
+            'solarDrill': { m:'m172', t:'ソーラードリル', r:650000, metric:'bestScore' },
+            'chronoLotus': { m:'m173', t:'クロノロータス', r:90, metric:'completedMissionCount' }
+        };
+
+        // 過去のバグによる不正な解放をクリーンアップ
+        let modified = false;
+        for (const [weaponId, req] of Object.entries(ultReqs)) {
+            if (!claimed[req.m]) { 
+                if (unlocks[weaponId]) { delete unlocks[weaponId]; modified = true; }
+            }
+        }
+        if (modified) {
+            try {
+                if (typeof saveData === 'function') saveData();
+                else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
+            } catch(e) {}
+        }
+
+        const weapons = (typeof ALL_WEAPONS !== 'undefined') ? ALL_WEAPONS : [];
+        let usedCount = 0;
+        const htmls = { BASIC:[], ULTIMATE:[], ONLINE:[], LEGENDARY:[], MYTHIC:[], EVOLUTION:[] };
+        const labels = { BASIC: 'BASIC WEAPONS', ULTIMATE: 'ULTIMATE WEAPONS', ONLINE: 'ONLINE WEAPONS', LEGENDARY: 'LEGENDARY WEAPONS', MYTHIC: 'MYTHIC WEAPONS', EVOLUTION: 'EVOLUTION WEAPONS' };
+
+        weapons.forEach(w => {
+            const isUsed = !!(usedWeapons[w.id] || usedWeapons[w.name]);
+            if (isUsed) usedCount++;
+
+            let isUnlocked = true;
+            let reqHtml = '';
+            
+            if (['ULTIMATE', 'LEGENDARY', 'MYTHIC'].includes(w.type) || w.id === 'phantomStep') {
+                const req = ultReqs[w.id];
+                if (req) {
+                    // ミッション報酬を受け取っていなければ絶対に未解放
+                    isUnlocked = !!claimed[req.m]; 
+                    if (!isUnlocked) {
+                        let progress = 0;
+                        if (typeof getMissionProgress === 'function' && typeof MISSION_DEFS !== 'undefined') {
+                            const def = MISSION_DEFS.find(x => x.id === req.m);
+                            if (def) progress = Math.floor(getMissionProgress(def));
+                        }
+                        progress = Math.min(req.r, progress);
+                        reqHtml = `<p class="text-[11px] text-gray-300 mt-1">解放条件：ミッション「${req.t}」を達成して報酬を受け取る（${progress}/${req.r}）</p>`;
+                    }
+                } else {
+                    isUnlocked = !!unlocks[w.id];
+                }
+            }
+
+            const isEnabled = !disabled[w.id];
+            let toggleHtml = '';
+
+            // 未解放なら強制的にトグルを消去する
+            if (['ULTIMATE', 'LEGENDARY', 'MYTHIC', 'BASIC'].includes(w.type) || w.id === 'phantomStep') {
+                if (!isUnlocked) {
+                    toggleHtml = `
+                        <div class="mt-3 border-t border-slate-700 pt-3">
+                            <p class="text-xs text-red-200 font-bold">未解放</p>
+                            ${reqHtml}
+                        </div>`;
+                } else {
+                    toggleHtml = `
+                        <div class="mt-3 border-t border-slate-700 pt-3">
+                            <label class="flex items-center justify-between gap-3 cursor-pointer">
+                                <span class="text-xs font-bold ${isEnabled ? 'text-green-300' : 'text-red-300'}">出現：${isEnabled ? 'ON' : 'OFF'}</span>
+                                <input type="checkbox" class="w-5 h-5" onchange="window.nsvToggleWeaponV51('${w.id}', this.checked)" ${isEnabled ? 'checked' : ''}>
+                            </label>
+                            <p class="text-[11px] text-gray-300 mt-2 leading-relaxed">${isEnabled ? 'ON：この武器がレベルアップ候補に出ます。' : 'OFF：この武器は候補に出ません。'}</p>
+                        </div>`;
+                }
+            }
+
+            const card = `
+                <div class="collection-card ${isUsed || isUnlocked ? 'unlocked' : ''}">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="text-3xl">${w.icon || '\u2754'}</div>
+                        <span class="text-[11px] font-bold px-2 py-1 rounded ${!isUnlocked ? 'bg-red-950/80 text-red-200 border border-red-400/50' : isUsed ? 'bg-green-900/70 text-green-200 border border-green-400/50' : 'bg-slate-800 text-gray-300 border border-gray-500/40'}">${!isUnlocked ? '未解放' : isUsed ? '使用済み' : '未使用'}</span>
+                    </div>
+                    <h3 class="font-bold text-white mt-1">${w.name}</h3>
+                    <p class="text-xs text-purple-200 font-bold mt-1">${w.type}</p>
+                    <p class="text-sm text-gray-300 mt-1">${w.desc || ''}</p>
+                    <div class="text-xs text-gray-300 mt-3 space-y-1">
+                        <p>攻撃タイプ：${w.attackType || '特殊'}</p>
+                        <p>強い場面：${w.strong || '状況次第'}</p>
+                        <p>弱い場面：${w.weak || '状況次第'}</p>
+                    </div>
+                    ${toggleHtml}
+                </div>`;
+            if (htmls[w.type]) htmls[w.type].push(card);
+        });
+
+        if (summary) summary.textContent = `解放済み・使用済み：${usedCount} / ${weapons.length}`;
+
+        let finalHtml = '';
+        ['BASIC', 'ULTIMATE', 'ONLINE', 'LEGENDARY', 'MYTHIC', 'EVOLUTION'].forEach(type => {
+            if (htmls[type].length > 0) {
+                finalHtml += `<section><h3 class="text-2xl font-bold text-cyan-300 mb-2">${labels[type]}</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${htmls[type].join('')}</div></section>`;
+            }
+        });
+        container.innerHTML = finalHtml;
+    };
+
+    // 過去のプログラムより先にボタンクリックを横取りして、確実に最新の画面を描画する
+    window.addEventListener('click', (ev) => {
+        const btn = ev.target?.closest?.('button');
+        if (!btn) return;
+
+        if (btn.id === 'openWeaponCodexBtn') {
+            ev.preventDefault();
+            ev.stopPropagation();
+            ev.stopImmediatePropagation && ev.stopImmediatePropagation(); 
+
+            window.nsvForceRenderWeaponCodexV51();
+
+            const screens = ['startScreen', 'upgradeScreen', 'missionsScreen', 'collectionScreen', 'weaponCodexScreen', 'bossCodexScreen', 'onlineRoleScreen', 'levelUpScreen', 'gameOverScreen', 'pauseScreen', 'shopScreen', 'battlePassScreen', 'leaderboardScreen', 'eventModeScreen', 'onlineRoomScreen', 'tutorialOverlay'];
+            screens.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (id === 'weaponCodexScreen') { el.classList.remove('hidden'); el.style.pointerEvents = 'auto'; } 
+                    else { el.classList.add('hidden'); }
+                }
+            });
+            return;
+        }
+
+        if (btn.id === 'closeWeaponCodexBtn') {
+            ev.preventDefault();
+            ev.stopPropagation();
+            ev.stopImmediatePropagation && ev.stopImmediatePropagation();
+
+            const screens = ['startScreen', 'upgradeScreen', 'missionsScreen', 'collectionScreen', 'weaponCodexScreen', 'bossCodexScreen', 'onlineRoleScreen', 'levelUpScreen', 'gameOverScreen', 'pauseScreen', 'shopScreen', 'battlePassScreen', 'leaderboardScreen', 'eventModeScreen', 'onlineRoomScreen', 'tutorialOverlay'];
+            screens.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (id === 'startScreen') { el.classList.remove('hidden'); el.style.pointerEvents = 'auto'; } 
+                    else { el.classList.add('hidden'); }
+                }
+            });
+            if (typeof gameState !== 'undefined') gameState = 'start';
+            document.getElementById('uiLayer')?.classList.add('hidden');
+            document.getElementById('bossHpContainer')?.classList.add('hidden');
+            document.getElementById('mapEventForecastHud')?.classList.add('hidden');
+            document.getElementById('mapEventForecastHud')?.classList.add('force-hidden');
+            document.getElementById('bossWarning')?.classList.add('hidden');
+            return;
+        }
+    }, true); 
+
+    function bootV51() {
+        enforceBadgeV51();
+        const codexScreen = document.getElementById('weaponCodexScreen');
+        if (codexScreen && !codexScreen.classList.contains('hidden')) {
+            window.nsvForceRenderWeaponCodexV51();
+        }
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV51, {once:true}); else bootV51();
+    setInterval(enforceBadgeV51, 1000);
 })();
 </script>
 
