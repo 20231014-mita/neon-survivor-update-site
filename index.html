@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V71 PLAYFIELD STABLE / no-preview build -->
+<!-- V71 CLEAN STABLE / no-preview build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -192,6 +192,33 @@
         .nsv-pause-actions button { min-width:180px; }
         #nsvV30PauseCheat, #nsvV30WeaponStatus { width:100%; background:rgba(15,23,42,.82)!important; border:1px solid rgba(250,204,21,.45)!important; border-radius:18px!important; padding:14px!important; box-shadow:0 0 14px rgba(250,204,21,.12)!important; }
         @media (max-width:720px){ .nsv-pause-panel{padding:16px; max-height:94vh;} .nsv-pause-head{align-items:flex-start; flex-direction:column;} .nsv-pause-grid{grid-template-columns:1fr;} .nsv-pause-card{min-height:auto;} .nsv-pause-actions button{width:100%; min-width:0;} }
+
+
+        /* ===== V71 Clean Stable fallback: critical layout without depending fully on CDN ===== */
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .grid { display: grid; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .justify-between { justify-content: space-between; }
+        .flex-col { flex-direction: column; }
+        .flex-wrap { flex-wrap: wrap; }
+        .text-center { text-align: center; }
+        .font-bold { font-weight: 700; }
+        .font-black { font-weight: 900; }
+        .rounded { border-radius: .5rem; }
+        .rounded-lg { border-radius: .75rem; }
+        .rounded-xl { border-radius: 1rem; }
+        .absolute { position: absolute; }
+        .fixed { position: fixed; }
+        .relative { position: relative; }
+        .inset-0 { inset: 0; }
+        .pointer-events-none { pointer-events: none; }
+        .pointer-events-auto { pointer-events: auto; }
+        button, input, [role="button"] { touch-action: manipulation; }
+        button { -webkit-tap-highlight-color: transparent; }
+        @media (max-width:720px){ .menu-panel { padding: 16px; } }
+
 </style>
 </head>
 <body class="text-white">
@@ -592,7 +619,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         let userData = { score: 0, coins: 0, nickname: '', upgrades: { hp: 0, damage: 0, speed: 0, exp: 0, armor: 0, magnet: 0, rapid: 0, pierce: 0 } };
 
         function createFreshUserData(nickname = '') {
-            return { score: 0, coins: 0, nickname: normalizeNickname(nickname || ''), upgrades: { hp: 0, damage: 0, speed: 0, exp: 0, armor: 0, magnet: 0, rapid: 0, pierce: 0 }, stats: {}, missions: { completed: {}, claimed: {} }, unlocks: { legendaryWeapons: {}, skins: { classic: true }, auras: { none: true } }, codex: { weapons: { base_0_\u901A\u5E38\u5F3E: true } }, equippedSkin: 'classic', equippedAura: 'none', resetVersion: SAVE_RESET_VERSION };
+            return { score: 0, coins: 0, nickname: normalizeNickname(nickname || ''), upgrades: { hp: 0, damage: 0, speed: 0, exp: 0, armor: 0, magnet: 0, rapid: 0, pierce: 0 }, stats: {}, missions: { completed: {}, claimed: {} }, unlocks: { legendaryWeapons: {}, skins: { classic: true }, auras: { none: true }, capes: { none: true } }, codex: { weapons: { base_0_\u901A\u5E38\u5F3E: true } }, equippedSkin: 'classic', equippedAura: 'none', equippedCape: 'none', resetVersion: SAVE_RESET_VERSION };
         }
 
         const SKIN_DEFS = [
@@ -1239,7 +1266,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             userData.unlocks.legendaryWeapons = userData.unlocks.legendaryWeapons || {};
             userData.unlocks.skins = Object.assign({ classic:true }, userData.unlocks.skins || {});
             userData.unlocks.auras = Object.assign({ none:true }, userData.unlocks.auras || {});
-            if (userData.unlocks && userData.unlocks.capes) delete userData.unlocks.capes;
+            userData.unlocks.capes = Object.assign({ none:true }, userData.unlocks.capes || {});
             userData.codex = userData.codex || {};
             userData.codex.weapons = Object.assign({ base_0_\u901A\u5E38\u5F3E:true }, userData.codex.weapons || {});
             userData.settings = userData.settings || {};
@@ -1248,9 +1275,11 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             if (userData.unlocks && userData.unlocks.legendaryWeapons) delete userData.unlocks.legendaryWeapons.neonRaygun;
             userData.equippedSkin = userData.equippedSkin || 'classic';
             userData.equippedAura = userData.equippedAura || 'none';
-            if (userData.equippedCape) delete userData.equippedCape;
+            userData.equippedCape = userData.equippedCape || 'none';
             if (!userData.unlocks.skins[userData.equippedSkin]) userData.equippedSkin = 'classic';
             if (!userData.unlocks.auras[userData.equippedAura]) userData.equippedAura = 'none';
+            if (!userData.unlocks.capes[userData.equippedCape]) userData.equippedCape = 'none';
+            try { window.userData = userData; } catch(e) {}
             ensureDailyMissionData();
         }
 
@@ -2885,12 +2914,12 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             migrated.missions = Object.assign({ completed:{}, claimed:{} }, d.missions || {});
             migrated.missions.completed = Object.assign({}, d.missions?.completed || {});
             migrated.missions.claimed = Object.assign({}, d.missions?.claimed || {});
-            migrated.unlocks = Object.assign({ legendaryWeapons:{}, skins:{ classic:true }, auras:{ none:true } }, d.unlocks || {});
+            migrated.unlocks = Object.assign({ legendaryWeapons:{}, skins:{ classic:true }, auras:{ none:true }, capes:{ none:true } }, d.unlocks || {});
             migrated.unlocks.legendaryWeapons = Object.assign({}, d.unlocks?.legendaryWeapons || {});
             migrated.unlocks.skins = Object.assign({ classic:true }, d.unlocks?.skins || {});
             migrated.unlocks.auras = Object.assign({ none:true }, d.unlocks?.auras || {});
-            if (migrated.unlocks.capes) delete migrated.unlocks.capes;
-            if (migrated.equippedCape) delete migrated.equippedCape;
+            migrated.unlocks.capes = Object.assign({ none:true }, d.unlocks?.capes || migrated.unlocks.capes || {});
+            migrated.equippedCape = d.equippedCape || migrated.equippedCape || 'none';
             migrated.codex = Object.assign({ weapons:{ base_0_\u901A\u5E38\u5F3E:true } }, d.codex || {});
             migrated.codex.weapons = Object.assign({ base_0_\u901A\u5E38\u5F3E:true }, d.codex?.weapons || {});
             migrated.settings = Object.assign({}, d.settings || {});
@@ -2903,6 +2932,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             migrated.passTickets = Number(d.passTickets || 0);
             migrated.equippedSkin = migrated.unlocks.skins[migrated.equippedSkin] ? migrated.equippedSkin : 'classic';
             migrated.equippedAura = migrated.unlocks.auras[migrated.equippedAura] ? migrated.equippedAura : 'none';
+            migrated.equippedCape = migrated.unlocks.capes[migrated.equippedCape] ? migrated.equippedCape : 'none';
             migrated.resetVersion = SAVE_RESET_VERSION;
             return migrated;
         }
@@ -2932,6 +2962,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             if (nickInput && finalNick) nickInput.value = finalNick;
             document.getElementById('currentBestDisplay').innerText = userData.score;
             applyLightMode(localStorage.getItem('neon_survivor_light_mode') === '1');
+            try { window.userData = userData; } catch(e) {}
             try { localStorage.setItem('neon_survivor_save', JSON.stringify(userData)); } catch(e) {}
             loadDataFromCloud();
         }
@@ -2940,8 +2971,8 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             ensureProgressionData();
             userData.resetVersion = SAVE_RESET_VERSION;
             userData.nickname = normalizeNickname(userData.nickname || localStorage.getItem('neon_survivor_nickname') || '');
-            if (userData.unlocks && userData.unlocks.capes) delete userData.unlocks.capes;
-            if (userData.equippedCape) delete userData.equippedCape;
+            try { userData.unlocks = userData.unlocks || {}; userData.unlocks.capes = Object.assign({ none:true }, userData.unlocks.capes || {}); userData.equippedCape = userData.equippedCape || 'none'; } catch(e) {}
+            try { window.userData = userData; } catch(e) {}
             const text = JSON.stringify(userData);
             localStorage.setItem('neon_survivor_save', text);
             localStorage.setItem('neon_survivor_save_backup_v14', text);
@@ -2950,6 +2981,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             const best = document.getElementById('currentBestDisplay');
             if (best) best.innerText = userData.score;
             saveDataToCloud();
+            try { window.userData = userData; } catch(e) {}
         }
 
 
@@ -12481,7 +12513,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             function boot(){ installStyle(); badge(); ensureUser(); patchSaveImport(); ensureUltimateMissions(); patchWeaponLocks(); removeBlackholeEvent(); organizeHome(); wireButtons(); ensurePausePanel(); patchRuntime(); patchOnlineFallback(); patchUi(); patchShopCoin(); saveNow(); }
             if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot,{once:true}); else boot();
             window.addEventListener('pageshow',boot,{passive:true}); window.addEventListener('orientationchange',()=>setTimeout(boot,180),{passive:true}); window.addEventListener('resize',()=>setTimeout(()=>{ patchUi(); },80),{passive:true});
-            setInterval(()=>{ try{ badge(); ensureUltimateMissions(); removeBlackholeEvent(); removeMapBlackholes(); patchUi(); if(gameState==='paused') renderPauseWeapons(); patchShopCoin(); }catch(e){} },1000);
+            setInterval(()=>{ try{ if(gameState!=='playing'){ badge(); ensureUltimateMissions(); removeBlackholeEvent(); patchUi(); patchShopCoin(); } if(gameState==='paused') renderPauseWeapons(); if(gameState==='playing') removeMapBlackholes(); }catch(e){} },5000);
         })();
 
 
@@ -12535,9 +12567,9 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 try { if (typeof createFreshUserData === 'function') fresh = createFreshUserData(nick); } catch(e) {}
                 fresh = fresh || {
                     score:0, coins:0, nickname:normalizeNick31(nick), upgrades:defaultUpgrades31(), stats:{}, missions:{completed:{},claimed:{}},
-                    unlocks:{ legendaryWeapons:{}, skins:{classic:true}, auras:{none:true} }, codex:{weapons:{base_0_\u901A\u5E38\u5F3E:true}},
+                    unlocks:{ legendaryWeapons:{}, skins:{classic:true}, auras:{none:true}, capes:{none:true} }, codex:{weapons:{base_0_\u901A\u5E38\u5F3E:true}},
                     settings:{disabledWeapons:{},disabledLegendaryWeapons:{}}, daily:null, cosmetics:{unlocked:{},equipped:{}}, passTickets:0,
-                    equippedSkin:'classic', equippedAura:'none'
+                    equippedSkin:'classic', equippedAura:'none', equippedCape:'none'
                 };
                 return fresh;
             }
@@ -12580,11 +12612,11 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 migrated.missions.completed = Object.assign({}, safeObj31(migrated.missions.completed));
                 migrated.missions.claimed = Object.assign({}, safeObj31(migrated.missions.claimed));
                 migrated.daily = (d.daily || d.d || migrated.daily || null);
-                migrated.unlocks = Object.assign({legendaryWeapons:{},skins:{classic:true},auras:{none:true}}, safeObj31(d.unlocks || d.l || migrated.unlocks));
+                migrated.unlocks = Object.assign({legendaryWeapons:{},skins:{classic:true},auras:{none:true},capes:{none:true}}, safeObj31(d.unlocks || d.l || migrated.unlocks));
                 migrated.unlocks.legendaryWeapons = Object.assign({}, safeObj31(migrated.unlocks.legendaryWeapons));
                 migrated.unlocks.skins = Object.assign({classic:true}, safeObj31(migrated.unlocks.skins));
                 migrated.unlocks.auras = Object.assign({none:true}, safeObj31(migrated.unlocks.auras));
-                if (migrated.unlocks.capes) delete migrated.unlocks.capes;
+                migrated.unlocks.capes = Object.assign({none:true}, safeObj31(migrated.unlocks.capes));
                 migrated.codex = Object.assign({weapons:{base_0_\u901A\u5E38\u5F3E:true}}, safeObj31(d.codex || d.x || migrated.codex));
                 migrated.codex.weapons = Object.assign({base_0_\u901A\u5E38\u5F3E:true}, safeObj31(migrated.codex.weapons));
                 migrated.settings = Object.assign({disabledWeapons:{},disabledLegendaryWeapons:{}}, safeObj31(d.settings || d.set || migrated.settings));
@@ -12599,7 +12631,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 migrated.cosmetics.equipped = Object.assign({}, safeObj31(migrated.cosmetics.equipped));
                 migrated.equippedSkin = migrated.unlocks.skins[d.equippedSkin || d.sk] ? (d.equippedSkin || d.sk) : (migrated.equippedSkin || 'classic');
                 migrated.equippedAura = migrated.unlocks.auras[d.equippedAura || d.au] ? (d.equippedAura || d.au) : (migrated.equippedAura || 'none');
-                if (migrated.equippedCape) delete migrated.equippedCape;
+                migrated.equippedCape = migrated.unlocks.capes[d.equippedCape || d.cp] ? (d.equippedCape || d.cp) : (migrated.equippedCape || 'none');
                 migrated.resetVersion = V31_SAVE_VERSION;
                 migrated.saveVersion = V31_SAVE_VERSION;
                 return sanitizeNumberFields31(migrated);
@@ -12631,6 +12663,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             function saveDataV31Now() {
                 try {
                     userData = migrateSaveDataV31(userData, userData?.nickname || localStorage.getItem('neon_survivor_nickname') || '');
+                    try { window.userData = userData; } catch(e) {}
                     const txt = JSON.stringify(userData);
                     localStorage.setItem('neon_survivor_save', txt);
                     localStorage.setItem('neon_survivor_save_backup_v14', txt);
@@ -13069,7 +13102,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV31, {once:true}); else bootV31();
             window.addEventListener('pageshow', bootV31, {passive:true});
             window.addEventListener('resize', () => setTimeout(()=>{ badgeV31(); patchDailyEventButtons31(); detailedCapPerformance31(true); }, 120), {passive:true});
-            setInterval(() => { try { badgeV31(); patchDailyEventButtons31(); detailedCapPerformance31(true); } catch(e) {} }, 1200);
+            setInterval(() => { try { if(gameState!=='playing'){ badgeV31(); patchDailyEventButtons31(); detailedCapPerformance31(true); } } catch(e) {} }, 5000);
         })();
 
 
@@ -13344,7 +13377,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV33, {once:true}); else bootV33();
             window.addEventListener('pageshow', bootV33, {passive:true});
             window.addEventListener('resize', () => setTimeout(bootV33, 120), {passive:true});
-            setInterval(bootV33, 1200);
+            setInterval(() => { try { if(gameState!=='playing') bootV33(); } catch(e) {} }, 5000);
         })();
 
         ;(() => {
@@ -13539,7 +13572,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV34, {once:true}); else bootV34();
             window.addEventListener('pageshow', bootV34, {passive:true});
             window.addEventListener('resize', () => setTimeout(bootV34, 120), {passive:true});
-            setInterval(() => { try { ensureHomeButtonsV34(); badgeV34(); } catch(e) {} }, 1500);
+            setInterval(() => { try { if(gameState!=='playing'){ ensureHomeButtonsV34(); badgeV34(); } } catch(e) {} }, 5000);
         })();
 
 
@@ -13989,7 +14022,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV35, {once:true}); else bootV35();
             window.addEventListener('pageshow', bootV35, {passive:true});
-            setInterval(() => { try { ensureUltimateMissionsV35(); patchDailyButtonsV35(); badgeV35(); if (q35('eventModeScreen') && !q35('eventModeScreen').classList.contains('hidden')) renderDailyEventV35(); } catch(e) {} }, 1500);
+            setInterval(() => { try { if(gameState!=='playing'){ ensureUltimateMissionsV35(); patchDailyButtonsV35(); badgeV35(); if (q35('eventModeScreen') && !q35('eventModeScreen').classList.contains('hidden')) renderDailyEventV35(); } } catch(e) {} }, 5000);
         })();
 
 
@@ -14326,11 +14359,11 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             window.addEventListener('resize', () => setTimeout(bootV37, 120), {passive:true});
             setInterval(() => {
                 try {
-                    organizeHomeV37(); badgeV37();
+                    if (gameState !== 'playing') organizeHomeV37();
                     if (q37('shopScreen') && !q37('shopScreen').classList.contains('hidden')) renderShopStableV37(true);
                     if (q37('leaderboardScreen') && !q37('leaderboardScreen').classList.contains('hidden')) renderRankingStableV37();
                 } catch(e) {}
-            }, 1200);
+            }, 5000);
         })();
 
         // ==========================================
@@ -14712,13 +14745,14 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 document.addEventListener('click', handler, true);
                 setInterval(() => {
                     try {
+                        if (gameState === 'playing') return;
                         const btn = q38('onlineStartBtn');
                         if (btn && !btn.__v38OnlineBound) {
                             btn.__v38OnlineBound = true;
                             btn.addEventListener('click', handler, true);
                         }
                     } catch(e) {}
-                }, 1000);
+                }, 5000);
             }
 
             function bootV39() {
@@ -14738,7 +14772,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV39, {once:true}); else bootV39();
             window.addEventListener('pageshow', bootV39, {passive:true});
             window.addEventListener('resize', () => setTimeout(bootV39, 120), {passive:true});
-            setInterval(() => { try { setBadgeV39(); updateOnlineHudV39(); } catch(e) {} }, 1500);
+            setInterval(() => { try { if(gameState!=='playing') setBadgeV39(); updateOnlineHudV39(); } catch(e) {} }, 5000);
         })();
 
 
@@ -15346,7 +15380,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                             animationId = requestAnimationFrame(gameLoop);
                         }
                     } catch(e) {}
-                }, 1200);
+                }, 2000);
                 setInterval(() => { try { if (gameState === 'playing') { writeSaveV59(); pruneGameArraysV59(false); } } catch(e) {} }, 5000);
             }
 
@@ -15367,7 +15401,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV59, { once:true }); else bootV59();
             window.addEventListener('pageshow', bootV59, { passive:true });
             window.addEventListener('resize', () => setTimeout(cleanupUiV59, 120), { passive:true });
-            setInterval(cleanupUiV59, 1200);
+            setInterval(cleanupUiV59, 5000);
 
 
             
@@ -15625,7 +15659,6 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
     drawAll = function drawAllV71Stable() {
       try {
         oldDrawAllV71.apply(this, arguments);
-        drawEssentialOverlayV71();
         lastBeatV71 = nowV71();
       } catch(e) {
         drawErrorCountV71++;
@@ -15661,7 +15694,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             ensureCanvasSizeV71();
             ensurePlayerV71();
             if (Array.isArray(enemies) && enemies.length === 0) safeSpawnEnemyV71();
-            drawFallbackPlayfieldV71('READY');
+            try { drawAll(); } catch(e) { drawFallbackPlayfieldV71('READY'); }
           }
           cleanBadgesV71();
         } catch(e) {}
@@ -15684,10 +15717,10 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         if (Array.isArray(enemies) && enemies.length === 0 && gameTime > 1.5) safeSpawnEnemyV71();
       }
     } catch(e) {}
-  }, 700);
+  }, 2000);
 
   window.addEventListener('resize', () => {
-    try { ensureCanvasSizeV71(); if (gameState === 'playing') drawFallbackPlayfieldV71('RESIZE'); } catch(e) {}
+    try { ensureCanvasSizeV71(); } catch(e) {}
   }, { passive: true });
 
   cleanBadgesV71();
@@ -15812,17 +15845,12 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         } catch(e) {}
     }
     function bootV62() {
-        cleanStorage();
+        // V71 clean: text guard is one-shot only. Repeated DOM/storage rewriting was causing flicker and could erase valid names.
         scanNode(document.body);
         organizePausePanel();
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV62, { once:true }); else bootV62();
-    setInterval(() => { scanNode(document.body); organizePausePanel(); }, 1200);
-    try {
-        const observer = new MutationObserver(() => { scanNode(document.body); organizePausePanel(); });
-        observer.observe(document.documentElement, { childList:true, subtree:true, characterData:true });
-    } catch(e) {}
-    window.NEON_SURVIVOR_TEXT_GUARD_V62 = { cleanText, scanNode, organizePausePanel };
+    window.NEON_SURVIVOR_TEXT_GUARD_V62 = { cleanText, scanNode, organizePausePanel, boot: bootV62 };
 })();
 </script>
 
@@ -15925,16 +15953,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   }
 
   function showBadgeV63() {
-    installStyleV63();
-    removeOldVersionBadgesV63();
-    let b = $('nsvV63Badge');
-    if (!b) {
-      b = document.createElement('div');
-      b.id = 'nsvV63Badge';
-      b.className = 'nsv-v63-badge';
-      document.body.appendChild(b);
-    }
-    b.textContent = TAG;
+    // Badge is unified by the final V71 badge function. Keep this no-op to avoid duplicate badges.
   }
 
   function ensureUserV63() {
@@ -16185,7 +16204,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   window.addEventListener('pageshow', bootV63, {passive:true});
   setTimeout(bootV63, 300);
   setTimeout(bootV63, 1200);
-  setInterval(() => { try { showBadgeV63(); installShopButtonV63(); } catch(e) {} }, 2000);
+  setInterval(() => { try { installShopButtonV63(); } catch(e) {} }, 6000);
 })();
 </script>
 
@@ -16334,8 +16353,8 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV69, { once:false }); else bootV69();
   window.addEventListener('load', bootV69, { passive:true });
   window.addEventListener('pageshow', bootV69, { passive:true });
-  document.addEventListener('click', () => setTimeout(bootV69, 40), true);
-  setInterval(bootV69, 350);
+  document.addEventListener('click', (ev) => { try { if (ev.target?.closest?.('#pauseScreen') || ev.target?.id === 'pauseBtn') setTimeout(bootV69, 40); } catch(e) {} }, true);
+  setInterval(() => { try { unifyBadge(); if (document.getElementById('pauseScreen') && !document.getElementById('pauseScreen').classList.contains('hidden')) consolidatePauseCheats(); } catch(e) {} }, 3000);
   window.NEON_SURVIVOR_V69_PAUSE_STABLE = { boot: bootV69, consolidatePauseCheats, unifyBadge, cleanBadText };
 })();
 </script>
@@ -16586,10 +16605,10 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   document.addEventListener('DOMContentLoaded', bootV70, { once:false });
   window.addEventListener('load', bootV70, { passive:true });
   window.addEventListener('pageshow', bootV70, { passive:true });
-  document.addEventListener('click', () => setTimeout(bootV70, 70), true);
+  document.addEventListener('click', (ev) => { try { if (ev.target?.closest?.('#collectionScreen,#leaderboardScreen') || ev.target?.id === 'openCollectionBtn') setTimeout(bootV70, 70); } catch(e) {} }, true);
   setTimeout(bootV70, 120);
   setTimeout(bootV70, 800);
-  setInterval(bootV70, 800);
+  setInterval(() => { try { cleanBadgesV70(); const c = $('collectionScreen'); if (c && !c.classList.contains('hidden')) renderCollectionV70(); decorateRankingV70(); } catch(e) {} }, 5000);
   window.NEON_SURVIVOR_V70_STABLE = { renderCollectionV70, decorateRankingV70, cleanBadgesV70 };
 })();
 </script>
@@ -16606,8 +16625,71 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
       b.style.cssText='display:block!important;position:fixed!important;left:10px!important;bottom:8px!important;z-index:1000000!important;pointer-events:none!important;color:#a7f3d0!important;background:rgba(2,6,23,.90)!important;border:1px solid rgba(52,211,153,.70)!important;border-radius:999px!important;padding:4px 10px!important;font:900 11px/1.2 Orbitron,monospace!important;letter-spacing:.08em!important;box-shadow:0 0 13px rgba(16,185,129,.38)!important;white-space:nowrap!important;';
     }catch(e){}
   }
-  clean(); setInterval(clean, 800);
+  clean(); setInterval(clean, 6000);
 })();
 </script>
+
+<script>
+/* ===== V71 CLEAN STABLE: unified lightweight bridge / no preview ===== */
+(function(){
+  'use strict';
+  const SAVE_MAIN = 'neon_survivor_save';
+  const SAVE_BACKUP = 'neon_survivor_save_backup_v14';
+  function readSave(){
+    try { return JSON.parse(localStorage.getItem(SAVE_MAIN) || localStorage.getItem(SAVE_BACKUP) || 'null'); } catch(e) { return null; }
+  }
+  function normalizeUserData(u){
+    if (!u || typeof u !== 'object') u = readSave() || {};
+    u.score = Number.isFinite(Number(u.score)) ? Number(u.score) : 0;
+    u.coins = Number.isFinite(Number(u.coins)) ? Number(u.coins) : 0;
+    u.upgrades = u.upgrades || {};
+    u.unlocks = u.unlocks || {};
+    u.unlocks.legendaryWeapons = u.unlocks.legendaryWeapons || {};
+    u.unlocks.skins = Object.assign({ classic:true }, u.unlocks.skins || {});
+    u.unlocks.auras = Object.assign({ none:true }, u.unlocks.auras || {});
+    u.unlocks.capes = Object.assign({ none:true }, u.unlocks.capes || {});
+    u.cosmetics = u.cosmetics || { unlocked:{}, equipped:{} };
+    u.cosmetics.unlocked = u.cosmetics.unlocked || {};
+    u.cosmetics.equipped = u.cosmetics.equipped || {};
+    u.leaderboards = u.leaderboards || { friends:[] };
+    u.friendBook = u.friendBook || { friends:[] };
+    u.leaderboards.friends = Array.isArray(u.leaderboards.friends) ? u.leaderboards.friends : [];
+    u.friendBook.friends = Array.isArray(u.friendBook.friends) ? u.friendBook.friends : u.leaderboards.friends;
+    u.equippedSkin = u.unlocks.skins[u.equippedSkin] ? u.equippedSkin : 'classic';
+    u.equippedAura = u.unlocks.auras[u.equippedAura] ? u.equippedAura : 'none';
+    u.equippedCape = u.unlocks.capes[u.equippedCape] ? u.equippedCape : 'none';
+    window.userData = u;
+    return u;
+  }
+  function saveUnified(){
+    try {
+      const u = normalizeUserData(window.userData);
+      const text = JSON.stringify(u);
+      localStorage.setItem(SAVE_MAIN, text);
+      localStorage.setItem(SAVE_BACKUP, text);
+      localStorage.setItem('neon_survivor_save_last_saved_at', String(Date.now()));
+      if (u.nickname) localStorage.setItem('neon_survivor_nickname', String(u.nickname));
+      try { window.NEON_SURVIVOR_REAL_SAVE?.(); } catch(e) {}
+      return true;
+    } catch(e) { console.warn('[V71 CLEAN] save skipped', e); return false; }
+  }
+  function cleanBadge(){
+    try {
+      document.querySelectorAll('[id*="Badge"]').forEach(function(el){
+        if (el.id !== 'nsvV71Badge' && /V\d+|STABLE|CORE|AIM/i.test(el.textContent || '')) el.remove();
+      });
+      let b = document.getElementById('nsvV71Badge');
+      if (!b) { b = document.createElement('div'); b.id = 'nsvV71Badge'; document.body.appendChild(b); }
+      b.textContent = 'V71 PLAY STABLE';
+      b.style.cssText = 'display:block!important;position:fixed!important;left:10px!important;bottom:8px!important;z-index:1000000!important;pointer-events:none!important;color:#a7f3d0!important;background:rgba(2,6,23,.90)!important;border:1px solid rgba(52,211,153,.70)!important;border-radius:999px!important;padding:4px 10px!important;font:900 11px/1.2 Orbitron,monospace!important;letter-spacing:.08em!important;box-shadow:0 0 13px rgba(16,185,129,.38)!important;white-space:nowrap!important;';
+    } catch(e) {}
+  }
+  function boot(){ normalizeUserData(window.userData); cleanBadge(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once:true }); else boot();
+  window.addEventListener('pageshow', boot, { passive:true });
+  window.NEON_SURVIVOR_V71_CLEAN = { boot, save: saveUnified, normalizeUserData, cleanBadge };
+})();
+</script>
+
 </body>
 </html>
