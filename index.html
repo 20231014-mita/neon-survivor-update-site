@@ -268,7 +268,7 @@
                     <div class="text-yellow-300 font-bold text-xs tracking-[0.35em]">GAME MENU</div>
                     <h2 class="text-5xl md:text-6xl font-bold text-white tracking-widest neon-text" style="font-family: 'Orbitron', sans-serif;">PAUSED</h2>
                 </div>
-                <div class="nsv-pause-mini">V62 ASCII SAFE</div>
+                <div class="nsv-pause-mini">V69 PAUSE STABLE</div>
             </div>
 
             <div class="nsv-pause-grid">
@@ -11767,7 +11767,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
     try {
       const pause = document.getElementById('pauseScreen');
       if (!pause) return;
-      if (!document.getElementById('nsvV13PauseCheat')) pause.appendChild(buildCheatBoxV13('nsvV13PauseCheat'));
+      /* V69: pause cheat input is unified into nsvV30PauseCheat only. */
       let list = document.getElementById('nsvV13PauseWeaponStatus');
       if (!list) { list = document.createElement('div'); list.id = 'nsvV13PauseWeaponStatus'; list.className = 'nsv-v13-weapon-status'; pause.appendChild(list); }
       renderPauseWeaponStatusV13();
@@ -14748,7 +14748,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         // V59: STABLE CORE\uFF08\u5B89\u5B9A\u6027\u30FB\u4FDD\u5B58\u30FB\u8868\u793A\u6574\u7406\u30FB\u5B89\u5168\u88C5\u7F6E\u3092\u672C\u4F53\u30B9\u30B3\u30FC\u30D7\u306B\u7D71\u5408\uFF09
         // ==========================================
         ;(() => {
-            const V59_TAG = 'V67 AIM STABLE';
+            const V59_TAG = 'V69 STABLE';
             const PASS_TICKET_COST_V59 = 1000000;
             const SAVE_KEYS_V59 = [
                 'neon_survivor_save',
@@ -15370,399 +15370,10 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             setInterval(cleanupUiV59, 1200);
 
 
-            // ==========================================
-            // V64: COLLECTION UNDEFINED FIX / BADGE CLEAN
-            // ==========================================
-            ;(() => {
-                const V64_TAG = 'V67 STABLE';
-                const q64 = (id) => document.getElementById(id);
-                const esc64 = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-                const pretty64 = (key) => String(key || 'item')
-                    .replace(/^bp[_-]?/i, '')
-                    .replace(/[_-]+/g, ' ')
-                    .replace(/\b\w/g, m => m.toUpperCase());
+            
 
-                const BP_CATALOG_V64 = {
-                    badge: { id:'bp_badge_s1', name:'繝阪が繝ｳ遘ｰ蜿ｷ繝舌ャ繧ｸ', type:'badge', icon:'遵', desc:'Season 1 縺ｮ髯仙ｮ壹ヰ繝�ず縺ｧ縺吶�' },
-                    trail: { id:'bp_trail_s1', name:'繝阪が繝ｳ繝ｻ繝医Ξ繧､繝ｫ', type:'trail', icon:'ｧｬ', desc:'遘ｻ蜍輔＠縺溘≠縺ｨ縺ｫ蜈峨�霆瑚ｷ｡縺梧ｮ九ｊ縺ｾ縺吶�' },
-                    frame: { id:'bp_frame_s1', name:'繝阪が繝ｳ繝阪�繝�繝輔Ξ繝ｼ繝�', type:'nameplate', icon:'名��', desc:'蜷榊燕縺ｾ繧上ｊ繧偵ロ繧ｪ繝ｳ鬚ｨ縺ｫ鬟ｾ繧翫∪縺吶�' },
-                    bp_badge_s1: { id:'bp_badge_s1', name:'繝阪が繝ｳ遘ｰ蜿ｷ繝舌ャ繧ｸ', type:'badge', icon:'遵', desc:'Season 1 縺ｮ髯仙ｮ壹ヰ繝�ず縺ｧ縺吶�' },
-                    bp_trail_s1: { id:'bp_trail_s1', name:'繝阪が繝ｳ繝ｻ繝医Ξ繧､繝ｫ', type:'trail', icon:'ｧｬ', desc:'遘ｻ蜍輔＠縺溘≠縺ｨ縺ｫ蜈峨�霆瑚ｷ｡縺梧ｮ九ｊ縺ｾ縺吶�' },
-                    bp_frame_s1: { id:'bp_frame_s1', name:'繝阪が繝ｳ繝阪�繝�繝輔Ξ繝ｼ繝�', type:'nameplate', icon:'名��', desc:'蜷榊燕縺ｾ繧上ｊ繧偵ロ繧ｪ繝ｳ鬚ｨ縺ｫ鬟ｾ繧翫∪縺吶�' }
-                };
-
-                function installStyleV64() {
-                    if (q64('nsvV64CollectionStyle')) return;
-                    const st = document.createElement('style');
-                    st.id = 'nsvV64CollectionStyle';
-                    st.textContent = `
-                        .nsv-v64-collection-note { background:rgba(2,6,23,.72); border:1px solid rgba(34,211,238,.28); border-radius:14px; padding:10px 12px; }
-                        .nsv-v64-empty { background:rgba(15,23,42,.82); border:1px dashed rgba(148,163,184,.45); border-radius:16px; padding:16px; }
-                    `;
-                    document.head.appendChild(st);
-                }
-
-                function typeLabelV64(type) {
-                    const map = {
-                        skin:'繧ｹ繧ｭ繝ｳ', aura:'繧ｪ繝ｼ繝ｩ', backpack:'閭御ｸｭ繧｢繧ｯ繧ｻ繧ｵ繝ｪ繝ｼ', trail:'繝医Ξ繧､繝ｫ', pet:'繝壹ャ繝�',
-                        emote:'繧ｨ繝｢繝ｼ繝�', intro:'逋ｻ蝣ｴ貍泌�', elimination:'謦��ｴ貍泌�', bossFinish:'繝懊せ謦��ｴ貍泌�',
-                        nameplate:'繝阪�繝�繝励Ξ繝ｼ繝�', badge:'遘ｰ蜿ｷ繝舌ャ繧ｸ', frame:'繝阪�繝�繝輔Ξ繝ｼ繝�', item:'繧｢繧､繝�Β', boost:'繝悶�繧ｹ繝�'
-                    };
-                    return map[type] || '繧｢繧､繝�Β';
-                }
-
-                function ensureCollectionDataV64() {
-                    try { ensureProgressionData?.(); } catch(e) {}
-                    userData = userData || {};
-                    userData.unlocks = userData.unlocks || {};
-                    userData.unlocks.skins = Object.assign({ classic:true }, userData.unlocks.skins || {});
-                    userData.unlocks.auras = Object.assign({ none:true }, userData.unlocks.auras || {});
-                    userData.unlocks.capes = userData.unlocks.capes || {};
-                    userData.cosmetics = userData.cosmetics || { unlocked:{}, equipped:{} };
-                    userData.cosmetics.unlocked = userData.cosmetics.unlocked || {};
-                    userData.cosmetics.equipped = userData.cosmetics.equipped || {};
-                }
-
-                function normalizeBattlePassItemsV64() {
-                    ensureCollectionDataV64();
-                    const src = userData.cosmetics.unlocked || {};
-                    const out = {};
-                    Object.entries(src).forEach(([key, value]) => {
-                        if (!value) return;
-                        const base = BP_CATALOG_V64[key] || BP_CATALOG_V64[String(value?.id || '')] || {};
-                        const raw = (value && typeof value === 'object') ? Object.assign({}, value) : {};
-                        let id = String(raw.id || base.id || key || '').trim();
-                        if (!id || id === 'undefined') id = 'bp_item_' + Object.keys(out).length;
-                        let name = String(raw.name || base.name || '').trim();
-                        if (!name || name === 'undefined') name = pretty64(key);
-                        let type = String(raw.type || base.type || '').trim();
-                        if (!type || type === 'undefined') type = 'item';
-                        let icon = String(raw.icon || base.icon || '氏').trim();
-                        let desc = String(raw.desc || raw.description || base.desc || '繝阪が繝ｳ繝代せ縺ｧ蜈･謇九＠縺滄剞螳壹い繧､繝�Β縺ｧ縺吶�').trim();
-                        out[id] = {
-                            id,
-                            name,
-                            type,
-                            icon,
-                            desc,
-                            source: raw.source || 'battlePass',
-                            seasonLabel: raw.seasonLabel || raw.seasonName || base.seasonLabel || 'Season 1 / NEON GENESIS'
-                        };
-                    });
-                    userData.cosmetics.unlocked = out;
-                    try { saveData?.(); } catch(e) {}
-                    return Object.values(out).filter(item => item && item.name && item.name !== 'undefined');
-                }
-
-                function missionCardV64(kind, item, equipped) {
-                    const color = item?.color || '#22d3ee';
-                    const label = kind === 'skin' ? '繧ｹ繧ｭ繝ｳ' : kind === 'aura' ? '繧ｪ繝ｼ繝ｩ' : '繝槭Φ繝�';
-                    return `<div class="collection-card unlocked">
-                        <div class="text-3xl">${esc64(item?.icon || '氏')}</div>
-                        <div class="text-[11px] inline-block px-2 py-1 rounded bg-green-950/70 border border-green-400/50 text-green-200 font-bold mt-1">${label}</div>
-                        <h3 class="font-bold text-white mt-2" style="color:${esc64(color)}">${esc64(item?.name || '繧｢繧､繝�Β')}</h3>
-                        <p class="text-xs text-cyan-200 mt-1">蜈･謇句��壹Α繝�す繝ｧ繝ｳ / 騾壼ｸｸ隗｣謾ｾ</p>
-                        <p class="text-sm text-gray-300 mt-1">${esc64(item?.desc || '')}</p>
-                        <button class="equipMissionV64 btn-neon mt-2 px-3 py-1 rounded text-sm font-bold" data-kind="${esc64(kind)}" data-id="${esc64(item?.id || '')}">${equipped ? '陬�ｙ荳ｭ' : '陬�ｙ'}</button>
-                    </div>`;
-                }
-
-                function bpCardV64(item) {
-                    const type = item.type || 'item';
-                    const eq = (type === 'skin' && userData.equippedSkin === item.id) ||
-                               (type === 'aura' && userData.equippedAura === item.id) ||
-                               (userData.cosmetics?.equipped?.[type] === item.id);
-                    const canEquip = ['skin','aura','backpack','trail','pet','emote','intro','elimination','bossFinish','nameplate','badge','frame','item'].includes(type);
-                    return `<div class="collection-card unlocked" style="border-color:rgba(34,211,238,.8);box-shadow:0 0 16px rgba(34,211,238,.18)">
-                        <div class="text-3xl">${esc64(item.icon || '氏')}</div>
-                        <div class="text-[11px] inline-block px-2 py-1 rounded bg-cyan-950/70 border border-cyan-400/50 text-cyan-200 font-bold mt-1">${esc64(typeLabelV64(type))}</div>
-                        <h3 class="font-bold text-white mt-2">${esc64(item.name || '繝阪が繝ｳ繝代せ繧｢繧､繝�Β')}</h3>
-                        <p class="text-xs text-yellow-200 mt-1">蜈･謇句���${esc64(item.seasonLabel || 'Season 1 / NEON GENESIS')} 縺ｮ繝阪が繝ｳ繝代せ</p>
-                        <p class="text-xs text-red-200 mt-1">縺薙�繧｢繧､繝�Β縺ｯ譛滄俣髯仙ｮ壼�ｱ驟ｬ縺ｧ縺吶�</p>
-                        <p class="text-sm text-gray-300 mt-1">${esc64(item.desc || '')}</p>
-                        ${canEquip ? `<button class="equipBpV64 btn-purple mt-2 px-3 py-1 rounded text-sm font-bold" data-type="${esc64(type)}" data-id="${esc64(item.id)}">${eq ? '陬�ｙ荳ｭ' : '陬�ｙ'}</button>` : ''}
-                    </div>`;
-                }
-
-                function renderCollectionV64() {
-                    installStyleV64();
-                    ensureCollectionDataV64();
-                    const container = q64('collectionListContainer');
-                    if (!container) return;
-                    const desc = document.querySelector('#collectionScreen h2 + p');
-                    if (desc) desc.textContent = '繝溘ャ繧ｷ繝ｧ繝ｳ縺ｧ蜈･謇九＠縺溘ｂ縺ｮ縺ｨ縲√ロ繧ｪ繝ｳ繝代せ縺ｧ蜈･謇九＠縺溘ｂ縺ｮ繧貞�縺代※遒ｺ隱阪〒縺阪∪縺吶�';
-
-                    const mission = [];
-                    try { (SKIN_DEFS || []).filter(x => x && userData.unlocks?.skins?.[x.id]).forEach(x => mission.push(missionCardV64('skin', x, userData.equippedSkin === x.id))); } catch(e) {}
-                    try { (AURA_DEFS || []).filter(x => x && userData.unlocks?.auras?.[x.id]).forEach(x => mission.push(missionCardV64('aura', x, userData.equippedAura === x.id))); } catch(e) {}
-                    try { (typeof CAPE_DEFS !== 'undefined' ? CAPE_DEFS : []).filter(x => x && x.id !== 'none' && userData.unlocks?.capes?.[x.id]).forEach(x => mission.push(missionCardV64('cape', x, userData.equippedCape === x.id))); } catch(e) {}
-                    const bpItems = normalizeBattlePassItemsV64();
-
-                    container.innerHTML = `
-                        <section>
-                            <h3 class="text-2xl font-bold text-green-300 mb-2">MISSION / NORMAL REWARDS</h3>
-                            <p class="text-xs text-gray-300 mb-2 nsv-v64-collection-note">繝溘ャ繧ｷ繝ｧ繝ｳ繝ｻ騾壼ｸｸ隗｣謾ｾ縺ｧ蜈･謇九＠縺溘ｂ縺ｮ縺ｧ縺吶�</p>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${mission.join('') || '<div class="nsv-v64-empty"><h3 class="font-bold text-gray-300">縺ｾ縺�繝溘ャ繧ｷ繝ｧ繝ｳ蝣ｱ驟ｬ縺ｯ縺ゅｊ縺ｾ縺帙ｓ</h3><p class="text-sm text-gray-400 mt-1">繝溘ャ繧ｷ繝ｧ繝ｳ驕疲�縺ｧ縺薙％縺ｫ蠅励∴縺ｾ縺吶�</p></div>'}</div>
-                        </section>
-                        <section>
-                            <h3 class="text-2xl font-bold text-cyan-300 mb-2">NEON PASS REWARDS</h3>
-                            <p class="text-xs text-red-200 mb-2 nsv-v64-collection-note">繝阪が繝ｳ繝代せ蝣ｱ驟ｬ縺ｯ繧ｷ繝ｼ繧ｺ繝ｳ髯仙ｮ壹〒縺吶ょ推繧｢繧､繝�Β縺ｫ蜈･謇九す繝ｼ繧ｺ繝ｳ繧定｡ｨ遉ｺ縺励※縺�∪縺吶�</p>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${bpItems.map(bpCardV64).join('') || '<div class="nsv-v64-empty"><h3 class="font-bold text-gray-300">縺ｾ縺�繝阪が繝ｳ繝代せ蝣ｱ驟ｬ縺ｯ縺ゅｊ縺ｾ縺帙ｓ</h3><p class="text-sm text-gray-400 mt-1">NEON PASS縺ｧ莠､謠帙☆繧九→縺薙％縺ｫ陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶�</p></div>'}</div>
-                        </section>
-                        <section>
-                            <div class="collection-card border-cyan-400/60">
-                                <h3 class="text-xl font-bold text-cyan-200">豁ｦ蝎ｨ縺ｯ WEAPON CODEX 縺ｫ遘ｻ蜍輔＠縺ｾ縺励◆</h3>
-                                <p class="text-sm text-gray-300 mt-1">豁ｦ蝎ｨ縺ｮ隗｣謾ｾ迥ｶ豕√�諤ｧ閭ｽ繝ｻON/OFF險ｭ螳壹�縲√ち繧､繝医Ν逕ｻ髱｢縺ｮ WEAPON CODEX 縺九ｉ遒ｺ隱阪〒縺阪∪縺吶�</p>
-                            </div>
-                        </section>`;
-
-                    container.querySelectorAll('.equipMissionV64').forEach(btn => btn.addEventListener('click', () => {
-                        const kind = btn.dataset.kind, id = btn.dataset.id;
-                        if (!id) return;
-                        if (kind === 'skin') userData.equippedSkin = id;
-                        else if (kind === 'aura') userData.equippedAura = id;
-                        else if (kind === 'cape') userData.equippedCape = id;
-                        try { saveData?.(); } catch(e) {}
-                        renderCollectionV64();
-                    }));
-                    container.querySelectorAll('.equipBpV64').forEach(btn => btn.addEventListener('click', () => {
-                        const type = btn.dataset.type || 'item', id = btn.dataset.id;
-                        if (!id) return;
-                        userData.cosmetics = userData.cosmetics || { unlocked:{}, equipped:{} };
-                        userData.cosmetics.equipped = userData.cosmetics.equipped || {};
-                        if (type === 'skin') userData.equippedSkin = id;
-                        else if (type === 'aura') userData.equippedAura = id;
-                        else userData.cosmetics.equipped[type] = id;
-                        try { saveData?.(); } catch(e) {}
-                        renderCollectionV64();
-                    }));
-                }
-
-                function removeDuplicateBadgesV64() {
-                    try {
-                        document.querySelectorAll('body > div').forEach(el => {
-                            const id = el.id || '';
-                            const txt = (el.textContent || '').trim();
-                            if (id === 'nsvV59Badge') { el.textContent = V64_TAG; return; }
-                            if (/^V\d+\s+STABLE/i.test(txt) || /STABLE CORE/i.test(txt) || /nsv-v\d+-badge/i.test(String(el.className || ''))) el.remove();
-                        });
-                    } catch(e) {}
-                }
-
-                function bootV64() {
-                    try {
-                        removeDuplicateBadgesV64();
-                        normalizeBattlePassItemsV64();
-                        renderCollectionScreen = renderCollectionV64;
-                        if (q64('collectionScreen') && !q64('collectionScreen').classList.contains('hidden')) renderCollectionV64();
-                    } catch(e) { console.warn('V64 collection patch skipped', e); }
-                }
-
-                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV64, {once:true}); else bootV64();
-                window.addEventListener('pageshow', bootV64, {passive:true});
-                setTimeout(bootV64, 400);
-                setTimeout(bootV64, 1400);
-                setInterval(() => { try { removeDuplicateBadgesV64(); if (q64('collectionScreen') && !q64('collectionScreen').classList.contains('hidden')) renderCollectionV64(); } catch(e) {} }, 2500);
-            })();
-
-
-
-            /* =========================================================
-               V65 NEON PASS NAME + COLLECTION EQUIP/UNEQUIP PATCH
-               ========================================================= */
-            (() => {
-                'use strict';
-                const V65_TAG = 'V67 STABLE';
-                const EQUIP_TYPES = new Set(['skin','aura','cape','backpack','trail','pet','emote','intro','elimination','bossFinish','nameplate','badge']);
-                const TYPE_LABELS = {
-                    skin:'繧ｹ繧ｭ繝ｳ', aura:'繧ｪ繝ｼ繝ｩ', cape:'繝槭Φ繝�', backpack:'閭御ｸｭ繧｢繧ｯ繧ｻ', trail:'繝医Ξ繧､繝ｫ', pet:'繝壹ャ繝�',
-                    emote:'繧ｨ繝｢繝ｼ繝�', intro:'逋ｻ蝣ｴ貍泌�', elimination:'謦��ｴ貍泌�', bossFinish:'繝懊せ謦��ｴ貍泌�', nameplate:'繝阪�繝�繝励Ξ繝ｼ繝�', badge:'遘ｰ蜿ｷ繝舌ャ繧ｸ', item:'繧｢繧､繝�Β', box:'BOX'
-                };
-
-                function escV65(v) {
-                    return String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-                }
-                function labelV65(type) { return TYPE_LABELS[type] || String(type || '繧｢繧､繝�Β'); }
-                function safeColorV65(v, fallback='#22d3ee') { return /^#[0-9a-f]{3,8}$/i.test(String(v || '')) ? String(v) : fallback; }
-                function saveV65() { try { saveData?.(); } catch(e) {} }
-                function toastV65(title, msg) { try { showMissionToast?.(title, msg || ''); } catch(e) {} }
-
-                function normalizeNeonPassWordsV65(root=document.body) {
-                    try {
-                        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-                        const nodes = [];
-                        while (walker.nextNode()) nodes.push(walker.currentNode);
-                        nodes.forEach(n => {
-                            const before = n.nodeValue || '';
-                            const after = before
-                                .replace(/繝舌ヨ繝ｫ繝代せ/g, '繝阪が繝ｳ繝代せ')
-                                .replace(/BATTLE PASS/g, 'NEON PASS')
-                                .replace(/Battle Pass/g, 'Neon Pass');
-                            if (after !== before) n.nodeValue = after;
-                        });
-                    } catch(e) {}
-                }
-
-                function ensureCollectionDataV65() {
-                    try { ensureProgressionData?.(); } catch(e) {}
-                    userData.unlocks = userData.unlocks || {};
-                    userData.unlocks.skins = Object.assign({classic:true}, userData.unlocks.skins || {});
-                    userData.unlocks.auras = Object.assign({none:true}, userData.unlocks.auras || {});
-                    userData.unlocks.capes = Object.assign({none:true}, userData.unlocks.capes || {});
-                    userData.cosmetics = userData.cosmetics || { unlocked:{}, equipped:{} };
-                    userData.cosmetics.unlocked = userData.cosmetics.unlocked || {};
-                    userData.cosmetics.equipped = userData.cosmetics.equipped || {};
-                    if (!userData.equippedSkin) userData.equippedSkin = 'classic';
-                    if (!userData.equippedAura) userData.equippedAura = 'none';
-                    if (!userData.equippedCape) userData.equippedCape = 'none';
-                }
-
-                function isEquippedV65(type, id) {
-                    if (!id) return false;
-                    if (type === 'skin') return userData.equippedSkin === id;
-                    if (type === 'aura') return userData.equippedAura === id;
-                    if (type === 'cape') return userData.equippedCape === id;
-                    return userData.cosmetics?.equipped?.[type] === id;
-                }
-                function equipV65(type, id) {
-                    ensureCollectionDataV65();
-                    if (!id || !EQUIP_TYPES.has(type)) return;
-                    if (type === 'skin') userData.equippedSkin = id;
-                    else if (type === 'aura') userData.equippedAura = id;
-                    else if (type === 'cape') userData.equippedCape = id;
-                    else userData.cosmetics.equipped[type] = id;
-                    saveV65();
-                    toastV65('COLLECTION', '陬�ｙ縺励∪縺励◆縲�');
-                }
-                function unequipV65(type, id) {
-                    ensureCollectionDataV65();
-                    if (!id || !EQUIP_TYPES.has(type)) return;
-                    if (type === 'skin' && userData.equippedSkin === id) userData.equippedSkin = 'classic';
-                    else if (type === 'aura' && userData.equippedAura === id) userData.equippedAura = 'none';
-                    else if (type === 'cape' && userData.equippedCape === id) userData.equippedCape = 'none';
-                    else if (userData.cosmetics.equipped?.[type] === id) delete userData.cosmetics.equipped[type];
-                    saveV65();
-                    toastV65('COLLECTION', '陬�ｙ繧貞､悶＠縺ｾ縺励◆縲�');
-                }
-                function toggleEquipV65(type, id) {
-                    if (isEquippedV65(type, id)) unequipV65(type, id);
-                    else equipV65(type, id);
-                    renderCollectionV65();
-                }
-
-                function seasonLabelV65(item) {
-                    return item?.seasonLabel || item?.seasonName || item?.theme || 'Season 1 / NEON GENESIS';
-                }
-                function normalizePassItemV65(key, value) {
-                    if (value && typeof value === 'object') {
-                        const type = value.type || 'item';
-                        return {
-                            id: value.id || key,
-                            name: value.name || value.title || (type === 'badge' ? '繝阪が繝ｳ繝代せ繝舌ャ繧ｸ' : '繝阪が繝ｳ繝代せ蝣ｱ驟ｬ'),
-                            type,
-                            icon: value.icon || (type === 'skin' ? 'ｧｬ' : type === 'aura' ? '笨ｨ' : type === 'badge' ? '遵' : '氏'),
-                            theme: value.theme || value.seasonLabel || value.seasonName || 'Season 1 / NEON GENESIS',
-                            desc: value.desc || '繝阪が繝ｳ繝代せ縺ｧ蜈･謇九＠縺溘す繝ｼ繧ｺ繝ｳ髯仙ｮ壼�ｱ驟ｬ縺ｧ縺吶�'
-                        };
-                    }
-                    return { id:key, name:'繝阪が繝ｳ繝代せ蝣ｱ驟ｬ', type:key.includes('badge') ? 'badge' : 'item', icon:'氏', theme:'Season 1 / NEON GENESIS', desc:'繝阪が繝ｳ繝代せ縺ｧ蜈･謇九＠縺溘す繝ｼ繧ｺ繝ｳ髯仙ｮ壼�ｱ驟ｬ縺ｧ縺吶�' };
-                }
-
-                function missionCardV65(kind, item, equipped) {
-                    const color = safeColorV65(item.color);
-                    const name = escV65(item.name || item.id);
-                    const desc = escV65(item.desc || '');
-                    const id = escV65(item.id);
-                    const ability = kind === 'skin' ? `<p class="text-xs text-cyan-200 mt-2">閭ｽ蜉�: ${escV65(typeof getSkinAbilityText === 'function' ? getSkinAbilityText(item.id) : '隕九◆逶ｮ繧貞､画峩縺励∪縺�')}</p>` : '';
-                    const disabledNone = (kind === 'skin' && item.id === 'classic') || (kind === 'aura' && item.id === 'none') || (kind === 'cape' && item.id === 'none');
-                    const btnText = equipped ? (disabledNone ? '陬�ｙ荳ｭ' : '螟悶☆') : '陬�ｙ';
-                    const btnClass = equipped ? (disabledNone ? 'btn-green' : 'btn-red') : 'btn-neon';
-                    return `<div class="collection-card unlocked" style="border-color:${color}99;box-shadow:0 0 16px ${color}33">
-                        <div class="text-3xl">${escV65(item.icon || '氏')}</div>
-                        <div class="text-[11px] inline-block px-2 py-1 rounded bg-slate-900/80 border border-cyan-400/40 text-cyan-200 font-bold mt-1">${labelV65(kind)}</div>
-                        <h3 class="font-bold text-white mt-2" style="color:${color}">${name}</h3>
-                        <p class="text-xs text-cyan-200 mt-1">蜈･謇句��壹Α繝�す繝ｧ繝ｳ / 騾壼ｸｸ隗｣謾ｾ</p>
-                        <p class="text-sm text-gray-300 mt-1">${desc}</p>${ability}
-                        <button class="nsvV65Equip ${btnClass} mt-3 px-3 py-1 rounded text-sm font-bold" data-type="${kind}" data-id="${id}" ${disabledNone && equipped ? 'disabled' : ''}>${btnText}</button>
-                    </div>`;
-                }
-
-                function passCardV65(item) {
-                    const type = item.type || 'item';
-                    const equipped = isEquippedV65(type, item.id);
-                    const canEquip = EQUIP_TYPES.has(type);
-                    const name = escV65(item.name || item.id || '繝阪が繝ｳ繝代せ蝣ｱ驟ｬ');
-                    const id = escV65(item.id || name);
-                    return `<div class="collection-card unlocked" style="border-color:rgba(34,211,238,.8);box-shadow:0 0 16px rgba(34,211,238,.18)">
-                        <div class="text-3xl">${escV65(item.icon || '氏')}</div>
-                        <div class="text-[11px] inline-block px-2 py-1 rounded bg-cyan-950/70 border border-cyan-400/50 text-cyan-200 font-bold mt-1">${labelV65(type)}</div>
-                        <h3 class="font-bold text-white mt-2">${name}</h3>
-                        <p class="text-xs text-yellow-200 mt-1">蜈･謇句���${escV65(seasonLabelV65(item))} 縺ｮ繝阪が繝ｳ繝代せ</p>
-                        <p class="text-xs text-red-200 mt-1">縺薙�繧｢繧､繝�Β縺ｯ繧ｷ繝ｼ繧ｺ繝ｳ髯仙ｮ壼�ｱ驟ｬ縺ｧ縺吶�</p>
-                        ${canEquip ? `<button class="nsvV65Equip ${equipped ? 'btn-red' : 'btn-purple'} mt-3 px-3 py-1 rounded text-sm font-bold" data-type="${escV65(type)}" data-id="${id}">${equipped ? '螟悶☆' : '陬�ｙ'}</button>` : `<p class="text-xs text-gray-400 mt-3">隕九ｋ蟆ら畑繧｢繧､繝�Β縺ｧ縺吶�</p>`}
-                    </div>`;
-                }
-
-                function renderCollectionV65() {
-                    ensureCollectionDataV65();
-                    const container = document.getElementById('collectionListContainer');
-                    if (!container) return;
-                    const skins = (typeof SKIN_DEFS !== 'undefined' ? SKIN_DEFS : []).filter(x => x?.id && userData.unlocks.skins[x.id]).map(x => missionCardV65('skin', x, isEquippedV65('skin', x.id)));
-                    const auras = (typeof AURA_DEFS !== 'undefined' ? AURA_DEFS : []).filter(x => x?.id && userData.unlocks.auras[x.id]).map(x => missionCardV65('aura', x, isEquippedV65('aura', x.id)));
-                    const capes = (typeof CAPE_DEFS !== 'undefined' ? CAPE_DEFS : []).filter(x => x?.id && x.id !== 'none' && userData.unlocks.capes?.[x.id]).map(x => missionCardV65('cape', x, isEquippedV65('cape', x.id)));
-                    const missionHtml = skins.concat(auras, capes).join('');
-                    const passItems = Object.entries(userData.cosmetics.unlocked || {}).filter(([,v]) => !!v).map(([k,v]) => normalizePassItemV65(k,v));
-                    const passHtml = passItems.map(passCardV65).join('');
-                    container.innerHTML = `
-                        <section>
-                            <div class="collection-card border-cyan-400/60 mb-3">
-                                <h3 class="text-xl font-bold text-cyan-200">陬�ｙ蛻�ｊ譖ｿ縺�</h3>
-                                <p class="text-sm text-gray-300 mt-1">繧ｳ繝ｬ繧ｯ繧ｷ繝ｧ繝ｳ逕ｻ髱｢縺九ｉ縲∝�謇区ｸ医∩繧｢繧､繝�Β繧偵瑚｣�ｙ縲阪∪縺溘�縲悟､悶☆縲阪〒驕ｸ縺ｹ縺ｾ縺吶�</p>
-                            </div>
-                        </section>
-                        <section>
-                            <h3 class="text-2xl font-bold text-green-300 mb-2">MISSION / NORMAL REWARDS</h3>
-                            <p class="text-xs text-gray-300 mb-2">繝溘ャ繧ｷ繝ｧ繝ｳ繝ｻ騾壼ｸｸ隗｣謾ｾ縺ｧ蜈･謇九＠縺溘ｂ縺ｮ縺ｧ縺吶�</p>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${missionHtml || '<div class="collection-card"><h3 class="font-bold text-gray-300">縺ｾ縺�繝溘ャ繧ｷ繝ｧ繝ｳ蝣ｱ驟ｬ縺ｯ縺ゅｊ縺ｾ縺帙ｓ</h3><p class="text-sm text-gray-400 mt-1">繝溘ャ繧ｷ繝ｧ繝ｳ驕疲�縺ｧ縺薙％縺ｫ蠅励∴縺ｾ縺吶�</p></div>'}</div>
-                        </section>
-                        <section>
-                            <h3 class="text-2xl font-bold text-cyan-300 mb-2">NEON PASS REWARDS</h3>
-                            <p class="text-xs text-red-200 mb-2">繝阪が繝ｳ繝代せ蝣ｱ驟ｬ縺ｯ繧ｷ繝ｼ繧ｺ繝ｳ髯仙ｮ壹〒縺吶ょ推繧｢繧､繝�Β縺ｫ蜈･謇九す繝ｼ繧ｺ繝ｳ繧定｡ｨ遉ｺ縺励※縺�∪縺吶�</p>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${passHtml || '<div class="collection-card"><h3 class="font-bold text-gray-300">縺ｾ縺�繝阪が繝ｳ繝代せ蝣ｱ驟ｬ縺ｯ縺ゅｊ縺ｾ縺帙ｓ</h3><p class="text-sm text-gray-400 mt-1">NEON PASS縺ｧ莠､謠帙☆繧九→縺薙％縺ｫ陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶�</p></div>'}</div>
-                        </section>
-                        <section>
-                            <div class="collection-card border-cyan-400/60">
-                                <h3 class="text-xl font-bold text-cyan-200">豁ｦ蝎ｨ縺ｯ WEAPON CODEX 縺ｫ遘ｻ蜍輔＠縺ｾ縺励◆</h3>
-                                <p class="text-sm text-gray-300 mt-1">豁ｦ蝎ｨ縺ｮ隗｣謾ｾ迥ｶ豕√�諤ｧ閭ｽ繝ｻON/OFF險ｭ螳壹�縲√ち繧､繝医Ν逕ｻ髱｢縺ｮ WEAPON CODEX 縺九ｉ遒ｺ隱阪〒縺阪∪縺吶�</p>
-                            </div>
-                        </section>`;
-                    container.querySelectorAll('.nsvV65Equip').forEach(btn => btn.addEventListener('click', () => toggleEquipV65(btn.dataset.type, btn.dataset.id)));
-                    normalizeNeonPassWordsV65(container);
-                }
-
-                function installV65() {
-                    try {
-                        normalizeNeonPassWordsV65();
-                        renderCollectionScreen = renderCollectionV65;
-                        const desc = document.querySelector('#collectionScreen h2 + p');
-                        if (desc) desc.textContent = '繝溘ャ繧ｷ繝ｧ繝ｳ縺ｧ蜈･謇九＠縺溘ｂ縺ｮ縺ｨ縲√ロ繧ｪ繝ｳ繝代せ縺ｧ蜈･謇九＠縺溘ｂ縺ｮ繧貞�縺代※遒ｺ隱阪〒縺阪∪縺吶り｣�ｙ縺吶ｋ縺句､悶☆縺九ｂ驕ｸ縺ｹ縺ｾ縺吶�';
-                        if (document.getElementById('collectionScreen') && !document.getElementById('collectionScreen').classList.contains('hidden')) renderCollectionV65();
-                    } catch(e) { console.warn('V65 collection patch skipped', e); }
-                }
-                window.renderCollectionV65 = renderCollectionV65;
-                window.installNeonPassNameV65 = installV65;
-                installV65();
-                document.addEventListener('DOMContentLoaded', installV65, {once:false});
-                window.addEventListener('pageshow', installV65, {passive:true});
-                setTimeout(installV65, 350);
-                setTimeout(installV65, 1500);
-                setInterval(() => {
-                    try {
-                        normalizeNeonPassWordsV65();
-                        if (document.getElementById('collectionScreen') && !document.getElementById('collectionScreen').classList.contains('hidden')) renderCollectionV65();
-                    } catch(e) {}
-                }, 2500);
-            })();
+            // V68: Old V64/V65 collection patches removed.
+            // Collection is handled by the final V68 ASCII-safe patch near the end of the file.
 
             window.NEON_SURVIVOR_STABLE_CORE = { tag: V59_TAG, save: writeSaveV59, shop: renderShopV59, ranking: renderLeaderboardV59, safeMode: enableSafeModeV59 };
         })();
@@ -15904,7 +15515,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 <script>
 /* V63 final shop and badge stabilizer */
 ;(() => {
-  const TAG = 'V67 STABLE';
+  const TAG = 'V69 STABLE';
   const PASS_TICKET_COST = 1000000;
   const SCREEN_IDS = [
     'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen',
@@ -16260,6 +15871,467 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   setTimeout(bootV63, 300);
   setTimeout(bootV63, 1200);
   setInterval(() => { try { showBadgeV63(); installShopButtonV63(); } catch(e) {} }, 2000);
+})();
+</script>
+
+
+<style id="nsvV68BadgeAndCollectionStyle">
+  #nsvV59Badge,
+  #nsvV63Badge,
+  [id^="nsvV"][id$="Badge"]:not(#nsvV68Badge) {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  #nsvV68Badge {
+    position: fixed !important;
+    left: 14px !important;
+    bottom: 10px !important;
+    z-index: 99999 !important;
+    padding: 5px 14px !important;
+    border: 1px solid rgba(34, 197, 94, .9) !important;
+    border-radius: 999px !important;
+    background: rgba(2, 6, 23, .92) !important;
+    color: #bbf7d0 !important;
+    font-family: Orbitron, monospace !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    letter-spacing: .08em !important;
+    line-height: 1.2 !important;
+    box-shadow: 0 0 14px rgba(34, 197, 94, .45) !important;
+    white-space: nowrap !important;
+  }
+  #collectionScreen .nsv-v68-onoff-row {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 10px !important;
+  }
+  #collectionScreen .nsv-v68-toggle {
+    flex: 1 1 0 !important;
+    min-height: 38px !important;
+    border-radius: 10px !important;
+    font-weight: 900 !important;
+    letter-spacing: .08em !important;
+    border: 2px solid rgba(34, 211, 238, .55) !important;
+    background: rgba(15, 23, 42, .9) !important;
+    color: #a5f3fc !important;
+    box-shadow: inset 0 0 8px rgba(34, 211, 238, .12) !important;
+  }
+  #collectionScreen .nsv-v68-toggle.active-on {
+    border-color: #22c55e !important;
+    color: #000 !important;
+    background: #86efac !important;
+    box-shadow: 0 0 14px rgba(34, 197, 94, .6) !important;
+  }
+  #collectionScreen .nsv-v68-toggle.active-off {
+    border-color: #fb7185 !important;
+    color: #000 !important;
+    background: #fb7185 !important;
+    box-shadow: 0 0 14px rgba(251, 113, 133, .5) !important;
+  }
+  #collectionScreen .nsv-v68-card {
+    background: rgba(2, 6, 23, .9) !important;
+    border: 1px solid rgba(34, 211, 238, .55) !important;
+    border-radius: 16px !important;
+    padding: 14px !important;
+    box-shadow: 0 0 16px rgba(34, 211, 238, .14) !important;
+  }
+</style>
+
+<script id="nsvV68CollectionTextAndBadgeFix">
+(() => {
+  'use strict';
+  const TAG = 'V69 STABLE';
+  const VERSION_RE = /V\d+\s*(?:AIM\s*)?STABLE|STABLE\s*CORE/i;
+  const EQUIP_TYPES = new Set(['skin','aura','cape','backpack','trail','pet','emote','intro','elimination','bossFinish','nameplate','badge']);
+  const DEFAULT_BY_TYPE = { skin: 'classic', aura: 'none', cape: 'none' };
+  const SAVE_KEYS = [
+    'neon_survivor_save',
+    'neon_survivor_save_backup_v59',
+    'neon_survivor_save_mirror_v59',
+    'neon_survivor_autosave_v13'
+  ];
+  const TYPE_LABELS = {
+    skin:'SKIN', aura:'AURA', cape:'CAPE', backpack:'BACK PACK', trail:'TRAIL', pet:'PET', emote:'EMOTE',
+    intro:'INTRO', elimination:'KO EFFECT', bossFinish:'BOSS FINISH', nameplate:'NAME PLATE', badge:'BADGE', item:'ITEM', box:'BOX'
+  };
+  const KNOWN_NAMES = {
+    classic:'Classic Neon', none:'None', ruby:'Ruby Breaker', gold:'Gold Survivor', void:'Void Runner', emerald:'Emerald Guardian',
+    angel:'Silver Angel Core', obsidian:'Obsidian Shadow Core', solar:'Solar Helios', sapphire:'Sapphire Striker',
+    crimson:'Crimson Hero Cape', royal:'Royal Gold Cape', voidCape:'Void Nebula Cape', stormCape:'Storm Emperor Cape',
+    phantom:'Phantom Cloak', galaxy:'Galaxy Voyager Cape', inferno:'Inferno General Cape', monarch:'Monarch Black Gold Cape',
+    cyanFlame:'Cyan Flame Aura', goldSpark:'Gold Spark Aura', voidMist:'Void Mist Aura', toxicPulse:'Toxic Pulse Aura',
+    royalHalo:'Royal Halo', solarFlare:'Solar Flare', stormKing:'Storm King Aura'
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const isPlain = (v) => /^[\x20-\x7E]+$/.test(String(v || ''));
+  function titleFromId(id, type) {
+    id = String(id || '').trim();
+    if (KNOWN_NAMES[id]) return KNOWN_NAMES[id];
+    const cleaned = id
+      .replace(/^bp[_-]?/i, '')
+      .replace(/^season[_-]?\d+[_-]?/i, '')
+      .replace(/[_-]+/g, ' ')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (cleaned && isPlain(cleaned)) return cleaned.replace(/\b\w/g, m => m.toUpperCase());
+    return `${TYPE_LABELS[type] || 'ITEM'} Reward`;
+  }
+  function typeLabel(type) { return TYPE_LABELS[type] || String(type || 'ITEM').toUpperCase(); }
+
+  function getUser() {
+    if (!window.userData) window.userData = { score:0, coins:0, nickname:'', upgrades:{}, unlocks:{}, cosmetics:{} };
+    const u = window.userData;
+    u.unlocks = u.unlocks || {};
+    u.unlocks.skins = Object.assign({ classic:true }, u.unlocks.skins || {});
+    u.unlocks.auras = Object.assign({ none:true }, u.unlocks.auras || {});
+    u.unlocks.capes = Object.assign({ none:true }, u.unlocks.capes || {});
+    u.cosmetics = u.cosmetics || {};
+    u.cosmetics.unlocked = u.cosmetics.unlocked || {};
+    u.cosmetics.equipped = u.cosmetics.equipped || {};
+    if (!u.equippedSkin) u.equippedSkin = 'classic';
+    if (!u.equippedAura) u.equippedAura = 'none';
+    if (!u.equippedCape) u.equippedCape = 'none';
+    return u;
+  }
+  function saveUser() {
+    try { window.NEON_SURVIVOR_STABLE_CORE?.save?.(); } catch(e) {}
+    try {
+      const u = getUser();
+      const text = JSON.stringify(u);
+      SAVE_KEYS.forEach(k => localStorage.setItem(k, text));
+    } catch(e) {}
+  }
+  function toast(title, msg) {
+    try { window.showMissionToast?.(title, msg); } catch(e) {}
+  }
+  function isEquipped(type, id) {
+    const u = getUser();
+    if (type === 'skin') return u.equippedSkin === id;
+    if (type === 'aura') return u.equippedAura === id;
+    if (type === 'cape') return u.equippedCape === id;
+    return u.cosmetics.equipped?.[type] === id;
+  }
+  function setEquip(type, id, on) {
+    const u = getUser();
+    if (!EQUIP_TYPES.has(type)) return;
+    if (on) {
+      if (type === 'skin') u.equippedSkin = id;
+      else if (type === 'aura') u.equippedAura = id;
+      else if (type === 'cape') u.equippedCape = id;
+      else u.cosmetics.equipped[type] = id;
+      toast('COLLECTION', 'EQUIP ON');
+    } else {
+      if (type === 'skin') u.equippedSkin = DEFAULT_BY_TYPE.skin;
+      else if (type === 'aura') u.equippedAura = DEFAULT_BY_TYPE.aura;
+      else if (type === 'cape') u.equippedCape = DEFAULT_BY_TYPE.cape;
+      else delete u.cosmetics.equipped[type];
+      toast('COLLECTION', 'EQUIP OFF');
+    }
+    saveUser();
+    renderCollectionV68();
+  }
+
+  function collectMissionItems() {
+    const u = getUser();
+    const out = [];
+    Object.keys(u.unlocks.skins || {}).forEach(id => { if (u.unlocks.skins[id]) out.push({type:'skin', id, source:'Mission / Normal'}); });
+    Object.keys(u.unlocks.auras || {}).forEach(id => { if (u.unlocks.auras[id] && id !== 'none') out.push({type:'aura', id, source:'Mission / Normal'}); });
+    Object.keys(u.unlocks.capes || {}).forEach(id => { if (u.unlocks.capes[id] && id !== 'none') out.push({type:'cape', id, source:'Mission / Normal'}); });
+    return out;
+  }
+  function collectPassItems() {
+    const u = getUser();
+    const raw = u.cosmetics.unlocked || {};
+    return Object.entries(raw).filter(([,v]) => !!v).map(([key, val]) => {
+      const obj = val && typeof val === 'object' ? val : {};
+      const type = String(obj.type || (key.includes('badge') ? 'badge' : 'item'));
+      const id = String(obj.id || key || `${type}_reward`);
+      return { type, id, source: 'Neon Pass', season: 'Season 1 / NEON GENESIS' };
+    });
+  }
+  function card(item, passItem) {
+    const canEquip = EQUIP_TYPES.has(item.type);
+    const on = canEquip && isEquipped(item.type, item.id);
+    const off = !on;
+    const name = titleFromId(item.id, item.type);
+    const source = passItem ? 'Neon Pass' : item.source;
+    const season = passItem ? '<p class="text-xs text-yellow-200 mt-1">Season: Season 1 / NEON GENESIS</p>' : '';
+    const actions = canEquip ? `<div class="nsv-v68-onoff-row">
+      <button class="nsv-v68-toggle ${on ? 'active-on' : ''}" data-nsv68-type="${esc(item.type)}" data-nsv68-id="${esc(item.id)}" data-nsv68-on="1">ON</button>
+      <button class="nsv-v68-toggle ${off ? 'active-off' : ''}" data-nsv68-type="${esc(item.type)}" data-nsv68-id="${esc(item.id)}" data-nsv68-on="0">OFF</button>
+    </div>` : '<p class="text-xs text-gray-400 mt-3">VIEW ONLY</p>';
+    return `<div class="nsv-v68-card collection-card unlocked">
+      <div class="text-[11px] inline-block px-2 py-1 rounded bg-cyan-950/70 border border-cyan-400/50 text-cyan-200 font-bold">${esc(typeLabel(item.type))}</div>
+      <h3 class="font-bold text-white mt-2">${esc(name)}</h3>
+      <p class="text-xs text-cyan-200 mt-1">Source: ${esc(source)}</p>
+      ${season}
+      <p class="text-sm text-gray-300 mt-2">Equip status: <b class="${on ? 'text-green-300' : 'text-red-300'}">${on ? 'ON' : 'OFF'}</b></p>
+      ${actions}
+    </div>`;
+  }
+
+  let rendering = false;
+  function renderCollectionV68() {
+    if (rendering) return;
+    const screen = $('collectionScreen');
+    const container = $('collectionListContainer');
+    if (!screen || !container) return;
+    rendering = true;
+    try {
+      const title = screen.querySelector('h2');
+      if (title) title.textContent = 'COLLECTION';
+      const desc = title ? title.parentElement?.querySelector('p') : screen.querySelector('p');
+      if (desc) desc.textContent = 'Check mission rewards and Neon Pass rewards. Use ON / OFF to equip items.';
+      const mission = collectMissionItems();
+      const pass = collectPassItems();
+      const missionHtml = mission.map(x => card(x, false)).join('') || '<div class="nsv-v68-card"><h3 class="font-bold text-gray-300">No mission rewards yet</h3><p class="text-sm text-gray-400 mt-1">Clear missions to add items here.</p></div>';
+      const passHtml = pass.map(x => card(x, true)).join('') || '<div class="nsv-v68-card"><h3 class="font-bold text-gray-300">No Neon Pass rewards yet</h3><p class="text-sm text-gray-400 mt-1">Unlock Neon Pass rewards to add items here.</p></div>';
+      container.innerHTML = `<section>
+        <div class="nsv-v68-card mb-3">
+          <h3 class="text-xl font-bold text-cyan-200">EQUIP SWITCH</h3>
+          <p class="text-sm text-gray-300 mt-1">Every equip button is shown in English: ON or OFF.</p>
+        </div>
+      </section>
+      <section>
+        <h3 class="text-2xl font-bold text-green-300 mb-2">MISSION / NORMAL REWARDS</h3>
+        <p class="text-xs text-gray-300 mb-2">Items unlocked by missions or normal progress.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${missionHtml}</div>
+      </section>
+      <section>
+        <h3 class="text-2xl font-bold text-cyan-300 mb-2">NEON PASS REWARDS</h3>
+        <p class="text-xs text-gray-300 mb-2">Limited rewards from Neon Pass.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">${passHtml}</div>
+      </section>
+      <section>
+        <div class="nsv-v68-card">
+          <h3 class="text-xl font-bold text-cyan-200">WEAPONS</h3>
+          <p class="text-sm text-gray-300 mt-1">Weapon unlocks and weapon ON / OFF settings are in WEAPON CODEX.</p>
+        </div>
+      </section>`;
+      container.querySelectorAll('[data-nsv68-type]').forEach(btn => {
+        btn.addEventListener('click', () => setEquip(btn.dataset.nsv68Type, btn.dataset.nsv68Id, btn.dataset.nsv68On === '1'));
+      });
+    } finally {
+      rendering = false;
+    }
+  }
+
+  function normalizePassWords(root = document.body) {
+    try {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach(n => {
+        const before = n.nodeValue || '';
+        const after = before.replace(/BATTLE PASS/g, 'NEON PASS').replace(/Battle Pass/g, 'Neon Pass');
+        if (after !== before) n.nodeValue = after;
+      });
+    } catch(e) {}
+  }
+  function cleanBadgesV68() {
+    try {
+      document.querySelectorAll('[id^="nsvV"][id$="Badge"]').forEach(el => { if (el.id !== 'nsvV68Badge') el.remove(); });
+      document.querySelectorAll('body > div').forEach(el => {
+        if (el.id === 'nsvV68Badge') return;
+        const txt = (el.textContent || '').trim();
+        if (!VERSION_RE.test(txt)) return;
+        const cs = getComputedStyle(el);
+        const r = el.getBoundingClientRect();
+        if (cs.position === 'fixed' && r.left < 280 && (innerHeight - r.bottom) < 120) el.remove();
+      });
+      let b = $('nsvV68Badge');
+      if (!b) {
+        b = document.createElement('div');
+        b.id = 'nsvV68Badge';
+        document.body.appendChild(b);
+      }
+      b.textContent = TAG;
+    } catch(e) {}
+  }
+  function bootV68() {
+    cleanBadgesV68();
+    normalizePassWords();
+    try { window.renderCollectionScreen = renderCollectionV68; } catch(e) {}
+    try { window.renderCollectionV65 = renderCollectionV68; } catch(e) {}
+    const screen = $('collectionScreen');
+    if (screen && !screen.classList.contains('hidden')) renderCollectionV68();
+  }
+
+  window.renderCollectionV68 = renderCollectionV68;
+  window.cleanBadgesV68 = cleanBadgesV68;
+  document.addEventListener('DOMContentLoaded', bootV68, { once:false });
+  window.addEventListener('load', bootV68, { passive:true });
+  window.addEventListener('pageshow', bootV68, { passive:true });
+  document.addEventListener('click', (e) => {
+    const target = e.target && e.target.closest && e.target.closest('#openCollectionBtn, #closeCollectionBtn, button');
+    if (target) setTimeout(bootV68, 80);
+  }, true);
+  setTimeout(bootV68, 100);
+  setTimeout(bootV68, 700);
+  setInterval(bootV68, 700);
+  try {
+    const container = $('collectionListContainer');
+    if (container) {
+      const observer = new MutationObserver(() => {
+        if (rendering) return;
+        const screen = $('collectionScreen');
+        if (screen && !screen.classList.contains('hidden')) setTimeout(renderCollectionV68, 0);
+      });
+      observer.observe(container, { childList:true, subtree:false });
+    }
+  } catch(e) {}
+})();
+</script>
+
+
+<style id="nsvV69PauseCheatStableStyle">
+  #nsvV30Badge,#nsvV31Badge,#nsvV68Badge{display:none!important;}
+  #nsvV59Badge{display:block!important;position:fixed!important;left:10px!important;bottom:8px!important;z-index:9999!important;pointer-events:none!important;color:#a7f3d0!important;background:rgba(2,6,23,.88)!important;border:1px solid rgba(52,211,153,.65)!important;border-radius:999px!important;padding:4px 10px!important;font:900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif!important;letter-spacing:.08em!important;box-shadow:0 0 13px rgba(16,185,129,.35)!important;}
+  #pauseScreen:not(.hidden){align-items:center!important;justify-content:center!important;padding:12px!important;}
+  #pausePanel{width:min(94vw,980px)!important;max-height:92vh!important;overflow-y:auto!important;display:grid!important;gap:12px!important;}
+  #pausePanel .nsv-pause-head{margin-bottom:4px!important;padding-bottom:10px!important;border-bottom:1px solid rgba(34,211,238,.25)!important;}
+  #pausePanel .nsv-pause-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;}
+  #pausePanel .nsv-pause-card{min-height:96px!important;padding:12px!important;}
+  #pausePanel .nsv-pause-extra{display:grid!important;grid-template-columns:minmax(280px,.9fr) minmax(320px,1.1fr)!important;gap:12px!important;margin-top:0!important;align-items:stretch!important;}
+  #pausePanel #nsvV30PauseCheat{grid-column:1/2!important;display:grid!important;grid-template-columns:1fr!important;gap:10px!important;align-content:start!important;background:linear-gradient(180deg,rgba(30,18,2,.88),rgba(15,23,42,.86))!important;border:1px solid rgba(250,204,21,.68)!important;}
+  #pausePanel #nsvV30PauseCheat .nsv-v69-cheat-title{color:#fde68a!important;font-weight:900!important;letter-spacing:.12em!important;font-size:14px!important;}
+  #pausePanel #nsvV30PauseCheat .nsv-v69-cheat-help{color:#cbd5e1!important;font-weight:800!important;font-size:12px!important;margin-top:3px!important;}
+  #pausePanel #nsvV30PauseCheat .nsv-v69-cheat-form{display:grid!important;grid-template-columns:1fr auto!important;gap:8px!important;align-items:center!important;}
+  #pausePanel #nsvV30PauseCheat input{min-height:48px!important;width:100%!important;background:rgba(0,0,0,.72)!important;border:2px solid rgba(250,204,21,.78)!important;border-radius:14px!important;color:white!important;font-weight:900!important;font-size:18px!important;letter-spacing:.20em!important;text-align:center!important;outline:none!important;}
+  #pausePanel #nsvV30PauseCheat button{min-height:48px!important;min-width:88px!important;}
+  #pausePanel #nsvV30WeaponStatus{grid-column:2/3!important;max-height:220px!important;overflow-y:auto!important;border-color:rgba(167,139,250,.52)!important;background:rgba(15,23,42,.78)!important;}
+  #pausePanel .nsv-pause-actions{position:sticky!important;bottom:0!important;z-index:3!important;background:linear-gradient(180deg,transparent,rgba(0,0,0,.95) 30%)!important;margin-top:2px!important;padding-top:14px!important;}
+  @media(max-width:900px){#pausePanel .nsv-pause-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;}#pausePanel .nsv-pause-extra{grid-template-columns:1fr!important;}#pausePanel #nsvV30PauseCheat,#pausePanel #nsvV30WeaponStatus{grid-column:auto!important;}}
+  @media(max-width:560px){#pausePanel{padding:14px!important;max-height:94vh!important;}#pausePanel .nsv-pause-grid{grid-template-columns:1fr!important;}#pausePanel #nsvV30PauseCheat .nsv-v69-cheat-form{grid-template-columns:1fr!important;}#pausePanel .nsv-pause-actions{position:static!important;}#pausePanel .nsv-pause-actions button{width:100%!important;}}
+</style>
+
+<script id="nsvV69PauseCheatStablePatch">
+(() => {
+  'use strict';
+  const TAG = 'V69 STABLE';
+  const $ = (id) => document.getElementById(id);
+  const badChars = ['\u7e5d','\u7e67','\u7e3a','\ufffd','\u00c3','\u00e3','\u00c2'].map(s => JSON.parse('"' + s + '"'));
+  const badRe = new RegExp('[' + badChars.map(ch => ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('') + ']');
+  let lastCheatRun = 0;
+  function cleanBadText(root = document.body) {
+    try {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          const p = node.parentElement;
+          if (!p || /^(SCRIPT|STYLE|INPUT|TEXTAREA|OPTION)$/i.test(p.tagName)) return NodeFilter.FILTER_REJECT;
+          return badRe.test(node.nodeValue || '') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+        }
+      });
+      let node;
+      while ((node = walker.nextNode())) {
+        let v = node.nodeValue || '';
+        for (const ch of badChars) v = v.split(ch).join('');
+        node.nodeValue = v.replace(/\s{2,}/g, ' ').trim() || 'TEXT FIXED';
+      }
+    } catch(e) {}
+  }
+  function unifyBadge() {
+    try {
+      document.querySelectorAll('[id^="nsvV"][id$="Badge"]').forEach(el => { if (el.id !== 'nsvV59Badge') el.remove(); });
+      let b = $('nsvV59Badge');
+      if (!b) { b = document.createElement('div'); b.id = 'nsvV59Badge'; document.body.appendChild(b); }
+      b.textContent = TAG;
+      b.className = 'nsv-v59-badge';
+      const mini = document.querySelector('#pausePanel .nsv-pause-mini');
+      if (mini) mini.textContent = 'V69 PAUSE STABLE';
+    } catch(e) {}
+  }
+  function runCheat(code) {
+    const raw = String(code || '').replace(/\D/g, '').slice(0, 7);
+    const fn = window.nsvApplyCheatCodeV30 || window.nsvApplyCheatCodeV29 || window.nsvApplyCheatCodeV26 || window.applyCheatCodeV13;
+    if (typeof fn === 'function') {
+      try { fn(raw); return true; } catch(e) { console.warn('V69 cheat run failed', e); }
+    }
+    try {
+      const toast = window.showMissionToast || window.toastV13;
+      if (typeof toast === 'function') toast('CHEAT CODE', 'Cheat system is not ready.');
+    } catch(e) {}
+    return false;
+  }
+  function buildCanonicalCheat() {
+    const box = document.createElement('div');
+    box.id = 'nsvV30PauseCheat';
+    box.className = 'nsv-v30-card nsv-v30-cheat nsv-v69-cheat';
+    return box;
+  }
+  function renderCanonicalCheat(box) {
+    if (!box || box.dataset.v69Ready === '1') return;
+    box.dataset.v69Ready = '1';
+    box.innerHTML = '<div><div class="nsv-v69-cheat-title">CHEAT CODE</div><div class="nsv-v69-cheat-help">Use one 7-digit code. Only this box works on pause.</div></div><form class="nsv-v69-cheat-form" autocomplete="off"><input aria-label="Cheat code" inputmode="numeric" pattern="[0-9]*" maxlength="7" placeholder="7 DIGITS"><button type="submit" class="btn-gold px-4 py-2 rounded font-bold">USE</button></form>';
+    const form = box.querySelector('form');
+    const input = box.querySelector('input');
+    const submit = (ev) => {
+      if (ev) { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); }
+      const now = Date.now();
+      if (now - lastCheatRun < 520) return;
+      lastCheatRun = now;
+      runCheat(input.value);
+      input.value = '';
+    };
+    input.addEventListener('input', () => { input.value = input.value.replace(/\D/g, '').slice(0, 7); }, { passive:true });
+    form.addEventListener('submit', submit, { passive:false });
+  }
+  function consolidatePauseCheats() {
+    try {
+      const pause = $('pauseScreen');
+      const panel = $('pausePanel');
+      if (!pause || !panel) return;
+      let extra = $('pauseExtraArea');
+      if (!extra) { extra = document.createElement('div'); extra.id = 'pauseExtraArea'; extra.className = 'nsv-pause-extra'; panel.insertBefore(extra, panel.querySelector('.nsv-pause-actions') || null); }
+      const allV30 = Array.from(pause.querySelectorAll('#nsvV30PauseCheat'));
+      let keep = allV30[0] || null;
+      allV30.slice(1).forEach(el => el.remove());
+      pause.querySelectorAll('#nsvV13PauseCheat,.nsv-v13-cheat-box').forEach(el => el.remove());
+      if (!keep) keep = buildCanonicalCheat();
+      renderCanonicalCheat(keep);
+      if (keep.parentElement !== extra) extra.insertBefore(keep, extra.firstChild || null);
+      let weapon = $('nsvV30WeaponStatus');
+      if (weapon && weapon.parentElement !== extra) extra.appendChild(weapon);
+      Array.from(extra.children).forEach(el => {
+        if (el !== keep && el.id !== 'nsvV30WeaponStatus' && (el.id === 'nsvV13PauseCheat' || el.classList.contains('nsv-v13-cheat-box'))) el.remove();
+      });
+      cleanBadText(pause);
+    } catch(e) { console.warn('V69 pause consolidate skipped', e); }
+  }
+  function installRuntimeGuards() {
+    if (window.__nsvV69RuntimeGuards) return;
+    window.__nsvV69RuntimeGuards = true;
+    window.addEventListener('error', (ev) => {
+      try {
+        window.NEON_SURVIVOR_LAST_RUNTIME_ERROR = { at: Date.now(), message: String(ev.message || 'error'), source: ev.filename || '' };
+        document.body.classList.add('light-mode');
+        window.nsvUltraSafeModeV59 = true;
+      } catch(e) {}
+    });
+    window.addEventListener('unhandledrejection', (ev) => {
+      try {
+        window.NEON_SURVIVOR_LAST_RUNTIME_ERROR = { at: Date.now(), message: String(ev.reason && (ev.reason.message || ev.reason) || 'promise error') };
+        document.body.classList.add('light-mode');
+        window.nsvUltraSafeModeV59 = true;
+      } catch(e) {}
+    });
+  }
+  function bootV69() {
+    installRuntimeGuards();
+    unifyBadge();
+    consolidatePauseCheats();
+    cleanBadText();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV69, { once:false }); else bootV69();
+  window.addEventListener('load', bootV69, { passive:true });
+  window.addEventListener('pageshow', bootV69, { passive:true });
+  document.addEventListener('click', () => setTimeout(bootV69, 40), true);
+  setInterval(bootV69, 350);
+  window.NEON_SURVIVOR_V69_PAUSE_STABLE = { boot: bootV69, consolidatePauseCheats, unifyBadge, cleanBadText };
 })();
 </script>
 
