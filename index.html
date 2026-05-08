@@ -16478,5 +16478,55 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 })();
 </script>
 
+<script>
+// V54: バッジ表示の完全整理と最適化
+(() => {
+    const V54_TAG = 'V54 CLEANUP STABLE';
+
+    function enforceBadgeV54() {
+        try {
+            // 古いバッジ用のスタイルタグをDOMから全て削除して競合を防ぐ
+            const oldStyles = document.querySelectorAll('style[id*="Badge"]');
+            oldStyles.forEach(st => st.remove());
+
+            // V54用のクリーンなスタイルを追加
+            if (!document.getElementById('nsvV54BadgeStyle')) {
+                const st = document.createElement('style');
+                st.id = 'nsvV54BadgeStyle';
+                st.textContent = `
+                    div[id$="Badge"]:not(#nsvFinalBadgeV54) { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+                    #nsvFinalBadgeV54 { display: block !important; opacity: 1 !important; position: fixed !important; left: 10px !important; bottom: 8px !important; z-index: 99999 !important; pointer-events: none !important; color: #bae6fd !important; background: rgba(8,47,73,.9) !important; border: 1px solid rgba(56,189,248,.6) !important; border-radius: 999px !important; padding: 4px 9px !important; font: 900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif !important; letter-spacing: .08em !important; box-shadow: 0 0 13px rgba(56,189,248,.32) !important; }
+                `;
+                document.head.appendChild(st);
+            }
+
+            // 古いバッジ要素そのものをDOMから完全に消し去る
+            const allBadges = document.querySelectorAll('div[id$="Badge"]');
+            allBadges.forEach(b => {
+                if (b.id !== 'nsvFinalBadgeV54') {
+                    b.remove();
+                }
+            });
+
+            // V54のバッジを1つだけ作成・更新
+            let badge = document.getElementById('nsvFinalBadgeV54');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'nsvFinalBadgeV54';
+                document.body.appendChild(badge);
+            }
+            badge.textContent = V54_TAG;
+        } catch(e) {}
+    }
+
+    function bootV54() {
+        enforceBadgeV54();
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV54, {once:true}); else bootV54();
+    setInterval(enforceBadgeV54, 1000);
+})();
+</script>
+
 </body>
 </html>
