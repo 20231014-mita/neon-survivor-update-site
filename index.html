@@ -7368,12 +7368,8 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             ctx.save();
             ctx.font = 'bold 12px Orbitron, Noto Sans JP'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
             ctx.shadowBlur = 10; ctx.shadowColor = '#000';
-            ctx.fillText(boss.isApeOverlordSecondPhase ? '\u7B2C\u4E8C\u5F62\u614B' : (boss.isApeOverlord ? 'OVERLORD' : (boss.isMonkey ? 'MONKEY' : 'BOSS')), edgeX, edgeY - 22);
+            ctx.fillText(boss.isApeOverlordSecondPhase ? '第二形態' : (boss.isApeOverlord ? 'OVERLORD' : (boss.isMonkey ? 'MONKEY' : 'BOSS')), edgeX, edgeY - 22);
             ctx.restore();
-        }
-
-        function drawMapBlackHoleCompass() {
-            return;
         }
 
         function drawSkillCooldowns() {
@@ -11598,8 +11594,13 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         extra = document.createElement('section');
         extra.id = 'nsvV13ExtraMenu';
         extra.className = 'nsv-clean-section';
-        extra.innerHTML = `<div class="nsv-clean-section-title">LINK / RANKING</div><div class="nsv-v13-menu-extra"></div>`;
+        extra.innerHTML = `<div class="nsv-clean-section-title" style="display: none;"></div><div class="nsv-v13-menu-extra"></div>`;
         root.appendChild(extra);
+      } else {
+        const titleEl = extra.querySelector('.nsv-clean-section-title');
+        if (titleEl && titleEl.textContent.includes('LINK / RANKING')) {
+            titleEl.style.display = 'none';
+        }
       }
       const grid = extra.querySelector('.nsv-v13-menu-extra');
       function addBtn(id, cls, html, fn){
@@ -12298,8 +12299,8 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 case 'openMissionBtn': call(renderMissionScreen); showSafe('missionsScreen'); break;
                 case 'openCollectionBtn': call(renderCollectionScreen); showSafe('collectionScreen'); break;
                 case 'openWeaponCodexBtn': call(renderWeaponCodexScreen); showSafe('weaponCodexScreen'); break;
-                case 'openBattlePassBtn': if(typeof renderBattlePassV2==='function') renderBattlePassV2('base'); else call(renderBattlePassScreen20260504); showSafe('battlePassScreen'); break;
-                case 'openShopBtn': if(typeof renderShopV2==='function') renderShopV2(); else call(renderShopScreen20260504); showSafe('shopScreen'); break;
+                case 'openBattlePassBtn': if(typeof renderBattlePassV2==='function') renderBattlePassV2('base'); else if(typeof renderBattlePassScreen20260504==='function') renderBattlePassScreen20260504(); showSafe('battlePassScreen'); break;
+                case 'openShopBtn': if(typeof renderShopV2==='function') renderShopV2(); else if(typeof renderShopScreen20260504==='function') renderShopScreen20260504(); showSafe('shopScreen'); break;
                 case 'openLeaderboardBtn': renderRankingV30(); showSafe('leaderboardScreen'); break;
                 case 'openDailyEventBtnV30': if(typeof renderEventModeScreen20260504==='function') renderEventModeScreen20260504(); showSafe('eventModeScreen'); removeBlackholeEvent(); break;
                 case 'adminContactBtn': window.open(ADMIN_FORM_URL_V30,'_blank','noopener,noreferrer'); break;
@@ -13037,17 +13038,27 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                         fbDoc = firestoreMod.doc; fbSetDoc = firestoreMod.setDoc; fbGetDoc = firestoreMod.getDoc; fbUpdateDoc = firestoreMod.updateDoc;
                         fbDeleteField = firestoreMod.deleteField; fbCollection = firestoreMod.collection; fbOnSnapshot = firestoreMod.onSnapshot; fbDeleteDoc = firestoreMod.deleteDoc;
                         appId = cfg.projectId || appId || 'neon-survivor';
-                        try { const auth = authMod.getAuth(app); if (!auth.currentUser) await authMod.signInAnonymously(auth); dbUserId = auth.currentUser?.uid || dbUserId; } catch(e) {}
+                        try {
+                            const auth = authMod.getAuth(app);
+                            if (!auth.currentUser) {
+                                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                    await authMod.signInWithCustomToken(auth, __initial_auth_token);
+                                } else {
+                                    await authMod.signInAnonymously(auth);
+                                }
+                            }
+                            dbUserId = auth.currentUser?.uid || dbUserId;
+                        } catch(e) {}
                         return true;
                     })();
                     return await nsvV33FirebaseReadyPromise;
                 } catch(e) { return false; }
             }
             function playerDocRefV33(id = onlinePlayerId) {
-                return fbDoc(db, 'artifacts', appId, 'public', 'data', 'neon_survivor_rooms_v33', getRoomCodeV33(), 'players', id);
+                return fbDoc(db, 'artifacts', appId, 'public', 'data', 'neon_survivor_rooms_v33_' + getRoomCodeV33(), id);
             }
             function roomCollectionV33() {
-                return fbCollection(db, 'artifacts', appId, 'public', 'data', 'neon_survivor_rooms_v33', getRoomCodeV33(), 'players');
+                return fbCollection(db, 'artifacts', appId, 'public', 'data', 'neon_survivor_rooms_v33_' + getRoomCodeV33());
             }
 
             function patchOnlineRoomV33() {
@@ -14290,7 +14301,13 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                     appId = cfg.projectId || appId || 'neon-survivor';
                     try {
                         const auth = authMod.getAuth(app);
-                        if (!auth.currentUser) await authMod.signInAnonymously(auth);
+                        if (!auth.currentUser) {
+                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                await authMod.signInWithCustomToken(auth, __initial_auth_token);
+                            } else {
+                                await authMod.signInAnonymously(auth);
+                            }
+                        }
                         dbUserId = auth.currentUser?.uid || dbUserId;
                     } catch(e) {}
                     return true;
@@ -14298,7 +14315,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             }
 
             function roomPathV39() {
-                return ['artifacts', appId, 'public', 'data', ROOM_COLLECTION_NAME_V39, getRoomCodeV39(), 'players'];
+                return ['artifacts', appId, 'public', 'data', ROOM_COLLECTION_NAME_V39 + '_' + getRoomCodeV39()];
             }
 
             function playerDocRefV39(id = onlinePlayerId) {
@@ -14687,10 +14704,692 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 } catch(e) {}
             }, true);
             function bootV41(){ markV41(); patchCheatBoxesV41(); }
-            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV41, {once:true}); else bootV41();
-            window.addEventListener('pageshow', bootV41, {passive:true});
-            setInterval(bootV41, 1500);
-        })();
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV41, {once:true}); else bootV41();
+        window.addEventListener('pageshow', bootV41, {passive:true});
+        setInterval(bootV41, 1500);
+    })();
+</script>
+
+<script>
+// V42: 確実なオンライン同期パッチ（人数制限等のチェックをバイパスし確実に繋ぐ）
+(() => {
+    const V42_TAG = 'V42 ONLINE STABLE';
+    const V42_ROOM_KEY = 'nsv_online_room_v42';
+
+    function getCodeV42() {
+        const input = document.getElementById('onlineRoomInput');
+        let raw = input ? input.value : (localStorage.getItem(V42_ROOM_KEY) || '123');
+        let code = String(raw).replace(/\D/g, '').slice(0, 3);
+        if (code.length === 0) code = '123';
+        code = code.padStart(3, '0');
+        if (input && input.value !== code) input.value = code;
+        localStorage.setItem(V42_ROOM_KEY, code);
+        return code;
+    }
+
+    function getDocRefV42(id) {
+        return fbDoc(db, 'artifacts', appId, 'public', 'data', 'nsv_room_' + getCodeV42(), id);
+    }
+    function getColRefV42() {
+        return fbCollection(db, 'artifacts', appId, 'public', 'data', 'nsv_room_' + getCodeV42());
+    }
+
+    function patchOnlineV42() {
+        const updateHudV42 = () => {
+            const countEl = document.getElementById('onlinePlayerCount');
+            if (countEl) countEl.innerText = String(1 + (typeof remotePlayers !== 'undefined' && remotePlayers ? remotePlayers.size : 0));
+            const hud = document.getElementById('onlineHud');
+            if (hud) {
+                let row = document.getElementById('onlineRoomLabelRow');
+                if (!row) { row = document.createElement('div'); row.id = 'onlineRoomLabelRow'; hud.appendChild(row); }
+                row.innerHTML = `ROOM: <span class="text-yellow-300 font-bold tracking-widest">${getCodeV42()}</span>`;
+            }
+        };
+
+        // 人数制限やその他のバリデーションを無効化し、直接オンラインモードを開始する
+        startOnlineMode = function() {
+            isOnlineMode = true;
+            if (typeof setOnlineHudVisible === 'function') setOnlineHudVisible(true);
+            remotePlayers = new Map();
+            onlineProcessedHitIds = new Set();
+            onlineLastDamagePollFrame = 0;
+            
+            updateHudV42();
+
+            if (typeof ensureFirebaseReadyV39 === 'function') {
+                ensureFirebaseReadyV39().then(ok => {
+                    if (ok) {
+                        try { startOnlinePresence(); syncOnlinePresence(); } catch(e) {}
+                    } else {
+                        if (typeof showMissionToast === 'function') showMissionToast('ONLINE', 'Firebase未接続。ローカルモードで動作します。');
+                    }
+                });
+            }
+        };
+
+        stopOnlineMode = function() {
+            if (typeof onlineUnsubscribe !== 'undefined' && onlineUnsubscribe) { try { onlineUnsubscribe(); } catch(e) {} onlineUnsubscribe = null; }
+            if (typeof db !== 'undefined' && db && typeof fbDeleteDoc === 'function' && typeof onlinePlayerId !== 'undefined') { 
+                try { fbDeleteDoc(getDocRefV42(onlinePlayerId)).catch(() => {}); } catch(e) {} 
+            }
+            isOnlineMode = false;
+            remotePlayers = new Map();
+            if (typeof setOnlineHudVisible === 'function') setOnlineHudVisible(false);
+        };
+
+        startOnlinePresence = function() {
+            if (typeof db === 'undefined' || !db || !fbCollection || !fbOnSnapshot) return;
+            if (typeof onlineUnsubscribe !== 'undefined' && onlineUnsubscribe) onlineUnsubscribe();
+            
+            onlineUnsubscribe = fbOnSnapshot(getColRefV42(), (snap) => {
+                const now = Date.now();
+                const next = new Map();
+                snap.forEach(docSnap => {
+                    if (docSnap.id === onlinePlayerId) return;
+                    const d = docSnap.data() || {};
+                    // 15秒以上更新がないプレイヤーは除外
+                    if (now - Number(d.updatedAt || 0) > 15000) return;
+                    
+                    next.set(docSnap.id, {
+                        id: docSnap.id,
+                        nickname: (typeof normalizeNickname === 'function' ? normalizeNickname(d.nickname || 'PLAYER') : d.nickname || 'PLAYER'),
+                        x: Number(d.x || 0), y: Number(d.y || 0),
+                        hp: Number(d.hp || 1), maxHp: Number(d.maxHp || 1),
+                        level: Number(d.level || 1),
+                        shieldLevel: Number(d.shieldLevel || 0),
+                        score: Number(d.score || 0),
+                        role: String(d.role || ''),
+                        roleName: String(d.roleName || ''),
+                        lastHitFlash: 0
+                    });
+                });
+                remotePlayers = next;
+                updateHudV42();
+            });
+        };
+
+        syncOnlinePresence = function() {
+            if (!isOnlineMode || typeof player === 'undefined' || !player || typeof db === 'undefined' || !db || !fbSetDoc) return;
+            if (typeof frameCount !== 'undefined' && typeof onlineLastSyncFrame !== 'undefined' && frameCount - onlineLastSyncFrame < 12) return;
+            onlineLastSyncFrame = typeof frameCount !== 'undefined' ? frameCount : 0;
+            try {
+                fbSetDoc(getDocRefV42(onlinePlayerId), {
+                    nickname: (typeof getNickname === 'function' ? getNickname() : 'PLAYER') || 'PLAYER',
+                    x: player.x, y: player.y,
+                    hp: player.hp, maxHp: player.maxHp,
+                    level: player.level,
+                    shieldLevel: player.onlineShieldLevel || 0,
+                    score: Math.floor(typeof score !== 'undefined' ? score : 0),
+                    role: player.onlineRole || '',
+                    roleName: player.onlineRoleName || '',
+                    updatedAt: Date.now()
+                }, { merge:true }).catch(()=>{});
+            } catch(e) {}
+        };
+
+        sendOnlineHit = function(targetId, baseDamage) {
+            if (!isOnlineMode || !targetId || typeof db === 'undefined' || !db || !fbSetDoc) return 0;
+            let damage = baseDamage;
+            if (typeof calcOnlinePvpDamage === 'function') damage = calcOnlinePvpDamage(baseDamage);
+            if (damage <= 0) return 0;
+            const hitId = `${onlinePlayerId}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+            try {
+                fbSetDoc(getDocRefV42(targetId), {
+                    hits: { [hitId]: { from: onlinePlayerId, fromName: (typeof getNickname === 'function' ? getNickname() : 'PLAYER') || 'PLAYER', damage: damage, at: Date.now() } }
+                }, { merge:true }).catch(()=>{});
+                return damage;
+            } catch(e) { return 0; }
+        };
+
+        processOnlineIncomingDamage = async function() {
+            if (!isOnlineMode || typeof player === 'undefined' || !player || typeof db === 'undefined' || !db || !fbGetDoc) return;
+            if (typeof frameCount !== 'undefined' && typeof onlineLastDamagePollFrame !== 'undefined' && frameCount - onlineLastDamagePollFrame < 10) return;
+            onlineLastDamagePollFrame = typeof frameCount !== 'undefined' ? frameCount : 0;
+            try {
+                const snap = await fbGetDoc(getDocRefV42(onlinePlayerId));
+                if (!snap.exists()) return;
+                const data = snap.data() || {};
+                const hits = data.hits || {};
+                const now = Date.now();
+                const clearFields = {};
+                let hpBefore = player.hp;
+                for (const [hitId, hit] of Object.entries(hits)) {
+                    if (!hit || (typeof onlineProcessedHitIds !== 'undefined' && onlineProcessedHitIds.has(hitId))) continue;
+                    if (typeof onlineProcessedHitIds !== 'undefined') onlineProcessedHitIds.add(hitId);
+                    
+                    if (now - Number(hit.at || 0) > 10000) { if (typeof fbDeleteField !== 'undefined' && fbDeleteField) clearFields[`hits.${hitId}`] = fbDeleteField(); continue; }
+                    if (hit.from === onlinePlayerId) continue;
+                    
+                    const damage = Math.max(1, Number(hit.damage || 0));
+                    player.takeDamage(damage);
+                    if (player.hp < hpBefore && typeof FloatingText !== 'undefined' && typeof floatingTexts !== 'undefined') {
+                        floatingTexts.push(new FloatingText(player.x, player.y - 48, `${hit.fromName || 'PLAYER'} -${Math.floor(damage)}`, '#f87171', 15));
+                    }
+                    hpBefore = player.hp;
+                    if (typeof fbDeleteField !== 'undefined' && fbDeleteField) clearFields[`hits.${hitId}`] = fbDeleteField();
+                }
+                if (Object.keys(clearFields).length && typeof fbUpdateDoc !== 'undefined' && fbUpdateDoc) {
+                    fbUpdateDoc(getDocRefV42(onlinePlayerId), clearFields).catch(()=>{});
+                }
+                if (typeof onlineProcessedHitIds !== 'undefined' && onlineProcessedHitIds.size > 600) {
+                    onlineProcessedHitIds = new Set(Array.from(onlineProcessedHitIds).slice(-300));
+                }
+            } catch(e) {}
+        };
+
+        // ボタンのイベントを上書きして、制限チェックなしに直接次へ進める
+        const confirmBtn = document.getElementById('confirmOnlineRoomBtn');
+        if (confirmBtn) {
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+            newBtn.addEventListener('click', () => {
+                getCodeV42(); 
+                if (typeof renderOnlineRoleScreen === 'function') {
+                    renderOnlineRoleScreen();
+                    if (typeof showScreen === 'function') showScreen('onlineRoleScreen');
+                } else {
+                    if (typeof initGame === 'function') initGame('online');
+                }
+            });
+        }
+        
+        const randomBtn = document.getElementById('randomOnlineRoomBtn');
+        if (randomBtn) {
+            const newRnd = randomBtn.cloneNode(true);
+            randomBtn.parentNode.replaceChild(newRnd, randomBtn);
+            newRnd.addEventListener('click', () => {
+                const input = document.getElementById('onlineRoomInput');
+                if (input) {
+                    input.value = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+                    getCodeV42();
+                }
+            });
+        }
+    }
+
+    function markV42() {
+        try {
+            if (!document.getElementById('nsvBadgeCleanupStyle')) {
+                const st = document.createElement('style');
+                st.id = 'nsvBadgeCleanupStyle';
+                st.textContent = `
+                    [id^="nsvV"][id$="Badge"] { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+                    #nsvFinalBadge { display: block !important; opacity: 1 !important; }
+                `;
+                document.head.appendChild(st);
+            }
+
+            let badge = document.getElementById('nsvFinalBadge');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'nsvFinalBadge';
+                badge.style.cssText = "position:fixed;left:10px;bottom:8px;z-index:9999;pointer-events:none;color:#bfdbfe;background:rgba(2,6,23,.86);border:1px solid rgba(96,165,250,.6);border-radius:999px;padding:4px 9px;font:900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif;letter-spacing:.08em;box-shadow:0 0 13px rgba(59,130,246,.32)";
+                document.body.appendChild(badge);
+            }
+            badge.textContent = V42_TAG;
+        } catch(e) {}
+    }
+
+    function bootV42() {
+        markV42();
+        patchOnlineV42();
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV42, {once:true}); else bootV42();
+    window.addEventListener('pageshow', bootV42, {passive:true});
+    setInterval(markV42, 1500);
+})();
+</script>
+
+<script>
+// V43: SHOP表示のクリーンアップ（所持コインとチケットを統合して1つだけにする）
+(() => {
+    const V43_TAG = 'V43 SHOP CLEANUP';
+    
+    // 既存の古いコイン表示処理を無効化
+    window.patchShopCoin = function() {};
+    if (typeof patchShopCoinV13 !== 'undefined') window.patchShopCoinV13 = function() {};
+
+    // V37のショップ描画関数を上書き
+    if (typeof renderShopStableV37 !== 'undefined') {
+        const oldRenderShop = renderShopStableV37;
+        window.renderShopStableV37 = function(force = false) {
+            // 元の描画ロジックをバイパスして新しいHTMLを注入する
+            if (window.shopRenderLockV37) return;
+            window.shopRenderLockV37 = true;
+            try {
+                const u = (typeof ensureUserV37 === 'function') ? ensureUserV37() : userData;
+                let div = document.getElementById('shopScreen');
+                if (!div) {
+                    div = document.createElement('div');
+                    div.id = 'shopScreen';
+                    div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3';
+                    document.body.appendChild(div);
+                }
+                if (!force && div.classList.contains('hidden')) return;
+                
+                const coins = Math.floor(Number(u?.coins) || 0);
+                const tickets = Math.floor(Number(u?.passTickets) || 0);
+                const premium = !!(u?.battlePassV2?.premium || u?.battlePass?.premium);
+                const PASS_TICKET_COST = (typeof PASS_TICKET_COST_V37 !== 'undefined') ? PASS_TICKET_COST_V37 : 100000;
+                
+                div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4">
+                    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+                        <div>
+                            <h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">GAME SHOP</h2>
+                            <p class="text-gray-300 text-sm mt-2">銀コインをチケットやパスに使えます。</p>
+                        </div>
+                        <button id="closeShopBtnV43" class="btn-neon px-4 py-2 rounded font-bold">BACK</button>
+                    </div>
+                    
+                    <!-- 統合された1つだけの所持情報欄 -->
+                    <div class="flex flex-wrap items-center justify-center gap-8 bg-black/60 border border-yellow-400/50 rounded-2xl p-5 shadow-[0_0_20px_rgba(250,204,21,0.2)]">
+                        <div class="text-center">
+                            <div class="text-sm text-yellow-400 font-bold tracking-widest mb-1">所持コイン</div>
+                            <div class="text-3xl md:text-4xl font-black text-yellow-200">🪙 ${coins.toLocaleString()}</div>
+                        </div>
+                        <div class="w-px h-16 bg-gray-600/50 hidden md:block"></div>
+                        <div class="text-center">
+                            <div class="text-sm text-cyan-400 font-bold tracking-widest mb-1">所持チケット</div>
+                            <div class="text-3xl md:text-4xl font-black text-cyan-200">🎟️ ${tickets.toLocaleString()}</div>
+                        </div>
+                    </div>
+
+                    <div id="shopListContainer" class="nsv-v37-shop-grid">
+                        <div class="nsv-v37-shop-card flex flex-col justify-between">
+                            <div>
+                                <div class="text-5xl mb-2">🎟️</div>
+                                <h3 class="text-2xl font-bold text-yellow-300">バトルパスチケット</h3>
+                                <p class="text-sm text-gray-300 mt-2">価格はいつでも固定です。</p>
+                                <p class="text-xl font-black text-yellow-200 mt-3">必要コイン：${PASS_TICKET_COST.toLocaleString()}</p>
+                            </div>
+                            <button id="buyPassTicketBtnV43" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${coins >= PASS_TICKET_COST ? '' : 'opacity-50'}">チケットを1枚交換</button>
+                        </div>
+                        <div class="nsv-v37-shop-card flex flex-col justify-between">
+                            <div>
+                                <div class="text-5xl mb-2">⭐</div>
+                                <h3 class="text-2xl font-bold text-cyan-300">NEON PASS</h3>
+                                <p class="text-sm text-gray-300 mt-2">チケット1枚で現在のパスを購入できます。</p>
+                                <p class="text-sm text-gray-300 mt-3">状態：<b class="${premium ? 'text-green-300' : 'text-gray-300'}">${premium ? '購入済み' : '未購入'}</b></p>
+                            </div>
+                            <div>
+                                <button id="buyNeonPassBtnV43" class="btn-neon px-5 py-3 rounded font-bold mt-4 w-full ${(tickets > 0 && !premium) ? '' : 'opacity-50'}">NEON PASSを購入</button>
+                                <button id="openPassFromShopBtnV43" class="btn-purple px-5 py-3 rounded font-bold mt-3 w-full">NEON PASSを見る</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+                // 古いヘッダーが残っていたら強制削除
+                const oldHeaders = div.querySelectorAll('#nsvV13ShopCoinHeader, #nsvV30ShopCoinHeader');
+                oldHeaders.forEach(el => el.remove());
+
+                document.getElementById('closeShopBtnV43')?.addEventListener('click', () => {
+                    if (typeof stableShowV37 === 'function') stableShowV37('startScreen');
+                    else if (typeof showScreen === 'function') showScreen('startScreen');
+                });
+                document.getElementById('buyPassTicketBtnV43')?.addEventListener('click', () => {
+                    if (Number(u.coins || 0) < PASS_TICKET_COST) { alert('コインが足りません。'); return; }
+                    u.coins = Math.floor(Number(u.coins) - PASS_TICKET_COST);
+                    u.passTickets = Math.floor(Number(u.passTickets || 0) + 1);
+                    if (typeof saveNowV37 === 'function') saveNowV37();
+                    else if (typeof saveData === 'function') saveData();
+                    window.renderShopStableV37(true);
+                });
+                document.getElementById('buyNeonPassBtnV43')?.addEventListener('click', () => {
+                    const already = !!(u.battlePassV2?.premium || u.battlePass?.premium);
+                    if (already) { alert('すでに購入済みです。'); return; }
+                    if (Number(u.passTickets || 0) <= 0) { alert('チケットが足りません。'); return; }
+                    u.passTickets = Math.floor(Number(u.passTickets) - 1);
+                    u.battlePassV2 = u.battlePassV2 || {}; u.battlePassV2.premium = true;
+                    u.battlePass = u.battlePass || {}; u.battlePass.premium = true;
+                    if (typeof saveNowV37 === 'function') saveNowV37();
+                    else if (typeof saveData === 'function') saveData();
+                    window.renderShopStableV37(true);
+                });
+                document.getElementById('openPassFromShopBtnV43')?.addEventListener('click', () => {
+                    if (typeof renderBattlePassV2 === 'function') renderBattlePassV2('base');
+                    if (typeof stableShowV37 === 'function') stableShowV37('battlePassScreen');
+                    else if (typeof showScreen === 'function') showScreen('battlePassScreen');
+                });
+            } catch(e) {}
+            finally { window.shopRenderLockV37 = false; }
+        };
+        
+        // 別の場所から呼ばれるエイリアスも上書き
+        window.renderShopV2 = window.renderShopStableV37;
+        window.renderShopScreen20260504 = window.renderShopStableV37;
+    }
+
+    function markV43() {
+        try {
+            if (!document.getElementById('nsvShopCleanupStyle')) {
+                const st = document.createElement('style');
+                st.id = 'nsvShopCleanupStyle';
+                st.textContent = `
+                    #nsvV13ShopCoinHeader, #nsvV30ShopCoinHeader { display: none !important; }
+                    [id^="nsvV"][id$="Badge"] { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+                    #nsvFinalBadge { display: block !important; opacity: 1 !important; }
+                `;
+                document.head.appendChild(st);
+            }
+
+            let badge = document.getElementById('nsvFinalBadge');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'nsvFinalBadge';
+                badge.style.cssText = "position:fixed;left:10px;bottom:8px;z-index:9999;pointer-events:none;color:#fde047;background:rgba(66,32,6,.86);border:1px solid rgba(250,204,21,.6);border-radius:999px;padding:4px 9px;font:900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif;letter-spacing:.08em;box-shadow:0 0 13px rgba(250,204,21,.32)";
+                document.body.appendChild(badge);
+            }
+            badge.textContent = V43_TAG;
+        } catch(e) {}
+    }
+
+    function bootV43() {
+        markV43();
+        // 万が一、画面が開かれていたら再描画する
+        const shop = document.getElementById('shopScreen');
+        if (shop && !shop.classList.contains('hidden')) {
+            if (typeof window.renderShopStableV37 === 'function') window.renderShopStableV37(true);
+        }
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV43, {once:true}); else bootV43();
+    setInterval(markV43, 1500);
+})();
+</script>
+
+<script>
+// V44: ネオンパスのスペシャル報酬を常に確認できるようにするパッチ
+(() => {
+    const V44_TAG = 'V44 PASS VIEW';
+
+    if (typeof passV21RewardCard === 'function') {
+        window.passV21RewardCard = function(r, p, special, unlockedSpecial) {
+            const claimed = !!(special ? p.specialClaimed?.[r.id] : p.claimed?.[r.id]);
+            const canClaim = (special ? unlockedSpecial : p.premium) && !claimed && Number(p.battleStars || 0) >= Number(r.cost || 0);
+            let state = 'locked', stateText = '\u672A\u89E3\u653E';
+            if (claimed) { state = 'claimed'; stateText = '\u5165\u624B\u6E08\u307F'; }
+            else if (canClaim) { state = 'ready'; stateText = '\u53D7\u3051\u53D6\u308AOK'; }
+            else if (!special && !p.premium) { stateText = '\u30D1\u30B9\u8CFC\u5165\u304C\u5FC5\u8981'; }
+            else if (special && !unlockedSpecial) { stateText = '\u57FA\u672C\u5831\u916C\u306E\u5168\u53D7\u53D6\u304C\u5FC5\u8981'; }
+            else if (Number(p.battleStars || 0) < Number(r.cost || 0)) { stateText = `\u30B9\u30BF\u30FC\u4E0D\u8DB3\uFF1A\u3042\u3068${Math.max(0, Number(r.cost || 0) - Number(p.battleStars || 0))}`; }
+            const buttonText = claimed ? '\u5165\u624B\u6E08\u307F' : canClaim ? '\u53D7\u3051\u53D6\u308B' : stateText;
+            
+            return `<div class="nsv-v21-reward ${special ? 'special' : ''} ${state}">
+                <div class="nsv-v21-topline"><span class="nsv-v21-kind">${passV21Escape(cosmeticTypeLabel(r.type))}</span><span class="nsv-v21-cost">\u2B50 ${Math.floor(Number(r.cost || 0))}</span></div>
+                <div class="flex items-center gap-3"><div class="nsv-v21-icon">${passV21Escape(r.icon || '\uD83C\uDF81')}</div><div><div class="nsv-v21-name">${passV21Escape(r.name)}</div><span class="nsv-v2-rarity nsv-rarity-${passV21Escape(r.rarity || 'RARE')}">${passV21Escape(r.rarity || 'RARE')}</span></div></div>
+                <p class="nsv-v21-desc">${passV21Escape(r.desc || '')}</p>
+                <span class="nsv-v21-state ${state}">${passV21Escape(stateText)}</span>
+                <button class="claim-pass-v2 nsv-v21-claim ${special ? 'btn-purple' : 'btn-gold'} px-3 py-2 rounded text-sm font-bold" data-id="${passV21Escape(r.id)}" data-special="${special ? '1':'0'}" ${canClaim ? '' : 'disabled'}>${passV21Escape(buttonText)}</button>
+            </div>`;
+        };
+    }
+
+    if (typeof renderBattlePassV2 === 'function') {
+        window.renderBattlePassV2 = function(tab='base') {
+            ensurePassV2Data();
+            ensurePassScreenV2();
+            const s = fridaySeasonInfoV2();
+            const p = userData.battlePassV2;
+            const top = document.getElementById('battlePassTopContainer');
+            const box = document.getElementById('battlePassTrackContainer');
+            ['passTabBase','passTabSpecial','passTabLocker'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+            document.getElementById(tab === 'special' ? 'passTabSpecial' : tab === 'locker' ? 'passTabLocker' : 'passTabBase')?.classList.add('active');
+            const baseTotal = s.theme.rewards.length;
+            const baseCount = s.theme.rewards.filter(r => p.claimed?.[r.id]).length;
+            const specialUnlocked = p.specialUnlocked || allBaseClaimedV2();
+            const activeList = tab === 'special' ? s.theme.special : s.theme.rewards;
+            const readyCount = tab === 'locker' ? 0 : passV21ReadyCount(activeList, p, tab === 'special');
+            const progressPct = Math.min(100, Math.max(0, (baseCount / Math.max(1, baseTotal)) * 100));
+            
+            top.innerHTML = `<div class="nsv-pass-v21-hero" style="border-color:${s.theme.color};box-shadow:0 0 24px ${s.theme.color}44">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                        <div class="text-xs text-yellow-300 font-bold">${passV21Escape(s.theme.icon)} SEASON 1 / \u6B8B\u308A\u7D04${Math.floor(s.remain || 0)}\u65E5</div>
+                        <h3 class="text-2xl font-black text-white mt-1">${passV21Escape(s.theme.name)}</h3>
+                        <p class="text-sm text-gray-300 mt-1">${passV21Escape(s.theme.sub)}</p>
+                    </div>
+                    <button id="buyPassTopBtnV2" class="btn-gold px-5 py-3 rounded font-bold ${(userData.passTickets > 0 && !p.premium) ? '' : 'opacity-40 cursor-not-allowed'}" ${(userData.passTickets > 0 && !p.premium) ? '' : 'disabled'}>${p.premium ? '\u8CFC\u5165\u6E08\u307F' : '\u30C1\u30B1\u30C3\u30C81\u679A\u3067\u8CFC\u5165'}</button>
+                </div>
+                <div class="nsv-pass-v21-summary">
+                    <div class="nsv-pass-v21-stat"><small>\u6240\u6301\u30B9\u30BF\u30FC</small><b>\u2B50 ${Math.floor(Number(p.battleStars || 0))}</b></div>
+                    <div class="nsv-pass-v21-stat"><small>\u30C1\u30B1\u30C3\u30C8</small><b>\uD83C\uDF9F\uFE0F ${Math.floor(Number(userData.passTickets || 0))}</b></div>
+                    <div class="nsv-pass-v21-stat"><small>\u57FA\u672C\u5831\u916C</small><b>\uD83C\uDF81 ${baseCount}/${baseTotal}</b></div>
+                    <div class="nsv-pass-v21-stat"><small>\u6B21\u306E\u30B9\u30BF\u30FC</small><b>${passV21Escape(passV21NextStarText(p))}</b></div>
+                </div>
+                <div class="nsv-pass-v21-progress"><div style="width:${progressPct}%"></div></div>
+                <p class="text-xs text-gray-300 mt-2">\u53D7\u3051\u53D6\u308A\u53EF\u80FD\uFF1A<b class="text-green-300">${readyCount}</b> / \u8A0E\u4F10\u6570\uFF1A<b class="text-cyan-300">${Math.floor(Number(p.seasonKills || 0))}</b>\u4F53 / 60\u4F53\u3054\u3068\u306B\u30B9\u30BF\u30FC+1</p>
+            </div>`;
+            document.getElementById('buyPassTopBtnV2')?.addEventListener('click', buyNeonPassV2);
+            
+            if (tab === 'locker') return renderLockerV2(box);
+            
+            const special = tab === 'special';
+            const list = special ? s.theme.special : s.theme.rewards;
+            
+            let html = '';
+            if (special && !specialUnlocked) {
+                html += `<div class="nsv-v21-empty mb-3 py-4" style="border:1px dashed rgba(168,85,247,0.4); background:rgba(88,28,135,0.15);">
+                    <div class="text-2xl mb-1">\uD83D\uDD12</div>
+                    <h3 class="text-lg font-bold text-purple-300">\u30B9\u30DA\u30B7\u30E3\u30EB\u672A\u89E3\u653E</h3>
+                    <p class="text-xs text-gray-300 mt-1">\u57FA\u672C\u5831\u916C\u3092\u5168\u90E8\u5165\u624B\u3059\u308B\u3068\u3001\u53D7\u3051\u53D6\u308A\u53EF\u80FD\u306B\u306A\u308A\u307E\u3059\u3002</p>
+                </div>`;
+            }
+            
+            html += `<div class="nsv-v21-reward-grid">${list.map(r => window.passV21RewardCard(r, p, special, specialUnlocked)).join('')}</div>`;
+            box.innerHTML = html;
+            
+            box.querySelectorAll('.claim-pass-v2').forEach(btn => btn.addEventListener('click', () => claimV2Reward(btn.dataset.id, btn.dataset.special === '1')));
+        };
+    }
+
+    function markV44() {
+        try {
+            let badge = document.getElementById('nsvFinalBadge');
+            if (badge) {
+                badge.textContent = V44_TAG;
+            }
+        } catch(e) {}
+    }
+
+    function bootV44() {
+        markV44();
+        const passScreen = document.getElementById('battlePassScreen');
+        if (passScreen && !passScreen.classList.contains('hidden')) {
+            if (typeof window.renderBattlePassV2 === 'function') {
+                const activeTab = document.querySelector('.nsv-pass-v21-tab.active');
+                const tab = activeTab?.id === 'passTabSpecial' ? 'special' : activeTab?.id === 'passTabLocker' ? 'locker' : 'base';
+                window.renderBattlePassV2(tab);
+            }
+        }
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV44, {once:true}); else bootV44();
+    setInterval(markV44, 1500);
+})();
+</script>
+
+<script>
+// V45: WEAPON CODEXにおける未解放武器のON/OFF切り替えバグの修正
+(() => {
+    const V45_TAG = 'V45 WEAPON LOCK FIX';
+
+    // 既存のカード描画関数を完全に安全なものに上書きする
+    window.makeWeaponCodexCard = function(w) {
+        if (typeof ensureProgressionData === 'function') ensureProgressionData();
+        if (typeof ensureWeaponSpawnSettings20260504 === 'function') ensureWeaponSpawnSettings20260504();
+        
+        const used = typeof isWeaponCodexUsed === 'function' ? isWeaponCodexUsed(w.id) : false;
+        
+        let locked = false;
+        // 未解放の条件を厳密にチェック
+        if (typeof ultimateUnlockedV35 === 'function' && typeof ULTIMATE_IDS_V35 !== 'undefined' && ULTIMATE_IDS_V35.has(w.id)) {
+            locked = !ultimateUnlockedV35(w.id);
+        } else if (typeof isWeaponMissionLocked20260504 === 'function') {
+            locked = isWeaponMissionLocked20260504(w.id);
+        } else if (typeof MISSION_LOCKED_WEAPON_IDS_20260504 !== 'undefined' && typeof userData !== 'undefined') {
+            locked = MISSION_LOCKED_WEAPON_IDS_20260504.has(w.id) && !(userData.unlocks && userData.unlocks.legendaryWeapons && userData.unlocks.legendaryWeapons[w.id]);
+        }
+
+        let enabled = true;
+        if (typeof isWeaponSpawnEnabled20260504 === 'function') {
+            enabled = isWeaponSpawnEnabled20260504(w.id);
+        }
+
+        // ミッションの進行状況表示
+        let progressHtml = '';
+        if (locked && typeof requirementForUltimateV35 === 'function') {
+            const req = requirementForUltimateV35(w.id);
+            if (req) {
+                const progress = Math.min(req.target, Math.floor(metricValueV35(req.metric)));
+                progressHtml = `<p class="text-[11px] text-gray-300 mt-1">\u89E3\u653E\u6761\u4EF6\uFF1A${req.desc || '\u30DF\u30C3\u30B7\u30E7\u30F3\u9054\u6210'}\uFF08${progress}/${req.target}\uFF09</p>`;
+            }
+        }
+
+        const toggleHtml = `
+            <div class="mt-3 border-t border-slate-700 pt-3">
+                ${locked ? `<p class="text-xs text-red-200 font-bold">\u672A\u89E3\u653E</p>${progressHtml}` : `
+                <label class="flex items-center justify-between gap-3 cursor-pointer">
+                    <span class="text-xs font-bold ${enabled?'text-green-300':'text-red-300'}">\u51FA\u73FE\uFF1A${enabled?'ON':'OFF'}</span>
+                    <input type="checkbox" class="weapon-spawn-toggle w-5 h-5" data-id="${w.id}" ${enabled?'checked':''}>
+                </label>
+                <p class="text-[11px] text-gray-300 mt-2 leading-relaxed">${enabled ? 'ON\uFF1A\u3053\u306E\u6B66\u5668\u304C\u30EC\u30D9\u30EB\u30A2\u30C3\u30D7\u5019\u88DC\u306B\u51FA\u307E\u3059\u3002' : 'OFF\uFF1A\u3053\u306E\u6B66\u5668\u306F\u5019\u88DC\u306B\u51FA\u307E\u305B\u3093\u3002\u91CD\u3044\u6B66\u5668\u3092\u5916\u3059\u6642\u306B\u3082\u4F7F\u3048\u307E\u3059\u3002'}</p>`}
+            </div>`;
+            
+        return `<div class="collection-card ${used || !locked ? 'unlocked':''}">
+            <div class="flex items-start justify-between gap-2">
+                <div class="text-3xl">${w.icon || '\u2754'}</div>
+                <span class="text-[11px] font-bold px-2 py-1 rounded ${locked?'bg-red-950/80 text-red-200 border border-red-400/50':used?'bg-green-900/70 text-green-200 border border-green-400/50':'bg-slate-800 text-gray-300 border border-gray-500/40'}">${locked?'\u672A\u89E3\u653E':used?'\u4F7F\u7528\u6E08\u307F':'\u672A\u4F7F\u7528'}</span>
+            </div>
+            <h3 class="font-bold text-white mt-1">${w.name}</h3>
+            <p class="text-xs text-purple-200 font-bold mt-1">${w.type || 'WEAPON'}</p>
+            <p class="text-sm text-gray-300 mt-1">${w.desc || ''}</p>
+            <div class="text-xs text-gray-300 mt-3 space-y-1">
+                <p>\u653B\u6483\u30BF\u30A4\u30D7\uFF1A${w.attackType || '\u7279\u6B8A'}</p>
+                <p>\u5F37\u3044\u5834\u9762\uFF1A${w.strong || '\u72B6\u6CC1\u6B21\u7B2C'}</p>
+                <p>\u5F31\u3044\u5834\u9762\uFF1A${w.weak || '\u4F7F\u3044\u65B9\u6B21\u7B2C'}</p>
+                <p>\u5165\u624B\u30FB\u9032\u5316\u6761\u4EF6\uFF1A${w.unlock || '\u30B2\u30FC\u30E0\u4E2D\u306B\u5165\u624B'}</p>
+            </div>
+            ${toggleHtml}
+        </div>`;
+    };
+
+    function markV45() {
+        try {
+            let badge = document.getElementById('nsvFinalBadge');
+            if (badge) {
+                badge.textContent = V45_TAG;
+            }
+        } catch(e) {}
+    }
+
+    function bootV45() {
+        markV45();
+        // 現在開かれている場合は再描画する
+        const codexScreen = document.getElementById('weaponCodexScreen');
+        if (codexScreen && !codexScreen.classList.contains('hidden')) {
+            if (typeof renderWeaponCodexScreen === 'function') renderWeaponCodexScreen();
+        }
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV45, {once:true}); else bootV45();
+    setInterval(markV45, 1500);
+})();
+</script>
+
+<script>
+// V46: WEAPON CODEXの自動生成IDによる未解放判定漏れの修正
+(() => {
+    const V46_TAG = 'V46 WEAPON LOCK FIX 2';
+
+    // 既存のカード描画関数をさらに安全なものに上書きする
+    window.makeWeaponCodexCard = function(w) {
+        if (typeof ensureProgressionData === 'function') ensureProgressionData();
+        if (typeof ensureWeaponSpawnSettings20260504 === 'function') ensureWeaponSpawnSettings20260504();
+        
+        let targetId = w.id;
+        // 自動生成されたID（base_4_...など）の場合は、名前から正しいアルティメットIDを推測する
+        if (typeof weaponIdFromTextV35 === 'function') {
+            const guessedId = weaponIdFromTextV35(w.name);
+            if (guessedId) targetId = guessedId;
+        }
+
+        const used = typeof isWeaponCodexUsed === 'function' ? isWeaponCodexUsed(targetId) : false;
+        
+        let locked = false;
+        // 未解放の条件を厳密にチェック
+        if (typeof ultimateUnlockedV35 === 'function' && typeof ULTIMATE_IDS_V35 !== 'undefined' && ULTIMATE_IDS_V35.has(targetId)) {
+            locked = !ultimateUnlockedV35(targetId);
+        } else if (typeof isWeaponMissionLocked20260504 === 'function') {
+            locked = isWeaponMissionLocked20260504(targetId);
+        } else if (typeof MISSION_LOCKED_WEAPON_IDS_20260504 !== 'undefined' && typeof userData !== 'undefined') {
+            locked = MISSION_LOCKED_WEAPON_IDS_20260504.has(targetId) && !(userData.unlocks && userData.unlocks.legendaryWeapons && userData.unlocks.legendaryWeapons[targetId]);
+        }
+
+        let enabled = true;
+        if (typeof isWeaponSpawnEnabled20260504 === 'function') {
+            enabled = isWeaponSpawnEnabled20260504(targetId);
+        }
+
+        // ミッションの進行状況表示
+        let progressHtml = '';
+        if (locked && typeof requirementForUltimateV35 === 'function') {
+            const req = requirementForUltimateV35(targetId);
+            if (req) {
+                const progress = Math.min(req.target, Math.floor(metricValueV35(req.metric)));
+                progressHtml = `<p class="text-[11px] text-gray-300 mt-1">\u89E3\u653E\u6761\u4EF6\uFF1A${req.desc || '\u30DF\u30C3\u30B7\u30E7\u30F3\u9054\u6210'}\uFF08${progress}/${req.target}\uFF09</p>`;
+            }
+        }
+
+        const toggleHtml = `
+            <div class="mt-3 border-t border-slate-700 pt-3">
+                ${locked ? `<p class="text-xs text-red-200 font-bold">\u672A\u89E3\u653E</p>${progressHtml}` : `
+                <label class="flex items-center justify-between gap-3 cursor-pointer">
+                    <span class="text-xs font-bold ${enabled?'text-green-300':'text-red-300'}">\u51FA\u73FE\uFF1A${enabled?'ON':'OFF'}</span>
+                    <input type="checkbox" class="weapon-spawn-toggle w-5 h-5" data-id="${targetId}" ${enabled?'checked':''}>
+                </label>
+                <p class="text-[11px] text-gray-300 mt-2 leading-relaxed">${enabled ? 'ON\uFF1A\u3053\u306E\u6B66\u5668\u304C\u30EC\u30D9\u30EB\u30A2\u30C3\u30D7\u5019\u88DC\u306B\u51FA\u307E\u3059\u3002' : 'OFF\uFF1A\u3053\u306E\u6B66\u5668\u306F\u5019\u88DC\u306B\u51FA\u307E\u305B\u3093\u3002\u91CD\u3044\u6B66\u5668\u3092\u5916\u3059\u6642\u306B\u3082\u4F7F\u3048\u307E\u3059\u3002'}</p>`}
+            </div>`;
+            
+        return `<div class="collection-card ${used || !locked ? 'unlocked':''}">
+            <div class="flex items-start justify-between gap-2">
+                <div class="text-3xl">${w.icon || '\u2754'}</div>
+                <span class="text-[11px] font-bold px-2 py-1 rounded ${locked?'bg-red-950/80 text-red-200 border border-red-400/50':used?'bg-green-900/70 text-green-200 border border-green-400/50':'bg-slate-800 text-gray-300 border border-gray-500/40'}">${locked?'\u672A\u89E3\u653E':used?'\u4F7F\u7528\u6E08\u307F':'\u672A\u4F7F\u7528'}</span>
+            </div>
+            <h3 class="font-bold text-white mt-1">${w.name}</h3>
+            <p class="text-xs text-purple-200 font-bold mt-1">${w.type || 'WEAPON'}</p>
+            <p class="text-sm text-gray-300 mt-1">${w.desc || ''}</p>
+            <div class="text-xs text-gray-300 mt-3 space-y-1">
+                <p>\u653B\u6483\u30BF\u30A4\u30D7\uFF1A${w.attackType || '\u7279\u6B8A'}</p>
+                <p>\u5F37\u3044\u5834\u9762\uFF1A${w.strong || '\u72B6\u6CC1\u6B21\u7B2C'}</p>
+                <p>\u5F31\u3044\u5834\u9762\uFF1A${w.weak || '\u4F7F\u3044\u65B9\u6B21\u7B2C'}</p>
+                <p>\u5165\u624B\u30FB\u9032\u5316\u6761\u4EF6\uFF1A${w.unlock || '\u30B2\u30FC\u30E0\u4E2D\u306B\u5165\u624B'}</p>
+            </div>
+            ${toggleHtml}
+        </div>`;
+    };
+
+    function markV46() {
+        try {
+            let badge = document.getElementById('nsvFinalBadge');
+            if (badge) {
+                badge.textContent = V46_TAG;
+            }
+        } catch(e) {}
+    }
+
+    function bootV46() {
+        markV46();
+        const codexScreen = document.getElementById('weaponCodexScreen');
+        if (codexScreen && !codexScreen.classList.contains('hidden')) {
+            if (typeof renderWeaponCodexScreen === 'function') renderWeaponCodexScreen();
+        }
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV46, {once:true}); else bootV46();
+    setInterval(markV46, 1500);
+})();
 </script>
 
 </body>
