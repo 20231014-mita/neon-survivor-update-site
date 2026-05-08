@@ -16212,5 +16212,271 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 })();
 </script>
 
+<script>
+// V52: ランキング画面での友達削除機能の追加
+(() => {
+    const V52_TAG = 'V52 FRIEND DELETE';
+
+    function enforceBadgeV52() {
+        try {
+            if (!document.getElementById('nsvV52BadgeStyle')) {
+                const st = document.createElement('style');
+                st.id = 'nsvV52BadgeStyle';
+                st.textContent = `
+                    div[id$="Badge"]:not(#nsvFinalBadgeV52) { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+                    #nsvFinalBadgeV52 { display: block !important; opacity: 1 !important; position: fixed !important; left: 10px !important; bottom: 8px !important; z-index: 99999 !important; pointer-events: none !important; color: #a7f3d0 !important; background: rgba(2,44,34,.9) !important; border: 1px solid rgba(52,211,153,.6) !important; border-radius: 999px !important; padding: 4px 9px !important; font: 900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif !important; letter-spacing: .08em !important; box-shadow: 0 0 13px rgba(52,211,153,.32) !important; }
+                `;
+                document.head.appendChild(st);
+            }
+
+            let badge = document.getElementById('nsvFinalBadgeV52');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'nsvFinalBadgeV52';
+                document.body.appendChild(badge);
+            }
+            badge.textContent = V52_TAG;
+        } catch(e) {}
+    }
+
+    // 削除処理の実行
+    window.removeFriendV52 = function(name) {
+        if (!confirm(`友達「${name}」をランキングから削除しますか？`)) return;
+        
+        const FRIEND_KEY_V37 = 'neon_survivor_friends_stable_v37';
+        let current = [];
+        try { current = JSON.parse(localStorage.getItem(FRIEND_KEY_V37) || '[]'); } catch(e) {}
+        current = current.filter(r => r.name !== name);
+        try { localStorage.setItem(FRIEND_KEY_V37, JSON.stringify(current)); } catch(e) {}
+        
+        let u = (typeof userData !== 'undefined') ? userData : null;
+        if (!u) { try { u = JSON.parse(localStorage.getItem('neon_survivor_save')); } catch(e) {} }
+        if (u) {
+            if (u.leaderboards && u.leaderboards.friends) u.leaderboards.friends = u.leaderboards.friends.filter(r => r.name !== name);
+            if (u.friendBook && u.friendBook.friends) u.friendBook.friends = u.friendBook.friends.filter(r => r.name !== name);
+            try {
+                if (typeof saveData === 'function') saveData();
+                else localStorage.setItem('neon_survivor_save', JSON.stringify(u));
+            } catch(e) {}
+        }
+
+        // 再描画するために、見えないところでRANKINGボタンをもう一度押す
+        const openBtn = document.getElementById('openLeaderboardBtn');
+        if (openBtn) {
+            openBtn.click();
+        } else if (typeof renderRankingStableV37 === 'function') {
+            renderRankingStableV37();
+        }
+    };
+
+    // ランキング画面が描画されるたびに、自動的に「×」ボタンを差し込む
+    function observeLeaderboardForDeleteButtons() {
+        const observer = new MutationObserver(() => {
+            const rows = document.querySelectorAll('.nsv-v37-rank-row, .nsv-v13-rank-row, .nsv-v30-rank-row');
+            
+            rows.forEach(row => {
+                if (row.dataset.deleteWired === 'true') return;
+                row.dataset.deleteWired = 'true';
+                
+                const dateEl = row.querySelector('.text-xs.text-gray-400');
+                if (dateEl && dateEl.textContent === 'YOU') return; // 自分自身にはボタンを表示しない
+                
+                const nameEl = row.querySelector('b');
+                if (!nameEl) return;
+                const name = nameEl.textContent;
+
+                row.classList.add('relative', 'pr-8');
+                
+                const btn = document.createElement('button');
+                btn.className = 'delete-friend-btn absolute right-0 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-300 text-xl font-bold px-2 py-1 leading-none bg-transparent border-none cursor-pointer';
+                btn.innerHTML = '&times;';
+                btn.title = 'この友達を削除する';
+                
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation && e.stopImmediatePropagation();
+                    window.removeFriendV52(name);
+                });
+                
+                row.appendChild(btn);
+            });
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    function bootV52() {
+        enforceBadgeV52();
+        observeLeaderboardForDeleteButtons();
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV52, {once:true}); else bootV52();
+    setInterval(enforceBadgeV52, 1000);
+})();
+</script>
+
+<script>
+// V53: ネオンパスチケット価格の10倍化と全スキンの能力付与
+(() => {
+    const V53_TAG = 'V53 COST & SKINS';
+
+    function enforceBadgeV53() {
+        try {
+            if (!document.getElementById('nsvV53BadgeStyle')) {
+                const st = document.createElement('style');
+                st.id = 'nsvV53BadgeStyle';
+                st.textContent = `
+                    div[id$="Badge"]:not(#nsvFinalBadgeV53) { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+                    #nsvFinalBadgeV53 { display: block !important; opacity: 1 !important; position: fixed !important; left: 10px !important; bottom: 8px !important; z-index: 99999 !important; pointer-events: none !important; color: #fef08a !important; background: rgba(66,32,6,.9) !important; border: 1px solid rgba(250,204,21,.6) !important; border-radius: 999px !important; padding: 4px 9px !important; font: 900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif !important; letter-spacing: .08em !important; box-shadow: 0 0 13px rgba(250,204,21,.32) !important; }
+                `;
+                document.head.appendChild(st);
+            }
+
+            let badge = document.getElementById('nsvFinalBadgeV53');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'nsvFinalBadgeV53';
+                document.body.appendChild(badge);
+            }
+            badge.textContent = V53_TAG;
+        } catch(e) {}
+    }
+
+    function applySkinBonuses() {
+        if (typeof SKIN_BONUS_DEFS !== 'undefined') {
+            SKIN_BONUS_DEFS.classic = { label:'移動速度 +2% / 経験値 +2%', speedMult:1.02, expMult:1.02 };
+            SKIN_BONUS_DEFS.n1_skin_runner = { label:'移動速度 +4% / 連射速度 +2%', speedMult:1.04, fireRateMult:0.98 };
+            SKIN_BONUS_DEFS.n1_sp_skin_galaxy = { label:'移動速度 +6% / 連射速度 +4%', speedMult:1.06, fireRateMult:0.96 };
+        }
+    }
+
+    function applyNewShopTicketCost() {
+        if (typeof window.renderShopStableV37 !== 'undefined') {
+            window.renderShopStableV37 = function(force = false) {
+                if (window.shopRenderLockV37) return;
+                window.shopRenderLockV37 = true;
+                try {
+                    const u = (typeof ensureUserV37 === 'function') ? ensureUserV37() : userData;
+                    let div = document.getElementById('shopScreen');
+                    if (!div) {
+                        div = document.createElement('div');
+                        div.id = 'shopScreen';
+                        div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3';
+                        document.body.appendChild(div);
+                    }
+                    if (!force && div.classList.contains('hidden')) return;
+                    
+                    const coins = Math.floor(Number(u?.coins) || 0);
+                    const tickets = Math.floor(Number(u?.passTickets) || 0);
+                    const premium = !!(u?.battlePassV2?.premium || u?.battlePass?.premium);
+                    const PASS_TICKET_COST = 1000000; // 100万コイン (元の10倍)
+                    
+                    div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4">
+                        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+                            <div>
+                                <h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">GAME SHOP</h2>
+                                <p class="text-gray-300 text-sm mt-2">銀コインをチケットやパスに使えます。</p>
+                            </div>
+                            <button id="closeShopBtnV43" class="btn-neon px-4 py-2 rounded font-bold">BACK</button>
+                        </div>
+                        
+                        <div class="flex flex-wrap items-center justify-center gap-8 bg-black/60 border border-yellow-400/50 rounded-2xl p-5 shadow-[0_0_20px_rgba(250,204,21,0.2)]">
+                            <div class="text-center">
+                                <div class="text-sm text-yellow-400 font-bold tracking-widest mb-1">所持コイン</div>
+                                <div class="text-3xl md:text-4xl font-black text-yellow-200">🪙 ${coins.toLocaleString()}</div>
+                            </div>
+                            <div class="w-px h-16 bg-gray-600/50 hidden md:block"></div>
+                            <div class="text-center">
+                                <div class="text-sm text-cyan-400 font-bold tracking-widest mb-1">所持チケット</div>
+                                <div class="text-3xl md:text-4xl font-black text-cyan-200">🎟️ ${tickets.toLocaleString()}</div>
+                            </div>
+                        </div>
+    
+                        <div id="shopListContainer" class="nsv-v37-shop-grid">
+                            <div class="nsv-v37-shop-card flex flex-col justify-between">
+                                <div>
+                                    <div class="text-5xl mb-2">🎟️</div>
+                                    <h3 class="text-2xl font-bold text-yellow-300">バトルパスチケット</h3>
+                                    <p class="text-sm text-gray-300 mt-2">価格はいつでも固定です。</p>
+                                    <p class="text-xl font-black text-yellow-200 mt-3">必要コイン：${PASS_TICKET_COST.toLocaleString()}</p>
+                                </div>
+                                <button id="buyPassTicketBtnV43" class="btn-gold px-5 py-3 rounded font-bold mt-4 w-full ${coins >= PASS_TICKET_COST ? '' : 'opacity-50'}">チケットを1枚交換</button>
+                            </div>
+                            <div class="nsv-v37-shop-card flex flex-col justify-between">
+                                <div>
+                                    <div class="text-5xl mb-2">⭐</div>
+                                    <h3 class="text-2xl font-bold text-cyan-300">NEON PASS</h3>
+                                    <p class="text-sm text-gray-300 mt-2">チケット1枚で現在のパスを購入できます。</p>
+                                    <p class="text-sm text-gray-300 mt-3">状態：<b class="${premium ? 'text-green-300' : 'text-gray-300'}">${premium ? '購入済み' : '未購入'}</b></p>
+                                </div>
+                                <div>
+                                    <button id="buyNeonPassBtnV43" class="btn-neon px-5 py-3 rounded font-bold mt-4 w-full ${(tickets > 0 && !premium) ? '' : 'opacity-50'}">NEON PASSを購入</button>
+                                    <button id="openPassFromShopBtnV43" class="btn-purple px-5 py-3 rounded font-bold mt-3 w-full">NEON PASSを見る</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+    
+                    const oldHeaders = div.querySelectorAll('#nsvV13ShopCoinHeader, #nsvV30ShopCoinHeader');
+                    oldHeaders.forEach(el => el.remove());
+    
+                    document.getElementById('closeShopBtnV43')?.addEventListener('click', () => {
+                        if (typeof stableShowV37 === 'function') stableShowV37('startScreen');
+                        else if (typeof showScreen === 'function') showScreen('startScreen');
+                    });
+                    document.getElementById('buyPassTicketBtnV43')?.addEventListener('click', () => {
+                        if (Number(u.coins || 0) < PASS_TICKET_COST) { alert('コインが足りません。'); return; }
+                        u.coins = Math.floor(Number(u.coins) - PASS_TICKET_COST);
+                        u.passTickets = Math.floor(Number(u.passTickets || 0) + 1);
+                        if (typeof saveNowV37 === 'function') saveNowV37();
+                        else if (typeof saveData === 'function') saveData();
+                        window.renderShopStableV37(true);
+                    });
+                    document.getElementById('buyNeonPassBtnV43')?.addEventListener('click', () => {
+                        const already = !!(u.battlePassV2?.premium || u.battlePass?.premium);
+                        if (already) { alert('すでに購入済みです。'); return; }
+                        if (Number(u.passTickets || 0) <= 0) { alert('チケットが足りません。'); return; }
+                        u.passTickets = Math.floor(Number(u.passTickets) - 1);
+                        u.battlePassV2 = u.battlePassV2 || {}; u.battlePassV2.premium = true;
+                        u.battlePass = u.battlePass || {}; u.battlePass.premium = true;
+                        if (typeof saveNowV37 === 'function') saveNowV37();
+                        else if (typeof saveData === 'function') saveData();
+                        window.renderShopStableV37(true);
+                    });
+                    document.getElementById('openPassFromShopBtnV43')?.addEventListener('click', () => {
+                        if (typeof renderBattlePassV2 === 'function') renderBattlePassV2('base');
+                        if (typeof stableShowV37 === 'function') stableShowV37('battlePassScreen');
+                        else if (typeof showScreen === 'function') showScreen('battlePassScreen');
+                    });
+                } catch(e) {}
+                finally { window.shopRenderLockV37 = false; }
+            };
+            window.renderShopV2 = window.renderShopStableV37;
+            window.renderShopScreen20260504 = window.renderShopStableV37;
+        }
+    }
+
+    function bootV53() {
+        enforceBadgeV53();
+        applySkinBonuses();
+        applyNewShopTicketCost();
+        
+        // 開いている可能性のある画面を更新
+        const collectionScreen = document.getElementById('collectionScreen');
+        if (collectionScreen && !collectionScreen.classList.contains('hidden')) {
+            if (typeof renderCollectionScreen === 'function') renderCollectionScreen();
+        }
+        const shopScreen = document.getElementById('shopScreen');
+        if (shopScreen && !shopScreen.classList.contains('hidden')) {
+            if (typeof window.renderShopStableV37 === 'function') window.renderShopStableV37(true);
+        }
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV53, {once:true}); else bootV53();
+    setInterval(enforceBadgeV53, 1000);
+})();
+</script>
+
 </body>
 </html>
