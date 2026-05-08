@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V40 NO EVENT BUTTON STABLE / no-preview build -->
+<!-- V41 CHEAT PAUSE STABLE / no-preview build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -12133,7 +12133,18 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 const run = (ev) => { if (ev) { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); } applyCheatCodeV30(input.value); input.value=''; };
                 input.addEventListener('input', () => { input.value = input.value.replace(/\D/g,'').slice(0,7); });
                 input.addEventListener('keydown', e => { if (e.key === 'Enter') run(e); });
-                btn.addEventListener('pointerup', run, { passive:false }); btn.addEventListener('click', run, { passive:false });
+                let lastCheatRunAt = 0;
+                const safeRun = (ev) => {
+                    const now = Date.now();
+                    if (ev && ev.type === 'click' && now - lastCheatRunAt < 450) {
+                        ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.();
+                        return;
+                    }
+                    lastCheatRunAt = now;
+                    run(ev);
+                };
+                btn.addEventListener('pointerup', safeRun, { passive:false });
+                btn.addEventListener('click', safeRun, { passive:false });
                 return box;
             }
 
@@ -13381,7 +13392,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
 
         ;(() => {
-            const V35_TAG = 'V40 NO EVENT BUTTON STABLE';
+            const V35_TAG = 'V41 CHEAT PAUSE STABLE';
             const PASS_TICKET_COST_V35 = 100000;
             const q35 = (id) => document.getElementById(id);
             const n35 = (v, d = 0) => { const x = Number(v); return Number.isFinite(x) ? x : d; };
@@ -13834,7 +13845,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         // V37: stable home layout / stable shop / persistent friend ranking
         // ==========================================
         (() => {
-            const V37_TAG = 'V40 NO EVENT BUTTON STABLE';
+            const V37_TAG = 'V41 CHEAT PAUSE STABLE';
             const PASS_TICKET_COST_V37 = 100000;
             const FRIEND_KEY_V37 = 'neon_survivor_friends_stable_v37';
             const FRIEND_KEYS_OLD_V37 = ['neon_survivor_friend_rows_v30','neon_survivor_friend_rows_v26','neon_survivor_friends_v13','neon_survivor_friend_rows'];
@@ -14173,7 +14184,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         // V39: online room matching by 3-digit code / max 7 players
         // ==========================================
         ;(() => {
-            const V39_TAG = 'V40 NO EVENT BUTTON STABLE';
+            const V39_TAG = 'V41 CHEAT PAUSE STABLE';
             const ROOM_STORAGE_KEY_V39 = 'neon_survivor_online_room_v38';
             const ROOM_COLLECTION_NAME_V39 = 'neon_survivor_rooms_v38';
             const ROOM_CODE_LENGTH_V39 = 3;
@@ -14637,6 +14648,49 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   }
   window.addEventListener('load', removeHomeEventButtonsV40, { once: true });
 })();
+
+
+        ;(() => {
+            const V41_TAG = 'V41 CHEAT PAUSE STABLE';
+            const q41 = (s) => document.querySelector(s);
+            const all41 = (s) => Array.from(document.querySelectorAll(s));
+            function markV41(){
+                try {
+                    const ids = ['nsvV30Badge','nsvV31Badge','nsvV33Badge','nsvV34Badge'];
+                    ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = V41_TAG; });
+                } catch(e) {}
+            }
+            function patchCheatBoxesV41(){
+                try {
+                    all41('.nsv-v30-cheat, .nsv-v13-cheat-box').forEach(box => {
+                        if (box.dataset.v41CheatFixed === '1') return;
+                        box.dataset.v41CheatFixed = '1';
+                        const input = box.querySelector('input');
+                        const btn = box.querySelector('button');
+                        if (!input || !btn) return;
+                        input.addEventListener('input', () => { input.value = String(input.value || '').replace(/\D/g, '').slice(0, 7); }, { passive:true });
+                    });
+                } catch(e) {}
+            }
+            // Capture phase guard: prevents old pointerup+click handlers from running twice after the code was already applied.
+            let lastBtn = null, lastAt = 0;
+            window.addEventListener('click', (ev) => {
+                try {
+                    const btn = ev.target && ev.target.closest && ev.target.closest('.nsv-v30-cheat button, .nsv-v13-cheat-box button');
+                    if (!btn) return;
+                    const now = Date.now();
+                    if (btn === lastBtn && now - lastAt < 600) {
+                        ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation && ev.stopImmediatePropagation();
+                        return;
+                    }
+                    lastBtn = btn; lastAt = now;
+                } catch(e) {}
+            }, true);
+            function bootV41(){ markV41(); patchCheatBoxesV41(); }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV41, {once:true}); else bootV41();
+            window.addEventListener('pageshow', bootV41, {passive:true});
+            setInterval(bootV41, 1500);
+        })();
 </script>
 
 </body>
