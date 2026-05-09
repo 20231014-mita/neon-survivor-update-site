@@ -1,15 +1,29 @@
 <!DOCTYPE html>
-<!-- V75 COLLECTION / BADGE STABLE / no-preview build -->
+<!-- V77 START / BUTTON STABLE / no-preview build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Neon Survivor</title>
-    <script src="https://cdn.tailwindcss.com" defer></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com" async onerror="document.documentElement.dataset.tailwind='off'"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <style>
         body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Noto Sans JP', sans-serif; touch-action: none; user-select: none; }
+        /* V77: minimal Tailwind-like fallback so the page still works if CDN is slow/blocked. */
+        .hidden{display:none!important}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.relative{position:relative}.absolute{position:absolute}.fixed{position:fixed}.inset-0{inset:0}.z-10{z-index:10}.z-30{z-index:30}.z-40{z-index:40}.z-50{z-index:50}.z-\[55\]{z-index:55}.z-\[56\]{z-index:56}.z-\[57\]{z-index:57}.z-\[70\]{z-index:70}.z-\[100\]{z-index:100}
+        .pointer-events-none{pointer-events:none}.pointer-events-auto{pointer-events:auto}.cursor-pointer{cursor:pointer}.touch-none{touch-action:none}.select-none{user-select:none}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.text-center{text-align:center}.text-right{text-align:right}.font-bold{font-weight:700}.font-black{font-weight:900}.italic{font-style:italic}.tracking-wider{letter-spacing:.05em}.tracking-widest{letter-spacing:.1em}.whitespace-nowrap{white-space:nowrap}
+        .flex-col{flex-direction:column}.flex-row{flex-direction:row}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.justify-end{justify-content:flex-end}.gap-1{gap:.25rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}
+        .grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.w-full{width:100%}.h-full{height:100%}.h-2{height:.5rem}.h-3{height:.75rem}.h-4{height:1rem}.h-6{height:1.5rem}.h-8{height:2rem}.w-6{width:1.5rem}.w-8{width:2rem}.w-12{width:3rem}.h-12{height:3rem}.w-14{width:3.5rem}.w-32{width:8rem}.h-32{height:8rem}.max-w-xs{max-width:20rem}.max-w-xl{max-width:36rem}.max-w-2xl{max-width:42rem}.max-w-4xl{max-width:56rem}.mx-auto{margin-left:auto;margin-right:auto}
+        .p-1{padding:.25rem}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.px-7{padding-left:1.75rem;padding-right:1.75rem}.px-8{padding-left:2rem;padding-right:2rem}.px-10{padding-left:2.5rem;padding-right:2.5rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-5{padding-top:1.25rem;padding-bottom:1.25rem}.py-8{padding-top:2rem;padding-bottom:2rem}.py-10{padding-top:2.5rem;padding-bottom:2.5rem}
+        .m-0{margin:0}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mt-6{margin-top:1.5rem}.mt-8{margin-top:2rem}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}
+        .rounded{border-radius:.25rem}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.rounded-full{border-radius:9999px}.rounded-sm{border-radius:.125rem}.border{border-width:1px}.border-2{border-width:2px}.border-4{border-width:4px}.border-y-4{border-top-width:4px;border-bottom-width:4px}.border-cyan-500{border-color:#06b6d4}.border-yellow-500{border-color:#eab308}.border-red-500{border-color:#ef4444}.border-gray-500{border-color:#6b7280}.border-gray-600{border-color:#4b5563}.border-red-800{border-color:#991b1b}.border-blue-500{border-color:#3b82f6}.border-green-500{border-color:#22c55e}
+        .bg-black\/50{background:rgba(0,0,0,.5)}.bg-black\/70{background:rgba(0,0,0,.7)}.bg-black\/78{background:rgba(0,0,0,.78)}.bg-black\/85{background:rgba(0,0,0,.85)}.bg-black\/90{background:rgba(0,0,0,.9)}.bg-black\/92{background:rgba(0,0,0,.92)}.bg-gray-800{background:#1f2937}.bg-gray-900\/80{background:rgba(17,24,39,.8)}.bg-red-900\/80{background:rgba(127,29,29,.8)}.bg-red-900\/50{background:rgba(127,29,29,.5)}.bg-blue-900{background:#1e3a8a}.bg-green-900{background:#14532d}.bg-gray-600{background:#4b5563}.bg-white{background:#fff}.bg-cyan-400\/90{background:rgba(34,211,238,.9)}.bg-red-500{background:#ef4444}.bg-cyan-400{background:#22d3ee}.bg-red-600{background:#dc2626}.bg-gray-800\/60{background:rgba(31,41,55,.6)}
+        .text-white{color:#fff}.text-black{color:#000}.text-gray-200{color:#e5e7eb}.text-gray-300{color:#d1d5db}.text-gray-400{color:#9ca3af}.text-cyan-100{color:#cffafe}.text-cyan-200{color:#a5f3fc}.text-cyan-300{color:#67e8f9}.text-cyan-400{color:#22d3ee}.text-cyan-500{color:#06b6d4}.text-yellow-100{color:#fef9c3}.text-yellow-200{color:#fef08a}.text-yellow-300{color:#fde047}.text-yellow-400{color:#facc15}.text-blue-200{color:#bfdbfe}.text-blue-500{color:#3b82f6}.text-green-200{color:#bbf7d0}.text-green-300{color:#86efac}.text-red-300{color:#fca5a5}.text-red-400{color:#f87171}.text-red-500{color:#ef4444}.text-purple-300{color:#d8b4fe}
+        .text-xs{font-size:.75rem}.text-sm{font-size:.875rem}.text-base{font-size:1rem}.text-lg{font-size:1.125rem}.text-xl{font-size:1.25rem}.text-2xl{font-size:1.5rem}.text-3xl{font-size:1.875rem}.text-4xl{font-size:2.25rem}.text-5xl{font-size:3rem}.text-6xl{font-size:3.75rem}.text-7xl{font-size:4.5rem}.text-8xl{font-size:6rem}.text-9xl{font-size:8rem}
+        .left-0{left:0}.top-0{top:0}.left-1\/2{left:50%}.top-16{top:4rem}.bottom-8{bottom:2rem}.right-8{right:2rem}.bottom-16{bottom:4rem}.right-16{right:4rem}.transform{transform:translateZ(0)}.-translate-x-1\/2{transform:translateX(-50%)}.translate-x-0{transform:translateX(0)}.translate-y-0{transform:translateY(0)}
+        .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}.opacity-50{opacity:.5}.animate-pulse{animation:pulse 1.6s cubic-bezier(.4,0,.6,1) infinite}@keyframes pulse{50%{opacity:.55}}.animate-bounce{animation:bounce 1s infinite}@keyframes bounce{0%,100%{transform:translateY(-25%)}50%{transform:none}}
+        @media (min-width:768px){.md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.md\:flex-row{flex-direction:row}.md\:items-end{align-items:flex-end}.md\:text-base{font-size:1rem}.md\:text-xl{font-size:1.25rem}.md\:text-2xl{font-size:1.5rem}.md\:text-4xl{font-size:2.25rem}.md\:text-5xl{font-size:3rem}.md\:text-6xl{font-size:3.75rem}.md\:text-7xl{font-size:4.5rem}.md\:text-8xl{font-size:6rem}.md\:text-9xl{font-size:8rem}.md\:bottom-16{bottom:4rem}.md\:right-16{right:4rem}}
         canvas { display: block; }
         .neon-text { color: #fff; text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #0ff, 0 0 40px #0ff, 0 0 80px #0ff; font-family: 'Orbitron', sans-serif; }
         .btn-neon { background: transparent; color: #0ff; border: 2px solid #0ff; box-shadow: 0 0 10px #0ff, inset 0 0 10px #0ff; transition: all 0.2s; }
@@ -360,9 +374,9 @@
             <h1 class="neon-title text-6xl md:text-7xl font-bold neon-text tracking-wider text-center">NEON<br>SURVIVOR</h1>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
                 <div class="bg-gray-900/80 p-4 rounded-xl border border-cyan-500/40">
-                    <label for="nicknameInput" class="block text-cyan-300 font-bold text-sm mb-2 tracking-wider">&#12491;&#12483;&#12463;&#12493;&#12540;&#12512; <span class="text-red-400">&#8251;&#24517;&#38920;</span></label>
+                    <label for="nicknameInput" class="block text-cyan-300 font-bold text-sm mb-2 tracking-wider">繝九ャ繧ｯ繝阪�繝� <span class="text-cyan-200">窶ｻ遨ｺ谺�↑繧臼LAYER</span></label>
                     <input id="nicknameInput" class="menu-input" maxlength="12" placeholder="" autocomplete="off">
-                    <p id="nicknameWarn" class="hidden text-red-300 text-xs mt-2">&#12491;&#12483;&#12463;&#12493;&#12540;&#12512;&#12434;&#20837;&#12428;&#12394;&#12356;&#12392;&#12466;&#12540;&#12512;&#38283;&#22987;&#12391;&#12365;&#12414;&#12379;&#12435;&#12290;</p>
+                    <p id="nicknameWarn" class="hidden text-red-300 text-xs mt-2">遨ｺ谺��蝣ｴ蜷医�PLAYER縺ｧ繧ｹ繧ｿ繝ｼ繝医＠縺ｾ縺吶�</p>
                     <p class="menu-help">&#21517;&#21069;&#12434;&#20837;&#12428;&#12427;&#12392;&#12473;&#12479;&#12540;&#12488;&#12391;&#12365;&#12414;&#12377;</p>
                 </div>
                 <div class="bg-gray-900/80 p-4 rounded-xl border border-yellow-500/40 flex flex-col justify-center">
@@ -2269,11 +2283,17 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         function requireNickname() {
             const input = document.getElementById('nicknameInput');
             const warn = document.getElementById('nicknameWarn');
-            const nick = getNickname();
+            let nick = getNickname();
+            // V77: 遨ｺ谺�〒豁｢縺ｾ繧峨↑縺�ｈ縺�↓縲∵悴蜈･蜉帙↑繧� PLAYER 縺ｧ髢句ｧ九＠縺ｾ縺吶�
             if (!nick) {
-                if (warn) warn.classList.remove('hidden');
-                if (input) { input.classList.add('border-red-500'); input.focus(); }
-                return false;
+                nick = 'PLAYER';
+                if (input) input.value = nick;
+                userData.nickname = nick;
+                try { localStorage.setItem('neon_survivor_nickname', nick); } catch(e) {}
+                if (warn) warn.classList.add('hidden');
+                if (input) input.classList.remove('border-red-500');
+                saveData();
+                return true;
             }
             if (warn) warn.classList.add('hidden');
             if (input) input.classList.remove('border-red-500');
@@ -17520,47 +17540,52 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   window.addEventListener('orientationchange', () => setTimeout(bootV73, 220), {passive:true});
   setTimeout(bootV73, 250);
   setTimeout(bootV73, 1200);
-  setInterval(bootV73, 1800);
+  // V77: avoid constant canvas reset loop; resize/orientation events are enough.
+  // setInterval(bootV73, 1800);
   window.NEON_SURVIVOR_V73_PLAYFIELD_STABLE = { boot: bootV73, syncCanvas: syncCanvasV73, cleanBadge: cleanBadgeV73 };
 })();
 </script>
 
 
 
-<script id="nsvV74FinalDomGuard">
-/* V74 final DOM guard: single visible badge + fixed menus. No preview. */
+<script id="nsvV77DomGuard">
+/* ===== V77 DOM GUARD: no freeze / one visible badge / no-preview build ===== */
 (() => {
   'use strict';
-  const TAG = 'V75 COLLECTION / BADGE STABLE';
+  const TAG = 'V77 START / BUTTON STABLE';
   const $ = (id) => document.getElementById(id);
-  function style(){
-    if ($('nsvV74FinalStyle')) return;
-    const s = document.createElement('style');
-    s.id = 'nsvV74FinalStyle';
-    s.textContent = `
-      #nsvV74Badge{position:fixed!important;left:10px!important;bottom:8px!important;z-index:1000003!important;pointer-events:none!important;color:#bbf7d0!important;background:rgba(2,6,23,.94)!important;border:1px solid rgba(52,211,153,.72)!important;border-radius:999px!important;padding:4px 11px!important;font:900 11px/1.2 Orbitron,'Noto Sans JP',monospace!important;letter-spacing:.08em!important;box-shadow:0 0 13px rgba(16,185,129,.38)!important;white-space:nowrap!important;}
-      #nsvV72Badge,#nsvV73Badge,#nsvV70Badge,#nsvV63Badge,#nsvV59Badge,#nsvV37Badge,#nsvV35Badge,#nsvV34Badge,#nsvV33Badge,#nsvV31Badge,#nsvV30Badge,#nsvV13Badge,.nsv-v59-badge,.nsv-v63-badge{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}
+  function installStyle(){
+    if ($('nsvV77DomGuardStyle')) return;
+    const st = document.createElement('style');
+    st.id = 'nsvV77DomGuardStyle';
+    st.textContent = `
+      body [id*="Badge"]:not(#nsvV77Badge), body .nsv-v59-badge, body .nsv-v63-badge{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}
+      #nsvV77Badge{position:fixed!important;left:10px!important;bottom:8px!important;z-index:1000010!important;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:none!important;color:#bbf7d0!important;background:rgba(2,6,23,.95)!important;border:1px solid rgba(52,211,153,.75)!important;border-radius:999px!important;padding:4px 11px!important;font:900 11px/1.2 Orbitron,'Noto Sans JP',monospace!important;letter-spacing:.08em!important;box-shadow:0 0 13px rgba(16,185,129,.38)!important;white-space:nowrap!important;}
+      #pausePanel #nsvV30WeaponStatus{display:none!important;}
       #shopScreen:not(.hidden),#collectionScreen:not(.hidden),#leaderboardScreen:not(.hidden){display:flex!important;pointer-events:auto!important;}
       #shopScreen .menu-panel,#collectionScreen .menu-panel,#leaderboardScreen .menu-panel{max-height:94vh!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;}
-      #pausePanel #nsvV30WeaponStatus{display:none!important;}
     `;
-    document.head.appendChild(s);
+    document.head.appendChild(st);
   }
   function clean(){
     try {
-      style();
-      document.querySelectorAll('[id*="Badge"],.nsv-v59-badge,.nsv-v63-badge').forEach(el => { if (el.id !== 'nsvV74Badge') el.remove(); });
-      let b = $('nsvV74Badge');
-      if (!b) { b = document.createElement('div'); b.id = 'nsvV74Badge'; document.body.appendChild(b); }
-      b.textContent = TAG;
-      const mini = document.querySelector('#pausePanel .nsv-pause-mini'); if (mini) mini.textContent = 'V74 PAUSE STABLE';
+      installStyle();
+      let b = $('nsvV77Badge');
+      if (!b) { b = document.createElement('div'); b.id = 'nsvV77Badge'; document.body.appendChild(b); }
+      if (b.textContent !== TAG) b.textContent = TAG;
+      const mini = document.querySelector('#pausePanel .nsv-pause-mini');
+      if (mini && mini.textContent !== 'V77 PAUSE STABLE') mini.textContent = 'V77 PAUSE STABLE';
       const weapon = $('nsvV30WeaponStatus'); if (weapon) weapon.style.display = 'none';
     } catch(e) {}
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', clean, {once:true}); else clean();
   window.addEventListener('load', clean, {passive:true});
   window.addEventListener('pageshow', clean, {passive:true});
-  setTimeout(clean, 120); setTimeout(clean, 1000); setInterval(clean, 1200);
+  document.addEventListener('click', () => setTimeout(clean, 80), true);
+  [100, 700, 1600, 3200].forEach(ms => setTimeout(clean, ms));
+  // Older patches can recreate old badges, so a light safety check remains.
+  setInterval(clean, 5000);
+  window.NEON_SURVIVOR_V77_DOM_GUARD = { clean };
 })();
 </script>
 
@@ -17636,8 +17661,13 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true}); else boot();
   window.addEventListener('load', boot, {passive:true});
   window.addEventListener('pageshow', boot, {passive:true});
-  try { new MutationObserver(() => { oneBadge(); fixCollectionText(); }).observe(document.body, {childList:true, subtree:true}); } catch(e) {}
-  setTimeout(boot, 100); setTimeout(boot, 600); setTimeout(boot, 1600); setInterval(boot, 500);
+  // V77: MutationObserver + 0.5s interval caused heavy loops on iPad/Safari.
+  document.addEventListener('click', (e) => {
+    if (e.target && e.target.closest && e.target.closest('#openCollectionBtn,#openPassFromShopBtnV37,#openPassFromShopBtn,#closeCollectionBtn')) {
+      setTimeout(boot, 80); setTimeout(boot, 260);
+    }
+  }, true);
+  setTimeout(boot, 100); setTimeout(boot, 600); setTimeout(boot, 1600);
   window.NEON_SURVIVOR_V75_COLLECTION_BADGE_STABLE = { boot, oneBadge, fixCollectionText };
 })();
 </script>
@@ -17667,8 +17697,9 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
   function setButtonHTML(btn, html, cls){
     if (!btn) return;
-    btn.innerHTML = html;
-    btn.classList.add(...cls.split(' ').filter(Boolean));
+    // V77: same HTML is not rewritten, so observers/layout will not loop.
+    if (btn.innerHTML !== html) btn.innerHTML = html;
+    cls.split(' ').filter(Boolean).forEach(c => { if (!btn.classList.contains(c)) btn.classList.add(c); });
     btn.dataset.nsvV76Label = 'fixed';
   }
 
@@ -17698,10 +17729,53 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true}); else boot();
   window.addEventListener('load', boot, {passive:true});
   window.addEventListener('pageshow', boot, {passive:true});
-  try { new MutationObserver(boot).observe(document.body, {childList:true, subtree:true}); } catch(e) {}
+  // V77: no MutationObserver / no 2s interval here. They caused the start screen to freeze.
+  document.addEventListener('click', () => setTimeout(boot, 80), true);
   [80, 250, 700, 1500, 3000, 6000].forEach(ms => setTimeout(boot, ms));
-  setInterval(boot, 2000);
   window.NEON_SURVIVOR_V76_BUTTON_LABEL_STABLE = { boot, unifyButtonLabelsV76 };
+})();
+</script>
+
+
+<script id="nsvV77StartButtonSafety">
+/* ===== V77 START BUTTON SAFETY: tap once / nickname fallback / no preview ===== */
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  function ensureNickname(){
+    try {
+      const input = $('nicknameInput');
+      let nick = String((input && input.value) || localStorage.getItem('neon_survivor_nickname') || 'PLAYER').trim().slice(0,12) || 'PLAYER';
+      if (input && !input.value.trim()) input.value = nick;
+      localStorage.setItem('neon_survivor_nickname', nick);
+      const warn = $('nicknameWarn'); if (warn) warn.classList.add('hidden');
+      return nick;
+    } catch(e) { return 'PLAYER'; }
+  }
+  function makeButtonsTouchable(){
+    try {
+      document.querySelectorAll('button').forEach(btn => {
+        btn.style.touchAction = 'manipulation';
+        if (!btn.dataset.nsvV77TouchGuard) {
+          btn.dataset.nsvV77TouchGuard = '1';
+          btn.addEventListener('touchend', (e) => {
+            // iPad Safari sometimes delays click. This keeps one-tap response without double firing.
+            if (btn.disabled) return;
+            const now = Date.now();
+            if (Number(btn.dataset.nsvLastTap || 0) && now - Number(btn.dataset.nsvLastTap || 0) < 350) return;
+            btn.dataset.nsvLastTap = String(now);
+          }, {passive:true});
+        }
+      });
+    } catch(e) {}
+  }
+  function boot(){ ensureNickname(); makeButtonsTouchable(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true}); else boot();
+  window.addEventListener('load', boot, {passive:true});
+  window.addEventListener('pageshow', boot, {passive:true});
+  document.addEventListener('click', boot, true);
+  [120, 700, 1800].forEach(ms => setTimeout(boot, ms));
+  window.NEON_SURVIVOR_V77_START_BUTTON_SAFETY = { boot, ensureNickname };
 })();
 </script>
 
