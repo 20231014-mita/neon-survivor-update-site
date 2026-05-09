@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V86 JAPANESE BUTTON TOUCH PERFECT STABLE / no-preview build -->
+<!-- V87 HOME TOUCH JAPANESE LOCKED STABLE / no-preview build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -255,6 +255,22 @@
         body.nsv-v86-auto-light-1 .cutin-base{animation-duration:1.8s!important} body.nsv-v86-auto-light-2 .cutin-base{animation-duration:1.3s!important} body.nsv-v86-auto-light-3 .cutin-base{animation-duration:1s!important}
         @media (max-width:720px){ #startScreen .menu-panel{width:96vw;padding:16px}.menu-grid{gap:12px}.nsv-v86-card{padding:12px} #startScreen button{min-height:56px} }
 
+
+
+        /* ===== V87: home touch / Japanese / vertical-only scroll final fix ===== */
+        html, body { width: 100%; max-width: 100%; overflow-x: hidden !important; overscroll-behavior-x: none; }
+        body { position: fixed; inset: 0; overflow: hidden !important; }
+        #startScreen { left: 0; right: 0; width: 100vw; max-width: 100vw; overflow-y: auto !important; overflow-x: hidden !important; -webkit-overflow-scrolling: touch; touch-action: pan-y !important; }
+        #startScreen .menu-panel { width: min(94vw, 920px) !important; max-width: calc(100vw - 24px) !important; overflow-x: hidden !important; box-sizing: border-box; }
+        #startScreen .menu-grid, #startScreen .grid { max-width: 100%; overflow-x: hidden; }
+        #startScreen button, #startScreen [role="button"], #startScreen label, #pauseScreen button, #pauseScreen label { pointer-events: auto !important; touch-action: manipulation !important; -webkit-tap-highlight-color: transparent; user-select: none; }
+        #startScreen button, #pauseScreen button { position: relative; z-index: 5; min-height: 54px; cursor: pointer; }
+        #startScreen input, #pauseScreen input { pointer-events: auto !important; touch-action: manipulation !important; }
+        #seasonLaunchIntro:not(.active) { display: none !important; pointer-events: none !important; }
+        #seasonLaunchIntro.nsv-v87-off { display: none !important; pointer-events: none !important; opacity: 0 !important; }
+        .nsv-v87-toggle-wrap { cursor: pointer; }
+        .nsv-v87-pressed { filter: brightness(1.35); transform: translateZ(0) scale(.995); }
+
 </style>
 </head>
 <body class="text-white">
@@ -331,7 +347,7 @@
                     <div class="text-yellow-300 font-bold text-xs tracking-[0.35em]">GAME MENU</div>
                     <h2 class="text-5xl md:text-6xl font-bold text-white tracking-widest neon-text" style="font-family: 'Orbitron', sans-serif;">PAUSED</h2>
                 </div>
-                <div class="nsv-pause-mini">V86 PERFECT MOBILE FIX</div>
+                <div class="nsv-pause-mini">V87 HOME TOUCH STABLE</div>
             </div>
 
             <div class="nsv-pause-grid">
@@ -11189,6 +11205,105 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
 
 
+
+
+        /* =========================================================
+           V87 EARLY TOUCH ROUTER / installed before older routers
+           ========================================================= */
+        (() => {
+            'use strict';
+            if (window.__nsvV87EarlyTouchRouter) return;
+            window.__nsvV87EarlyTouchRouter = true;
+            const $87e = (id) => document.getElementById(id);
+            const SCREEN_IDS_V87E = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen','onlineRoleScreen','onlineRoomScreen','levelUpScreen','gameOverScreen','pauseScreen','shopScreen','leaderboardScreen','battlePassScreen','eventModeScreen','dailyEventScreen','tutorialOverlay','presetScreenV86','achievementsScreenV86','bossCodexScreenV86','effectSettingsScreenV86','diagnosticScreenV86','dailyChallengeScreenV86'];
+            const lastTapV87E = new Map();
+            function safeV87E(fn){ try { if (typeof fn === 'function') return fn(); } catch(e) { console.warn('[V87 early] skipped:', e); } }
+            function hideIntroV87E(){ const intro=$87e('seasonLaunchIntro'); if(intro){ intro.classList.remove('active','closing'); intro.classList.add('nsv-v87-off'); intro.style.pointerEvents='none'; intro.style.display='none'; } }
+            function showOnlyV87E(id){
+                try {
+                    hideIntroV87E();
+                    const ids = Array.from(new Set(SCREEN_IDS_V87E.concat(Array.from(document.querySelectorAll('[id$="Screen"], #tutorialOverlay')).map(el => el.id))));
+                    ids.forEach(sid => { const el=$87e(sid); if(!el) return; if(sid===id){ el.classList.remove('hidden'); el.style.pointerEvents='auto'; } else { el.classList.add('hidden'); } });
+                    if (!id) return;
+                    if (id === 'startScreen') {
+                        if (typeof gameState !== 'undefined' && gameState !== 'playing') {
+                            $87e('uiLayer')?.classList.add('hidden');
+                            $87e('pauseScreen')?.classList.add('hidden');
+                            $87e('joystickZone')?.classList.add('hidden');
+                            $87e('bossWarning')?.classList.add('hidden');
+                            $87e('levelUpScreen')?.classList.add('hidden');
+                        }
+                        setTimeout(() => { try { window.nsvV87FinalBoot?.(); } catch(e) {} }, 0);
+                    }
+                } catch(e) { console.warn('[V87 early] showOnly failed', e); }
+            }
+            window.nsvShowScreenV87 = showOnlyV87E;
+            function routeV87E(id){
+                try {
+                    switch(id){
+                        case 'startBtn': if (typeof gameState === 'undefined' || (gameState !== 'playing' && gameState !== 'paused')) safeV87E(() => initGame('solo')); return true;
+                        case 'onlineStartBtn': if (typeof gameState === 'undefined' || (gameState !== 'playing' && gameState !== 'paused')) safeV87E(() => openOnlineRoleSelect()); return true;
+                        case 'openUpgradeBtn': safeV87E(() => renderUpgradeScreen()); showOnlyV87E('upgradeScreen'); return true;
+                        case 'closeUpgradeBtn': showOnlyV87E('startScreen'); return true;
+                        case 'openMissionBtn': safeV87E(() => renderMissionScreen()); showOnlyV87E('missionsScreen'); return true;
+                        case 'closeMissionsBtn': showOnlyV87E('startScreen'); return true;
+                        case 'claimAllMissionsBtn': safeV87E(() => claimAllMissions()); return true;
+                        case 'openCollectionBtn': safeV87E(() => renderCollectionScreen()); showOnlyV87E('collectionScreen'); return true;
+                        case 'closeCollectionBtn': showOnlyV87E('startScreen'); return true;
+                        case 'openWeaponCodexBtn': safeV87E(() => renderWeaponCodexScreen()); showOnlyV87E('weaponCodexScreen'); return true;
+                        case 'closeWeaponCodexBtn': showOnlyV87E('startScreen'); return true;
+                        case 'openShopBtn': safeV87E(() => (typeof renderShopV2 === 'function' ? renderShopV2() : typeof renderShopV59 === 'function' ? renderShopV59() : null)); showOnlyV87E('shopScreen'); return true;
+                        case 'openBattlePassBtn': safeV87E(() => (typeof renderBattlePassV2 === 'function' ? renderBattlePassV2('base') : typeof renderBattlePassFallbackV59 === 'function' ? renderBattlePassFallbackV59() : null)); showOnlyV87E('battlePassScreen'); return true;
+                        case 'openLeaderboardBtn': safeV87E(() => (typeof renderLeaderboard20260504 === 'function' ? renderLeaderboard20260504() : typeof renderLeaderboardV59 === 'function' ? renderLeaderboardV59() : null)); showOnlyV87E('leaderboardScreen'); return true;
+                        case 'openDailyEventBtn': case 'openEventModeBtn': safeV87E(() => (typeof renderDailyEventScreenV82 === 'function' ? renderDailyEventScreenV82() : typeof renderEventModeScreen20260504 === 'function' ? renderEventModeScreen20260504() : null)); showOnlyV87E('eventModeScreen'); return true;
+                        case 'pauseBtn': if (typeof gameState !== 'undefined' && (gameState === 'playing' || gameState === 'paused')) safeV87E(() => pauseAction()); return true;
+                        case 'resumeBtn': if (typeof gameState !== 'undefined' && gameState === 'paused') safeV87E(() => pauseAction()); return true;
+                        case 'titleFromPauseBtn': safeV87E(() => (typeof endRunAndReturnToMenu === 'function' ? endRunAndReturnToMenu() : showOnlyV87E('startScreen'))); return true;
+                        case 'restartBtn': if (typeof gameState !== 'undefined') gameState = 'start'; safeV87E(() => stopOnlineMode()); if (typeof selectedOnlineRoleId !== 'undefined') selectedOnlineRoleId = null; if (typeof currentOnlineRole !== 'undefined') currentOnlineRole = null; safeV87E(() => syncJoystickVisibility()); safeV87E(() => loadData()); showOnlyV87E('startScreen'); return true;
+                        case 'tutorialStartBtn': case 'tutorialSkipBtn': safeV87E(() => closeTutorialOverlay()); return true;
+                        case 'exportBtn': safeV87E(() => exportSaveCode()); return true;
+                        case 'importBtn': safeV87E(() => importSaveCode()); return true;
+                        case 'openPresetBtnV86': safeV87E(() => renderPresetScreenV86()); showOnlyV87E('presetScreenV86'); return true;
+                        case 'openAchievementsBtnV86': safeV87E(() => renderAchievementsV86()); showOnlyV87E('achievementsScreenV86'); return true;
+                        case 'openBossCodexBtnV86': safeV87E(() => renderBossCodexV86()); showOnlyV87E('bossCodexScreenV86'); return true;
+                        case 'openEffectSettingsBtnV86': safeV87E(() => renderEffectSettingsV86()); showOnlyV87E('effectSettingsScreenV86'); return true;
+                        case 'openDiagnosticsBtnV86': safeV87E(() => renderDiagnosticsV86()); showOnlyV87E('diagnosticScreenV86'); return true;
+                        case 'openDailyChallengeBtnV86': safeV87E(() => renderDailyChallengeV86()); showOnlyV87E('dailyChallengeScreenV86'); return true;
+                        default:
+                            if (id && id.startsWith('close') && (id.endsWith('V86') || id.includes('Shop') || id.includes('Leaderboard') || id.includes('BattlePass') || id.includes('Event'))) { showOnlyV87E('startScreen'); return true; }
+                    }
+                } catch(e) { console.warn('[V87 early] route failed:', id, e); showOnlyV87E('startScreen'); return true; }
+                return false;
+            }
+            window.nsvRouteButtonV87 = routeV87E;
+            function pointV87E(ev){ const t=ev.changedTouches?.[0] || ev.touches?.[0] || ev; return {x:t.clientX, y:t.clientY}; }
+            function buttonFromEventV87E(ev){
+                let btn = ev.target?.closest?.('button,[role="button"]');
+                if (btn) return btn;
+                try {
+                    const p=pointV87E(ev);
+                    const els = document.elementsFromPoint ? document.elementsFromPoint(p.x,p.y) : [];
+                    btn = els.find(el => el?.matches?.('button,[role="button"]')) || els.map(el => el?.closest?.('button,[role="button"]')).find(Boolean);
+                } catch(e) {}
+                return btn || null;
+            }
+            function earlyButtonHandlerV87E(ev){
+                try {
+                    if (ev.target?.closest?.('input, textarea, select') && !ev.target?.closest?.('.nsv-v83-cheat')) return;
+                    const btn = buttonFromEventV87E(ev);
+                    if (!btn || !btn.id) return;
+                    const now = Date.now();
+                    if (now - (lastTapV87E.get(btn.id) || 0) < 180) { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); return; }
+                    if (routeV87E(btn.id)) {
+                        lastTapV87E.set(btn.id, now);
+                        btn.classList.add('nsv-v87-pressed'); setTimeout(() => btn.classList.remove('nsv-v87-pressed'), 100);
+                        ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.();
+                    }
+                } catch(e) { console.warn('[V87 early] button event failed', e); }
+            }
+            ['pointerup','touchend','click'].forEach(type => window.addEventListener(type, earlyButtonHandlerV87E, {capture:true, passive:false}));
+        })();
+
         // V59: STABLE CORE\uFF08\u5B89\u5B9A\u6027\u30FB\u4FDD\u5B58\u30FB\u8868\u793A\u6574\u7406\u30FB\u5B89\u5168\u88C5\u7F6E\u3092\u672C\u4F53\u30B9\u30B3\u30FC\u30D7\u306B\u7D71\u5408\uFF09
         // ==========================================
         ;(() => {
@@ -12126,10 +12241,10 @@ const nowV71 = () => (typeof performance !== 'undefined' && performance.now) ? p
 
 /* V84 CLEANUP: removed obsolete V74 button router because V84 owns one-tap routing now. */
 
-/* ===== V86 PERFECT MOBILE FIX: integrated cleanup / no extra patch script tag ===== */
+/* ===== V87 HOME TOUCH STABLE: integrated cleanup / no extra patch script tag ===== */
 (function neonSurvivorV82MobileStable(){
   'use strict';
-  const BUILD_V82 = 'V86 PERFECT MOBILE FIX';
+  const BUILD_V82 = 'V87 HOME TOUCH STABLE';
   const DAILY_LIMIT_V82 = 5;
   const SCREEN_IDS_V82 = [
     'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen',
@@ -12856,14 +12971,14 @@ window.NEON_SURVIVOR_CHEAT_CODES_V83 = Object.keys(CHEATS_V83);
 
 
 /* =========================================================
-   V86 PERFECT MOBILE FIX / unused-code cleanup
+   V87 HOME TOUCH STABLE / unused-code cleanup
    ========================================================= */
 (() => {
   'use strict';
   const PATCH_ID = 'nsvV85DeadCodeCleanStable20260509';
   if (window[PATCH_ID]) return;
   window[PATCH_ID] = true;
-  const BUILD = 'V86 PERFECT MOBILE FIX';
+  const BUILD = 'V87 HOME TOUCH STABLE';
   const SCREEN_IDS = [
     'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen',
     'onlineRoomScreen','onlineRoleScreen','leaderboardScreen','eventModeScreen','dailyEventScreen',
@@ -13072,10 +13187,10 @@ window.NEON_SURVIVOR_CHEAT_CODES_V83 = Object.keys(CHEATS_V83);
 
 
 
-/* ===== V86 PERFECT MOBILE FIX: Japanese / buttons / toggles / feature screens ===== */
+/* ===== V87 HOME TOUCH STABLE: Japanese / buttons / toggles / feature screens ===== */
 (function neonSurvivorV86PerfectMobileFix(){
   'use strict';
-  const V86_TAG = 'V86 PERFECT MOBILE FIX';
+  const V86_TAG = 'V87 HOME TOUCH STABLE';
   const BASE_SCREENS_V86 = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen','shopScreen','leaderboardScreen','battlePassScreen','eventModeScreen','presetScreenV86','achievementsScreenV86','bossCodexScreen','bossCodexScreenV86','effectSettingsScreenV86','diagnosticScreenV86','dailyChallengeScreenV86'];
   const $86 = (id) => document.getElementById(id);
   const esc86 = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -13565,6 +13680,146 @@ window.NEON_SURVIVOR_CHEAT_CODES_V83 = Object.keys(CHEATS_V83);
   setInterval(bootV86, 7000);
   requestAnimationFrame(monitorV86);
   window.NEON_SURVIVOR_V86 = { tag:V86_TAG, boot:bootV86, route:routeV86, diagnose:renderDiagnosticsV86, preset:applyPresetV86 };
+})();
+
+
+
+/* =========================================================
+   V87 FINAL HOME TOUCH / JAPANESE / SCROLL LOCK FIX
+   ========================================================= */
+(() => {
+  'use strict';
+  if (window.__nsvV87FinalFixInstalled) return;
+  window.__nsvV87FinalFixInstalled = true;
+  const BUILD_V87 = 'V87 HOME TOUCH STABLE';
+  const $87 = (id) => document.getElementById(id);
+  const qsa87 = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const screenIdsV87 = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen','onlineRoleScreen','onlineRoomScreen','leaderboardScreen','eventModeScreen','dailyEventScreen','levelUpScreen','gameOverScreen','pauseScreen','shopScreen','battlePassScreen','tutorialOverlay','presetScreenV86','achievementsScreenV86','bossCodexScreenV86','effectSettingsScreenV86','diagnosticScreenV86','dailyChallengeScreenV86'];
+  const mojibakeReV87 = /[\u7e5d\u7e3a\u8b41\u873f\u8373\u7d56\u83a8\u8763\u9a5f\u9b1a\u96b1\u7d93\u7df4\u7d7d\u7cf8\ufffd]/;
+  const lastToggleV87 = new Map();
+  function safe87(fn, fallback){ try { if (typeof fn === 'function') return fn(); } catch(e) { console.warn('[V87] skipped:', e); } return fallback; }
+  function installStyleV87(){
+    if ($87('nsvV87FinalStyle')) return;
+    const st=document.createElement('style'); st.id='nsvV87FinalStyle';
+    st.textContent = `
+      html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important;overscroll-behavior-x:none!important;}
+      body{position:fixed!important;inset:0!important;overflow:hidden!important;}
+      #startScreen{width:100vw!important;max-width:100vw!important;left:0!important;right:0!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;align-items:flex-start!important;padding-top:18px!important;box-sizing:border-box!important;}
+      #startScreen .menu-panel{width:min(94vw,920px)!important;max-width:calc(100vw - 24px)!important;overflow-x:hidden!important;box-sizing:border-box!important;margin-left:auto!important;margin-right:auto!important;}
+      #startScreen .menu-grid{width:100%!important;max-width:100%!important;overflow-x:hidden!important;}
+      #startScreen button,#pauseScreen button,#startScreen label,#pauseScreen label{pointer-events:auto!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important;position:relative!important;z-index:10!important;}
+      #startScreen button,#pauseScreen button{min-height:54px!important;cursor:pointer!important;}
+      #startScreen input,#pauseScreen input{pointer-events:auto!important;touch-action:manipulation!important;}
+      #seasonLaunchIntro.nsv-v87-off,#seasonLaunchIntro:not(.active){display:none!important;pointer-events:none!important;opacity:0!important;}
+      .nsv-v87-toggle{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;}
+      .nsv-v87-switch{width:3.5rem!important;height:2rem!important;border-radius:9999px!important;background:#4b5563!important;position:relative!important;flex:0 0 auto!important;box-shadow:inset 0 0 8px rgba(0,0,0,.5);}
+      .nsv-v87-switch::after{content:'';position:absolute;left:4px;top:4px;width:1.5rem;height:1.5rem;border-radius:9999px;background:white;transition:transform .16s ease;box-shadow:0 2px 8px rgba(0,0,0,.45);}
+      .nsv-v87-toggle[data-on="1"] .nsv-v87-switch{background:#06b6d4!important;box-shadow:0 0 14px rgba(6,182,212,.65), inset 0 0 8px rgba(0,0,0,.25);}
+      .nsv-v87-toggle[data-on="1"] .nsv-v87-switch::after{transform:translateX(1.5rem);}
+      #nsvV87Badge{position:fixed;left:10px;bottom:8px;z-index:1000010;pointer-events:none;color:#bbf7d0;background:rgba(2,6,23,.95);border:1px solid rgba(52,211,153,.72);border-radius:999px;padding:4px 11px;font:900 11px/1.2 Orbitron,'Noto Sans JP',sans-serif;letter-spacing:.08em;box-shadow:0 0 13px rgba(16,185,129,.38);white-space:nowrap;}
+      @media(max-width:720px){#startScreen .menu-panel{max-width:calc(100vw - 16px)!important}.menu-secondary{min-height:72px!important}#nsvV87Badge{font-size:10px;left:8px;bottom:6px}}
+    `;
+    document.head.appendChild(st);
+  }
+  function hideIntroV87(){ const intro=$87('seasonLaunchIntro'); if(intro){ intro.classList.remove('active','closing'); intro.classList.add('nsv-v87-off'); intro.style.display='none'; intro.style.pointerEvents='none'; } }
+  function fixJapaneseV87(){
+    const htmlMap={
+      openWeaponCodexBtn:'WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">豁ｦ蝎ｨ蝗ｳ髑代ｒ隕九ｋ</span>',
+      openShopBtn:'SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ譌･譖ｿ繧上ｊ繧｢繧､繝�Β</span>',
+      openBattlePassBtn:'NEON PASS<br><span class="text-xs text-purple-100 font-bold">繧ｷ繝ｼ繧ｺ繝ｳ蝣ｱ驟ｬ</span>',
+      openLeaderboardBtn:'RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>'
+    };
+    Object.entries(htmlMap).forEach(([id,html])=>{ const el=$87(id); if(el) el.innerHTML=html; });
+    const nickLabel=document.querySelector('label[for="nicknameInput"]'); if(nickLabel) nickLabel.innerHTML='繝九ャ繧ｯ繝阪�繝� <span class="text-cyan-200">遨ｺ縺ｪ繧� PLAYER</span>';
+    const warn=$87('nicknameWarn'); if(warn) warn.textContent='遨ｺ縺ｮ蝣ｴ蜷医� PLAYER 縺ｨ縺励※繧ｹ繧ｿ繝ｼ繝医＠縺ｾ縺吶�';
+    const help=document.querySelector('#nicknameInput')?.parentElement?.querySelector('.menu-help'); if(help) help.textContent='蜷榊燕繧貞�繧後ｋ縺ｨ繧ｹ繧ｿ繝ｼ繝医〒縺阪∪縺�';
+    const best=$87('currentBestDisplay')?.parentElement; if(best) { const val=$87('currentBestDisplay')?.textContent || '0'; best.innerHTML=`閾ｪ蟾ｱ繝吶せ繝�: <span id="currentBestDisplay">${val}</span> SCORE`; }
+    const bestSub=document.querySelector('#currentBestDisplay')?.closest('div')?.querySelector('p.text-gray-300'); if(bestSub) bestSub.textContent='蛟偵☆ 竊� 髮�ａ繧� 竊� 蠑ｷ縺上↑繧�';
+    const dataTitle = Array.from(document.querySelectorAll('#startScreen span')).find(e => (e.textContent||'').includes('繝��繧ｿ') || (e.textContent||'').includes('蠑輔″')); if(dataTitle) dataTitle.textContent='繝��繧ｿ蠑輔″邯吶℃';
+    qsa87('#startScreen *').forEach(el=>{ if(el.children.length) return; const t=el.textContent||''; if(mojibakeReV87.test(t)){ el.textContent=''; } });
+  }
+  function cleanBadBadgesV87(){
+    qsa87('[id*="Badge"], .nsv-v13-badge, .nsv-v72-badge').forEach(el=>{ if(el.id !== 'nsvV87Badge' && (el.textContent||'').includes('V')) el.remove(); });
+    let b=$87('nsvV87Badge'); if(!b){ b=document.createElement('div'); b.id='nsvV87Badge'; document.body.appendChild(b); } b.textContent=BUILD_V87;
+  }
+  function showOnlyV87(id){
+    hideIntroV87();
+    const ids=Array.from(new Set(screenIdsV87.concat(qsa87('[id$="Screen"], #tutorialOverlay').map(e=>e.id))));
+    ids.forEach(sid=>{ const el=$87(sid); if(!el) return; if(sid===id){ el.classList.remove('hidden'); el.style.pointerEvents='auto'; } else { el.classList.add('hidden'); } });
+    if(id==='startScreen'){
+      if(typeof gameState==='undefined' || gameState!=='playing'){
+        $87('uiLayer')?.classList.add('hidden'); $87('pauseScreen')?.classList.add('hidden'); $87('joystickZone')?.classList.add('hidden'); $87('bossWarning')?.classList.add('hidden'); $87('levelUpScreen')?.classList.add('hidden');
+      }
+      setTimeout(bootV87,0);
+    }
+  }
+  window.nsvShowScreenV87 = showOnlyV87;
+  try { showScreen = function showScreenV87(id){ showOnlyV87(id); }; } catch(e) {}
+  function ensureButtonsV87(){
+    ['startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn','openShopBtn','openBattlePassBtn','openLeaderboardBtn','exportBtn','importBtn','pauseBtn','resumeBtn','titleFromPauseBtn','restartBtn','closeUpgradeBtn','closeMissionsBtn','closeCollectionBtn','closeWeaponCodexBtn'].forEach(id=>{ const b=$87(id); if(b){ b.disabled=false; b.style.pointerEvents='auto'; b.style.visibility='visible'; b.setAttribute('type','button'); } });
+  }
+  function rebuildToggleV87(inputId, labelText, getter, setter){
+    const input=$87(inputId); if(!input) return;
+    const oldLabel=input.closest('label'); if(!oldLabel) return;
+    let wrap=oldLabel.querySelector('.nsv-v87-toggle');
+    if(!wrap){ oldLabel.innerHTML=`<span class="text-cyan-300 font-bold text-sm tracking-wider">${labelText}</span><span class="nsv-v87-switch" aria-hidden="true"></span><span class="text-white select-none font-bold text-sm nsv-v87-toggle-text"></span>`; oldLabel.classList.add('nsv-v87-toggle-wrap'); oldLabel.appendChild(input); input.className='sr-only'; wrap=oldLabel; }
+    oldLabel.classList.add('nsv-v87-toggle');
+    const on=!!getter(); input.checked=on; oldLabel.dataset.on=on?'1':'0'; const tx=oldLabel.querySelector('.nsv-v87-toggle-text'); if(tx) tx.textContent=on?'ON':'OFF';
+    if(!oldLabel.__v87Toggle){ oldLabel.__v87Toggle=true; ['pointerup','touchend','click'].forEach(type=>oldLabel.addEventListener(type, ev=>{ const now=Date.now(); if(now-(lastToggleV87.get(inputId)||0)<180){ ev.preventDefault(); ev.stopPropagation(); return; } lastToggleV87.set(inputId,now); ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); setter(!input.checked); setTimeout(syncTogglesV87,0); }, {capture:true, passive:false})); }
+  }
+  function setJoyV87(v){ safe87(()=>{ if(typeof isJoystickEnabled!=='undefined') isJoystickEnabled=!!v; }); safe87(()=>{ if(!v && typeof resetJoystick==='function') resetJoystick(); }); safe87(()=>{ if(typeof syncJoystickVisibility==='function') syncJoystickVisibility(); }); try{localStorage.setItem('neon_survivor_joystick_enabled_v87', v?'1':'0')}catch(e){} }
+  function setLightV87(v){ safe87(()=>{ if(typeof isLightMode!=='undefined') isLightMode=!!v; }); document.body.classList.toggle('light-mode', !!v); try{localStorage.setItem('neon_survivor_light_mode_v87', v?'1':'0')}catch(e){} }
+  function syncTogglesV87(){
+    const joy = safe87(()=>!!isJoystickEnabled, true);
+    const light = safe87(()=>!!isLightMode, false);
+    rebuildToggleV87('joystickToggle','繧ｸ繝ｧ繧､繧ｹ繝�ぅ繝�け',()=>joy,setJoyV87);
+    rebuildToggleV87('pauseJoystickToggle','繧ｸ繝ｧ繧､繧ｹ繝�ぅ繝�け',()=>joy,setJoyV87);
+    rebuildToggleV87('lightModeToggle','霆ｽ驥上Δ繝ｼ繝�',()=>light,setLightV87);
+    rebuildToggleV87('pauseLightModeToggle','霆ｽ驥上Δ繝ｼ繝�',()=>light,setLightV87);
+  }
+  function routeV87(id){
+    try{
+      switch(id){
+        case 'startBtn': if(typeof gameState==='undefined' || (gameState!=='playing' && gameState!=='paused')) safe87(()=>initGame('solo')); return true;
+        case 'onlineStartBtn': if(typeof gameState==='undefined' || (gameState!=='playing' && gameState!=='paused')) safe87(()=>openOnlineRoleSelect()); return true;
+        case 'openUpgradeBtn': safe87(()=>renderUpgradeScreen()); showOnlyV87('upgradeScreen'); return true;
+        case 'closeUpgradeBtn': showOnlyV87('startScreen'); return true;
+        case 'openMissionBtn': safe87(()=>renderMissionScreen()); showOnlyV87('missionsScreen'); return true;
+        case 'closeMissionsBtn': showOnlyV87('startScreen'); return true;
+        case 'claimAllMissionsBtn': safe87(()=>claimAllMissions()); return true;
+        case 'openCollectionBtn': safe87(()=>renderCollectionScreen()); showOnlyV87('collectionScreen'); return true;
+        case 'closeCollectionBtn': showOnlyV87('startScreen'); return true;
+        case 'openWeaponCodexBtn': safe87(()=>renderWeaponCodexScreen()); showOnlyV87('weaponCodexScreen'); return true;
+        case 'closeWeaponCodexBtn': showOnlyV87('startScreen'); return true;
+        case 'openShopBtn': safe87(()=> typeof renderShopV2==='function' ? renderShopV2() : renderShopV59()); showOnlyV87('shopScreen'); return true;
+        case 'openBattlePassBtn': safe87(()=> typeof renderBattlePassV2==='function' ? renderBattlePassV2('base') : renderBattlePassFallbackV59()); showOnlyV87('battlePassScreen'); return true;
+        case 'openLeaderboardBtn': safe87(()=> typeof renderLeaderboard20260504==='function' ? renderLeaderboard20260504() : renderLeaderboardV59()); showOnlyV87('leaderboardScreen'); return true;
+        case 'openDailyEventBtn': case 'openEventModeBtn': safe87(()=> typeof renderDailyEventScreenV82==='function' ? renderDailyEventScreenV82() : renderEventModeScreen20260504()); showOnlyV87('eventModeScreen'); return true;
+        case 'pauseBtn': if(typeof gameState!=='undefined' && (gameState==='playing'||gameState==='paused')) safe87(()=>pauseAction()); return true;
+        case 'resumeBtn': if(typeof gameState!=='undefined' && gameState==='paused') safe87(()=>pauseAction()); return true;
+        case 'titleFromPauseBtn': safe87(()=> typeof endRunAndReturnToMenu==='function' ? endRunAndReturnToMenu() : showOnlyV87('startScreen')); return true;
+        case 'restartBtn': if(typeof gameState!=='undefined') gameState='start'; safe87(()=>stopOnlineMode()); showOnlyV87('startScreen'); return true;
+        case 'tutorialStartBtn': case 'tutorialSkipBtn': safe87(()=>closeTutorialOverlay()); return true;
+        case 'exportBtn': safe87(()=>exportSaveCode()); return true;
+        case 'importBtn': safe87(()=>importSaveCode()); return true;
+        case 'openPresetBtnV86': safe87(()=>renderPresetScreenV86()); showOnlyV87('presetScreenV86'); return true;
+        case 'openAchievementsBtnV86': safe87(()=>renderAchievementsV86()); showOnlyV87('achievementsScreenV86'); return true;
+        case 'openBossCodexBtnV86': safe87(()=>renderBossCodexV86()); showOnlyV87('bossCodexScreenV86'); return true;
+        case 'openEffectSettingsBtnV86': safe87(()=>renderEffectSettingsV86()); showOnlyV87('effectSettingsScreenV86'); return true;
+        case 'openDiagnosticsBtnV86': safe87(()=>renderDiagnosticsV86()); showOnlyV87('diagnosticScreenV86'); return true;
+        case 'openDailyChallengeBtnV86': safe87(()=>renderDailyChallengeV86()); showOnlyV87('dailyChallengeScreenV86'); return true;
+        default: if(id && id.startsWith('close')){ showOnlyV87('startScreen'); return true; }
+      }
+    }catch(e){ console.warn('[V87] route failed', id, e); showOnlyV87('startScreen'); return true; }
+    return false;
+  }
+  window.nsvRouteButtonV87 = routeV87;
+  function bootV87(){ installStyleV87(); hideIntroV87(); fixJapaneseV87(); cleanBadBadgesV87(); ensureButtonsV87(); syncTogglesV87(); }
+  window.nsvV87FinalBoot = bootV87;
+  bootV87();
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bootV87, {once:true});
+  window.addEventListener('load', bootV87, {passive:true}); window.addEventListener('pageshow', bootV87, {passive:true}); window.addEventListener('resize', ()=>setTimeout(bootV87,80), {passive:true}); window.addEventListener('orientationchange', ()=>setTimeout(bootV87,180), {passive:true});
+  setInterval(bootV87, 1200);
 })();
 
 </script>
