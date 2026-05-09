@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V85 DEAD CODE CLEAN STABLE / no-preview build -->
+<!-- V86 JAPANESE BUTTON TOUCH PERFECT STABLE / no-preview build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -232,6 +232,29 @@
         button { -webkit-tap-highlight-color: transparent; }
         @media (max-width:720px){ .menu-panel { padding: 16px; } }
 
+
+
+        /* ===== V86: Japanese text / touch / toggle / mobile stability fix ===== */
+        .left-1{left:.25rem}.top-1{top:.25rem}.shrink-0{flex-shrink:0}.shadow{box-shadow:0 1px 3px rgba(0,0,0,.35)}
+        .transition{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-duration:.15s}.transition-all{transition:all .2s}.transition-colors{transition-property:color,background-color,border-color;transition-duration:.2s}.transition-transform{transition-property:transform;transition-duration:.2s}.duration-300{transition-duration:.3s}
+        #startScreen, #pauseScreen, #upgradeScreen, #missionsScreen, #collectionScreen, #weaponCodexScreen, #onlineRoleScreen, #shopScreen, #leaderboardScreen, #battlePassScreen, #eventModeScreen, #presetScreenV86, #achievementsScreenV86, #bossCodexScreenV86, #effectSettingsScreenV86, #diagnosticScreenV86, #dailyChallengeScreenV86 { pointer-events:auto; }
+        #startScreen .menu-panel, #pauseScreen .nsv-pause-panel, .menu-panel { overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+        #startScreen button, #pauseScreen button, .menu-panel button, .nsv-v86-card button { pointer-events:auto!important; touch-action:manipulation!important; -webkit-tap-highlight-color:transparent; user-select:none; min-height:46px; position:relative; z-index:2; }
+        #startBtn.solo-hero { min-height:104px; }
+        .nsv-v86-toggle-box, #joystickToggle~.block, #lightModeToggle~.block, #pauseJoystickToggle~.block, #pauseLightModeToggle~.block { width:3.5rem!important; height:2rem!important; border-radius:9999px!important; display:block!important; position:relative; flex:0 0 auto; }
+        #joystickToggle, #lightModeToggle, #pauseJoystickToggle, #pauseLightModeToggle { position:absolute!important; width:1px!important; height:1px!important; overflow:hidden!important; opacity:0!important; pointer-events:none!important; }
+        #joystickToggle~.block, #lightModeToggle~.block, #pauseJoystickToggle~.block, #pauseLightModeToggle~.block { background:#4b5563!important; box-shadow:inset 0 0 10px rgba(0,0,0,.35); }
+        #joystickToggle:checked~.block, #lightModeToggle:checked~.block, #pauseJoystickToggle:checked~.block, #pauseLightModeToggle:checked~.block { background:#06b6d4!important; box-shadow:0 0 12px rgba(6,182,212,.65), inset 0 0 8px rgba(255,255,255,.22); }
+        #joystickToggle~.dot, #lightModeToggle~.dot, #pauseJoystickToggle~.dot, #pauseLightModeToggle~.dot { position:absolute!important; left:.25rem!important; top:.25rem!important; width:1.5rem!important; height:1.5rem!important; border-radius:9999px!important; background:#fff!important; transform:translateX(0)!important; transition:transform .18s ease!important; z-index:3; }
+        #joystickToggle:checked~.dot, #lightModeToggle:checked~.dot, #pauseJoystickToggle:checked~.dot, #pauseLightModeToggle:checked~.dot { transform:translateX(1.5rem)!important; }
+        .nsv-v86-card { background:rgba(2,6,23,.88); border:1px solid rgba(34,211,238,.38); border-radius:16px; padding:14px; box-shadow:0 0 14px rgba(34,211,238,.12); }
+        .nsv-v86-card.done { border-color:rgba(250,204,21,.75); box-shadow:0 0 18px rgba(250,204,21,.2); }
+        .nsv-v86-status-ok{color:#86efac}.nsv-v86-status-warn{color:#fde047}.nsv-v86-status-bad{color:#fca5a5}
+        body.nsv-v86-mobile .menu-secondary { min-height:72px; }
+        body.nsv-v86-mobile #pauseBtn { min-width:92px; min-height:44px; }
+        body.nsv-v86-auto-light-1 .cutin-base{animation-duration:1.8s!important} body.nsv-v86-auto-light-2 .cutin-base{animation-duration:1.3s!important} body.nsv-v86-auto-light-3 .cutin-base{animation-duration:1s!important}
+        @media (max-width:720px){ #startScreen .menu-panel{width:96vw;padding:16px}.menu-grid{gap:12px}.nsv-v86-card{padding:12px} #startScreen button{min-height:56px} }
+
 </style>
 </head>
 <body class="text-white">
@@ -308,7 +331,7 @@
                     <div class="text-yellow-300 font-bold text-xs tracking-[0.35em]">GAME MENU</div>
                     <h2 class="text-5xl md:text-6xl font-bold text-white tracking-widest neon-text" style="font-family: 'Orbitron', sans-serif;">PAUSED</h2>
                 </div>
-                <div class="nsv-pause-mini">V85 DEAD CODE CLEAN STABLE</div>
+                <div class="nsv-pause-mini">V86 PERFECT MOBILE FIX</div>
             </div>
 
             <div class="nsv-pause-grid">
@@ -12103,10 +12126,10 @@ const nowV71 = () => (typeof performance !== 'undefined' && performance.now) ? p
 
 /* V84 CLEANUP: removed obsolete V74 button router because V84 owns one-tap routing now. */
 
-/* ===== V85 DEAD CODE CLEAN STABLE: integrated cleanup / no extra patch script tag ===== */
+/* ===== V86 PERFECT MOBILE FIX: integrated cleanup / no extra patch script tag ===== */
 (function neonSurvivorV82MobileStable(){
   'use strict';
-  const BUILD_V82 = 'V85 DEAD CODE CLEAN STABLE';
+  const BUILD_V82 = 'V86 PERFECT MOBILE FIX';
   const DAILY_LIMIT_V82 = 5;
   const SCREEN_IDS_V82 = [
     'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen',
@@ -12833,14 +12856,14 @@ window.NEON_SURVIVOR_CHEAT_CODES_V83 = Object.keys(CHEATS_V83);
 
 
 /* =========================================================
-   V85 DEAD CODE CLEAN STABLE / unused-code cleanup
+   V86 PERFECT MOBILE FIX / unused-code cleanup
    ========================================================= */
 (() => {
   'use strict';
   const PATCH_ID = 'nsvV85DeadCodeCleanStable20260509';
   if (window[PATCH_ID]) return;
   window[PATCH_ID] = true;
-  const BUILD = 'V85 DEAD CODE CLEAN STABLE';
+  const BUILD = 'V86 PERFECT MOBILE FIX';
   const SCREEN_IDS = [
     'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen',
     'onlineRoomScreen','onlineRoleScreen','leaderboardScreen','eventModeScreen','dailyEventScreen',
@@ -13045,6 +13068,503 @@ window.NEON_SURVIVOR_CHEAT_CODES_V83 = Object.keys(CHEATS_V83);
   window.addEventListener('resize', () => setTimeout(boot, 120), { passive:true });
   window.addEventListener('orientationchange', () => setTimeout(boot, 240), { passive:true });
   setInterval(() => { try { boot(); if (typeof gameState !== 'undefined' && gameState === 'playing' && window.NEON_SURVIVOR_V82_MOBILE_STABLE?.prune) window.NEON_SURVIVOR_V82_MOBILE_STABLE.prune(false); } catch(e) {} }, 1800);
+})();
+
+
+
+/* ===== V86 PERFECT MOBILE FIX: Japanese / buttons / toggles / feature screens ===== */
+(function neonSurvivorV86PerfectMobileFix(){
+  'use strict';
+  const V86_TAG = 'V86 PERFECT MOBILE FIX';
+  const BASE_SCREENS_V86 = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen','shopScreen','leaderboardScreen','battlePassScreen','eventModeScreen','presetScreenV86','achievementsScreenV86','bossCodexScreen','bossCodexScreenV86','effectSettingsScreenV86','diagnosticScreenV86','dailyChallengeScreenV86'];
+  const $86 = (id) => document.getElementById(id);
+  const esc86 = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const num86 = (v, fallback=0) => { v = Number(v); return Number.isFinite(v) ? v : fallback; };
+  const fmt86 = (v) => Math.floor(num86(v)).toLocaleString('ja-JP');
+  const safe86 = (fn, fallback) => { try { return typeof fn === 'function' ? fn() : fallback; } catch(e) { console.warn('[V86]', e); return fallback; } };
+  let avgFrameV86 = 16.7;
+  let autoLightLevelV86 = 0;
+  let lastFrameV86 = (performance && performance.now) ? performance.now() : Date.now();
+  let lastTapV86 = new Map();
+
+  function isMobileLikeV86(){
+    try { return (navigator.maxTouchPoints || 0) > 0 || (window.matchMedia && matchMedia('(pointer: coarse)').matches) || Math.min(innerWidth || 9999, innerHeight || 9999) <= 820; }
+    catch(e) { return false; }
+  }
+
+  function ensureProgressV86(){
+    try {
+      if (typeof ensureProgressionData === 'function') ensureProgressionData();
+      if (!userData || typeof userData !== 'object') userData = {};
+      userData.settings = userData.settings || {};
+      userData.settings.v86 = userData.settings.v86 || {};
+      userData.achievementsV86 = userData.achievementsV86 || { completed:{} };
+      userData.bossCodexV86 = userData.bossCodexV86 || { seen:{}, defeated:{} };
+      userData.dailyChallengeV86 = userData.dailyChallengeV86 || {};
+      userData.weaponPresetV86 = userData.weaponPresetV86 || 'custom';
+      userData.saveVersionV86 = V86_TAG;
+      try { window.userData = userData; } catch(e) {}
+    } catch(e) {}
+  }
+
+  function saveSafeV86(){
+    try { ensureProgressV86(); } catch(e) {}
+    try { if (typeof saveData === 'function') { saveData(); return; } } catch(e) {}
+    try { localStorage.setItem('neon_survivor_save', JSON.stringify(userData || {})); } catch(e) {}
+  }
+
+  function backupSaveV86(reason='auto'){
+    try {
+      if (!userData || typeof userData !== 'object') return;
+      const payload = JSON.stringify({ time:Date.now(), reason, data:userData });
+      const last = localStorage.getItem('neon_survivor_save_backup_v86_a');
+      if (last) localStorage.setItem('neon_survivor_save_backup_v86_b', last);
+      localStorage.setItem('neon_survivor_save_backup_v86_a', payload);
+    } catch(e) {}
+  }
+
+  function restoreBackupV86(){
+    try {
+      const keys = ['neon_survivor_save_backup_v86_a','neon_survivor_save_backup_v86_b','neon_survivor_save_backup_v14','neon_survivor_save'];
+      for (const key of keys) {
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw);
+        const data = parsed && parsed.data ? parsed.data : parsed;
+        if (data && typeof data === 'object') {
+          userData = data;
+          ensureProgressV86();
+          localStorage.setItem('neon_survivor_save', JSON.stringify(userData));
+          return true;
+        }
+      }
+    } catch(e) {}
+    return false;
+  }
+
+  try {
+    if (typeof saveData === 'function' && !saveData.__v86SafeWrapped) {
+      const originalSaveDataV86 = saveData;
+      saveData = function saveDataV86Wrapped(){
+        backupSaveV86('before-save');
+        try { return originalSaveDataV86.apply(this, arguments); }
+        catch(e) { console.warn('[V86] save repaired', e); try { localStorage.setItem('neon_survivor_save', JSON.stringify(userData || {})); } catch(_) {} }
+      };
+      saveData.__v86SafeWrapped = true;
+    }
+    if (typeof loadData === 'function' && !loadData.__v86SafeWrapped) {
+      const originalLoadDataV86 = loadData;
+      loadData = function loadDataV86Wrapped(){
+        try { const r = originalLoadDataV86.apply(this, arguments); ensureProgressV86(); return r; }
+        catch(e) { console.warn('[V86] load repaired', e); restoreBackupV86(); ensureProgressV86(); }
+      };
+      loadData.__v86SafeWrapped = true;
+    }
+  } catch(e) {}
+
+  function fixJapaneseV86(){
+    try {
+      const nickLabel = document.querySelector('label[for="nicknameInput"]');
+      if (nickLabel) nickLabel.innerHTML = '繝九ャ繧ｯ繝阪�繝� <span class="text-cyan-200">遨ｺ縺ｪ繧� PLAYER</span>';
+      const nickWarn = $86('nicknameWarn');
+      if (nickWarn) nickWarn.textContent = '遨ｺ縺ｮ蝣ｴ蜷医� PLAYER 縺ｨ縺励※繧ｹ繧ｿ繝ｼ繝医＠縺ｾ縺吶�';
+      const help = document.querySelector('#nicknameInput')?.parentElement?.querySelector('.menu-help');
+      if (help) help.textContent = '蜷榊燕繧貞�繧後ｋ縺ｨ繧ｹ繧ｿ繝ｼ繝医〒縺阪∪縺�';
+      const map = {
+        startBtn:'<span class="beginner-badge">伐 縺ｯ縺倥ａ縺ｦ縺ｪ繧峨％縺難ｼ�</span>SOLO START<span class="solo-sub">1莠ｺ縺ｧ邱ｴ鄙偵�繝溘ャ繧ｷ繝ｧ繝ｳ騾ｲ陦�</span>',
+        onlineStartBtn:'ONLINE BATTLE',
+        openUpgradeBtn:'UPGRADE',
+        openMissionBtn:'MISSIONS',
+        openCollectionBtn:'COLLECTION',
+        openWeaponCodexBtn:'WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">豁ｦ蝎ｨ蝗ｳ髑代ｒ隕九ｋ</span>',
+        openShopBtn:'SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ譌･譖ｿ繧上ｊ繧｢繧､繝�Β</span>',
+        openBattlePassBtn:'NEON PASS<br><span class="text-xs text-purple-100 font-bold">繧ｷ繝ｼ繧ｺ繝ｳ蝣ｱ驟ｬ</span>',
+        openLeaderboardBtn:'RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>'
+      };
+      for (const [id, html] of Object.entries(map)) { const el = $86(id); if (el) el.innerHTML = html; }
+      document.querySelectorAll('body *').forEach(el => {
+        if (!el || el.children.length) return;
+        const t = el.textContent || '';
+        if (/[\u7e5d\u7e3a\u8b41\u873f\u7dd8\u8c3f\u96b1\u7d93\u78bc\u9068\u8763\ufffd]/.test(t)) {
+          if (el.id === 'nicknameWarn') el.textContent = '遨ｺ縺ｮ蝣ｴ蜷医� PLAYER 縺ｨ縺励※繧ｹ繧ｿ繝ｼ繝医＠縺ｾ縺吶�';
+          else if (el.closest('#startScreen')) el.textContent = t.replace(/[\u7e5d\u7e3a\u8b41\u873f\u7dd8\u8c3f\u96b1\u7d93\u78bc\u9068\u8763\ufffd]+/g, '').trim() || '';
+        }
+      });
+    } catch(e) {}
+  }
+
+  function syncToggleStateV86(){
+    try {
+      const joy = !!isJoystickEnabled;
+      const light = !!isLightMode;
+      [['joystickToggle', joy], ['pauseJoystickToggle', joy], ['lightModeToggle', light], ['pauseLightModeToggle', light]].forEach(([id, val]) => { const el = $86(id); if (el) el.checked = val; });
+      const lightSpan = $86('lightModeToggle')?.closest('label')?.querySelector('span.text-white'); if (lightSpan) lightSpan.textContent = light ? 'ON' : 'OFF';
+      const pauseLightSpan = $86('pauseLightModeToggle')?.closest('label')?.querySelector('span.text-white'); if (pauseLightSpan) pauseLightSpan.textContent = light ? '霆ｽ驥上Δ繝ｼ繝会ｼ唹N' : '霆ｽ驥上Δ繝ｼ繝会ｼ唹FF';
+      const joySpan = $86('joystickToggle')?.closest('label')?.querySelector('span.text-white'); if (joySpan) joySpan.textContent = joy ? '菴ｿ縺�' : '菴ｿ繧上↑縺�';
+      const pauseJoySpan = $86('pauseJoystickToggle')?.closest('label')?.querySelector('span.text-white'); if (pauseJoySpan) pauseJoySpan.textContent = joy ? '繧ｸ繝ｧ繧､繧ｹ繝�ぅ繝�け�唹N' : '繧ｸ繝ｧ繧､繧ｹ繝�ぅ繝�け�唹FF';
+    } catch(e) {}
+  }
+
+  function setJoystickV86(enabled){
+    try {
+      isJoystickEnabled = !!enabled;
+      ensureProgressV86();
+      userData.settings.v86.joystick = isJoystickEnabled;
+      localStorage.setItem('neon_survivor_joystick_enabled_v86', isJoystickEnabled ? '1' : '0');
+      if (!isJoystickEnabled && typeof resetJoystick === 'function') resetJoystick();
+      if (typeof syncJoystickVisibility === 'function') syncJoystickVisibility();
+      syncToggleStateV86();
+      saveSafeV86();
+    } catch(e) {}
+  }
+
+  function setLightModeV86(enabled, silent=false){
+    try {
+      isLightMode = !!enabled;
+      document.body.classList.toggle('light-mode', isLightMode);
+      ensureProgressV86();
+      userData.settings.v86.lightMode = isLightMode;
+      localStorage.setItem('neon_survivor_light_mode_v86', isLightMode ? '1' : '0');
+      try { bgStars = []; } catch(e) {}
+      syncToggleStateV86();
+      if (!silent) saveSafeV86();
+    } catch(e) {}
+  }
+  window.toggleJoystickFromPause = setJoystickV86;
+  window.toggleLightMode = setLightModeV86;
+
+  function installToggleHandlersV86(){
+    ['joystickToggle','pauseJoystickToggle'].forEach(id => {
+      const el = $86(id); if (!el || el.__v86Toggle) return; el.__v86Toggle = true;
+      el.addEventListener('change', () => setJoystickV86(el.checked), { passive:true });
+      el.closest('label')?.addEventListener('pointerup', () => setTimeout(() => setJoystickV86(el.checked), 0), { passive:true });
+    });
+    ['lightModeToggle','pauseLightModeToggle'].forEach(id => {
+      const el = $86(id); if (!el || el.__v86Toggle) return; el.__v86Toggle = true;
+      el.addEventListener('change', () => setLightModeV86(el.checked), { passive:true });
+      el.closest('label')?.addEventListener('pointerup', () => setTimeout(() => setLightModeV86(el.checked), 0), { passive:true });
+    });
+  }
+
+  function protectCriticalButtonsV86(){
+    const critical = ['startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn','openShopBtn','openBattlePassBtn','openLeaderboardBtn','openDailyEventBtn','openPresetBtnV86','openAchievementsBtnV86','openBossCodexBtnV86','openEffectSettingsBtnV86','openDiagnosticsBtnV86','openDailyChallengeBtnV86','exportBtn','importBtn','pauseBtn','resumeBtn','titleFromPauseBtn','restartBtn','closeUpgradeBtn','closeMissionsBtn','closeCollectionBtn','closeWeaponCodexBtn'];
+    critical.forEach(id => { const b = $86(id); if (b) { b.disabled = false; b.style.pointerEvents = 'auto'; b.style.visibility = 'visible'; b.setAttribute('type','button'); } });
+  }
+
+  function ensureFeatureButtonsV86(){
+    try {
+      const grid = document.querySelector('#startScreen .menu-grid') || document.querySelector('.menu-grid');
+      if (!grid) return;
+      const defs = [
+        ['openDailyChallengeBtnV86','btn-green','DAILY CHALLENGE<br><span class="text-xs text-green-100 font-bold">莉頑律縺ｮ逶ｮ讓�</span>','openMissionBtn'],
+        ['openPresetBtnV86','btn-neon','WEAPON PRESETS<br><span class="text-xs text-cyan-100 font-bold">豁ｦ蝎ｨ險ｭ螳壹ｒ荳逋ｺ螟画峩</span>','openCollectionBtn'],
+        ['openAchievementsBtnV86','btn-gold','ACHIEVEMENTS<br><span class="text-xs text-yellow-100 font-bold">螳溽ｸｾ繝ｻ髟ｷ譛溽岼讓�</span>','openPresetBtnV86'],
+        ['openBossCodexBtnV86','btn-red','BOSS CODEX<br><span class="text-xs text-red-100 font-bold">繝懊せ蝗ｳ髑�</span>','openWeaponCodexBtn'],
+        ['openEffectSettingsBtnV86','btn-purple','EFFECT SETTINGS<br><span class="text-xs text-purple-100 font-bold">霆ｽ驥上お繝輔ぉ繧ｯ繝郁ｨｭ螳�</span>','openBossCodexBtnV86'],
+        ['openDiagnosticsBtnV86','btn-neon','DIAGNOSIS<br><span class="text-xs text-cyan-100 font-bold">繧ｨ繝ｩ繝ｼ閾ｪ蟾ｱ險ｺ譁ｭ</span>','openEffectSettingsBtnV86']
+      ];
+      defs.forEach(([id, cls, html, anchorId]) => {
+        let b = $86(id);
+        if (!b) { b = document.createElement('button'); b.id = id; }
+        b.className = `${cls} menu-secondary px-6 py-3 font-bold rounded cursor-pointer`;
+        b.innerHTML = html;
+        b.disabled = false; b.style.pointerEvents = 'auto'; b.setAttribute('type','button');
+        if (!b.parentElement) {
+          const anchor = $86(anchorId);
+          if (anchor && anchor.parentElement === grid) anchor.insertAdjacentElement('afterend', b);
+          else grid.appendChild(b);
+        }
+      });
+    } catch(e) {}
+  }
+
+  function makeScreenV86(id, title, colorClass, inner){
+    let screen = $86(id);
+    if (!screen) { screen = document.createElement('div'); screen.id = id; document.body.appendChild(screen); }
+    screen.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[58] hidden p-3';
+    screen.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold ${colorClass}" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px currentColor;">${title}</h2></div><button id="close${id}" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div>${inner}</div>`;
+    const close = $86('close' + id); if (close) close.addEventListener('click', () => showScreen('startScreen'));
+    return screen;
+  }
+
+  function allWeaponsV86(){
+    try { if (typeof getAllWeaponCodexDefs === 'function') return getAllWeaponCodexDefs() || []; } catch(e) {}
+    return [];
+  }
+
+  const PRESETS_V86 = [
+    { id:'beginner', name:'蛻晏ｿ��畑', desc:'謇ｱ縺�ｄ縺吶＞豁ｦ蝎ｨ繧剃ｸｭ蠢�↓縺励∪縺吶�', allow:['騾壼ｸｸ蠑ｾ','蜀�腸','髮ｷ蝓�','繧ｹ繝翫う繝代�','繧ｷ繝ｼ繝ｫ繝�','豈帝峇'] },
+    { id:'boss', name:'繝懊せ迚ｹ蛹�', desc:'蜊倅ｽ鍋↓蜉帙�雋ｫ騾壹�螟ｧ謚繧貞�繧�☆縺上＠縺ｾ縺吶�', allow:['繧ｹ繝翫う繝代�','髮ｷ','驥榊鴨','繝薙�繝�','蜑｣','譁ｧ','繧ｫ繝｡繝上Γ繝�','陬√″','繝ｬ繝ｼ繝ｫ'] },
+    { id:'crowd', name:'髮鷹ｭ壼�逅�音蛹�', desc:'蠎�ｯ�峇謾ｻ謦�ｒ荳ｭ蠢�↓縺励∪縺吶�', allow:['蜀�腸','髮ｷ蝓�','證ｴ鬚ｨ','豈帝峇','繝懊Β','繝悶Λ繝�け繝帙�繝ｫ','蠏�','繝弱Χ繧｡'] },
+    { id:'light', name:'霆ｽ驥上�繝ｬ繧､逕ｨ', desc:'驥阪￥縺ｪ繧翫ｄ縺吶＞豢ｾ謇九↑豁ｦ蝎ｨ繧貞ｰ代↑繧√↓縺励∪縺吶�', allow:['騾壼ｸｸ蠑ｾ','蜀�腸','髮ｷ蝓�','繧ｹ繝翫う繝代�','繧ｷ繝ｼ繝ｫ繝�','繝懊Β'] },
+    { id:'romance', name:'譛蠑ｷ繝ｭ繝槭Φ逕ｨ', desc:'豢ｾ謇九↑蠢�ｮｺ謚繧貞､壹ａ縺ｫ縺励∪縺吶�', allow:null }
+  ];
+
+  function applyPresetV86(id){
+    ensureProgressV86();
+    const p = PRESETS_V86.find(x => x.id === id) || PRESETS_V86[0];
+    try {
+      const list = allWeaponsV86();
+      if (typeof ensureWeaponSpawnSettings20260504 === 'function') ensureWeaponSpawnSettings20260504();
+      userData.settings.disabledWeapons = userData.settings.disabledWeapons || {};
+      userData.settings.disabledLegendaryWeapons = userData.settings.disabledLegendaryWeapons || {};
+      list.forEach(w => {
+        const text = `${w.id || ''} ${w.name || ''} ${w.type || ''}`;
+        const enable = !p.allow || p.allow.some(k => text.includes(k));
+        if (typeof setWeaponSpawnEnabled20260504 === 'function') setWeaponSpawnEnabled20260504(w.id, enable);
+        else { if (enable) delete userData.settings.disabledWeapons[w.id]; else userData.settings.disabledWeapons[w.id] = true; }
+      });
+      userData.weaponPresetV86 = p.id;
+      saveSafeV86();
+      renderPresetScreenV86();
+      if (typeof showMissionToast === 'function') showMissionToast('繝励Μ繧ｻ繝�ヨ螟画峩', `${p.name}繧帝←逕ｨ縺励∪縺励◆縲Ａ);
+    } catch(e) { console.warn('[V86] preset failed', e); }
+  }
+
+  function renderPresetScreenV86(){
+    ensureProgressV86();
+    const cards = PRESETS_V86.map(p => `<div class="nsv-v86-card ${userData.weaponPresetV86===p.id?'done':''}"><h3 class="text-xl font-bold text-cyan-300">${esc86(p.name)}</h3><p class="text-sm text-gray-300 mt-2">${esc86(p.desc)}</p><button class="applyPresetV86 btn-neon mt-3 px-4 py-2 rounded font-bold" data-id="${esc86(p.id)}">APPLY</button></div>`).join('');
+    makeScreenV86('presetScreenV86','WEAPON PRESETS','text-cyan-300', `<p class="text-gray-300 text-sm">繧ｳ繝ｬ繧ｯ繧ｷ繝ｧ繝ｳ縺ｮ豁ｦ蝎ｨON/OFF繧剃ｸ諡ｬ縺ｧ蛻�ｊ譖ｿ縺医∪縺吶�</p><div class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto max-h-[72vh] pr-1">${cards}</div>`);
+    document.querySelectorAll('.applyPresetV86').forEach(b => b.addEventListener('click', () => applyPresetV86(b.dataset.id)));
+  }
+
+  const ACHIEVEMENTS_V86 = [
+    { id:'survive10', name:'10蛻�函蟄�', desc:'1蝗槭�繝励Ξ繧､縺ｧ10蛻�函縺肴ｮ九ｋ', check:()=>num86(userData?.stats?.bestTime)>=600 },
+    { id:'kill1000', name:'1000菴捺茶遐ｴ', desc:'蜷郁ｨ�1000菴薙�謨ｵ繧貞偵☆', check:()=>num86(userData?.stats?.totalKills)>=1000 },
+    { id:'boss10', name:'繝懊せ10菴捺茶遐ｴ', desc:'繝懊せ邉ｻ繧貞粋險�10菴灘偵☆', check:()=>num86(userData?.stats?.totalBossLikeKills)>=10 },
+    { id:'level50', name:'繝ｬ繝吶Ν50蛻ｰ驕�', desc:'1蝗槭�繝励Ξ繧､縺ｧ繝ｬ繝吶Ν50縺ｫ蛻ｰ驕斐☆繧�', check:()=>num86(userData?.stats?.bestLevel)>=50 },
+    { id:'allWeaponsUsed', name:'蜈ｨ豁ｦ蝎ｨ繝√ぉ繝�け', desc:'豁ｦ蝎ｨ蝗ｳ髑代�蜊雁�莉･荳翫ｒ菴ｿ逕ｨ貂医∩縺ｫ縺吶ｋ', check:()=>{ const w=allWeaponsV86(); const used=w.filter(x=>safe86(()=>isWeaponCodexUsed(x.id),false)).length; return w.length && used>=Math.ceil(w.length/2); } }
+  ];
+
+  function checkAchievementsV86(){
+    ensureProgressV86();
+    let changed = false;
+    ACHIEVEMENTS_V86.forEach(a => { if (!userData.achievementsV86.completed[a.id] && safe86(a.check,false)) { userData.achievementsV86.completed[a.id] = Date.now(); userData.coins = num86(userData.coins) + 25000; changed = true; } });
+    if (changed) saveSafeV86();
+  }
+
+  function renderAchievementsV86(){
+    checkAchievementsV86();
+    const html = ACHIEVEMENTS_V86.map(a => { const done = !!userData.achievementsV86.completed[a.id]; return `<div class="nsv-v86-card ${done?'done':''}"><div class="text-sm font-bold ${done?'text-yellow-300':'text-gray-400'}">${done?'驕疲�貂医∩':'譛ｪ驕疲�'}</div><h3 class="text-xl font-bold text-white mt-1">${esc86(a.name)}</h3><p class="text-sm text-gray-300 mt-1">${esc86(a.desc)}</p><p class="text-xs text-yellow-200 mt-2">蝣ｱ驟ｬ��25,000繧ｳ繧､繝ｳ</p></div>`; }).join('');
+    makeScreenV86('achievementsScreenV86','ACHIEVEMENTS','text-yellow-300', `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto max-h-[72vh] pr-1">${html}</div>`);
+  }
+
+  const BOSS_V86 = [
+    { id:'monkey', name:'迪ｿ縺ｮ鬯ｼ', hint:'10繝ｬ繝吶Ν縺斐→縺ｫ蜃ｺ迴ｾ縺吶ｋ蝓ｺ譛ｬ繝懊せ', stat:'totalMonkeyKills' },
+    { id:'overlord', name:'譛諱仙､ｧ迪ｿ邇�', hint:'蠑ｷ蛹悶＆繧後◆螟ｧ蝙九�繧ｹ', stat:'totalBossKills' },
+    { id:'domain', name:'鬆伜沺繝懊せ', hint:'迚ｹ谿頑ｼ泌�繧呈戟縺､蠑ｷ謨ｵ', stat:'totalBossLikeKills' },
+    { id:'blackhole', name:'繝悶Λ繝�け繝帙�繝ｫ邉ｻ繝懊せ', hint:'蜷ｸ縺�ｾｼ縺ｿ縺ｫ豕ｨ諢上☆繧九�繧ｹ', stat:'totalBossLikeKills' }
+  ];
+
+  function renderBossCodexV86(){
+    ensureProgressV86();
+    const st = userData.stats || {};
+    const html = BOSS_V86.map(b => { const kills = num86(st[b.stat]); const seen = kills>0 || num86(st.totalBossLikeKills)>0; return `<div class="nsv-v86-card ${seen?'done':''}"><h3 class="text-xl font-bold ${seen?'text-red-300':'text-gray-400'}">${seen?esc86(b.name):'譛ｪ遒ｺ隱阪�繝懊せ'}</h3><p class="text-sm text-gray-300 mt-2">${esc86(b.hint)}</p><p class="text-xs text-yellow-200 mt-2">謦��ｴ險倬鹸��${fmt86(kills)}菴�</p></div>`; }).join('');
+    makeScreenV86('bossCodexScreenV86','BOSS CODEX','text-red-300', `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto max-h-[72vh] pr-1">${html}</div>`);
+  }
+
+  function todayKeyV86(){ const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  const DAILY_CHALLENGES_V86 = [
+    { id:'survive', name:'莉頑律縺ｮ逕溷ｭ倥メ繝｣繝ｬ繝ｳ繧ｸ', desc:'5蛻�ｻ･荳顔函縺肴ｮ九ｋ', target:300, value:()=>num86(runStats?.survivalTime || userData?.stats?.bestTime) },
+    { id:'boss', name:'莉頑律縺ｮ繝懊せ繝√Ε繝ｬ繝ｳ繧ｸ', desc:'繝懊せ繧�2菴灘偵☆', target:2, value:()=>num86(runStats?.bossKills || userData?.stats?.bestRunBossKills) },
+    { id:'coin', name:'莉頑律縺ｮ繧ｳ繧､繝ｳ繝√Ε繝ｬ繝ｳ繧ｸ', desc:'繧ｳ繧､繝ｳ繧�3000譫夐寔繧√ｋ', target:3000, value:()=>num86(runStats?.coinsEarned || userData?.stats?.totalCoinsEarned) },
+    { id:'gem', name:'莉頑律縺ｮ繧ｸ繧ｧ繝�繝√Ε繝ｬ繝ｳ繧ｸ', desc:'繧ｸ繧ｧ繝�繧�500蛟矩寔繧√ｋ', target:500, value:()=>num86(runStats?.gemsCollected || userData?.stats?.bestRunGems) }
+  ];
+  function currentDailyChallengeV86(){ return DAILY_CHALLENGES_V86[Math.abs(todayKeyV86().split('').reduce((a,c)=>((a*31+c.charCodeAt(0))|0),7)) % DAILY_CHALLENGES_V86.length]; }
+  function renderDailyChallengeV86(){
+    ensureProgressV86();
+    const d = currentDailyChallengeV86();
+    const key = todayKeyV86();
+    userData.dailyChallengeV86[key] = userData.dailyChallengeV86[key] || {};
+    const val = Math.floor(safe86(d.value,0));
+    const done = val >= d.target || userData.dailyChallengeV86[key][d.id];
+    if (done && !userData.dailyChallengeV86[key][d.id]) { userData.dailyChallengeV86[key][d.id] = true; userData.coins = num86(userData.coins)+30000; saveSafeV86(); }
+    const pct = Math.min(100, Math.floor(val / d.target * 100));
+    makeScreenV86('dailyChallengeScreenV86','DAILY CHALLENGE','text-green-300', `<div class="nsv-v86-card ${done?'done':''}"><div class="text-xs text-yellow-300 font-bold">${esc86(key)}</div><h3 class="text-2xl font-bold text-white mt-1">${esc86(d.name)}</h3><p class="text-gray-300 mt-2">${esc86(d.desc)}</p><div class="mini-progress mt-4"><div style="width:${pct}%"></div></div><p class="text-sm text-yellow-200 mt-2">騾ｲ陦鯉ｼ�${fmt86(val)} / ${fmt86(d.target)}</p><p class="text-sm ${done?'text-green-300':'text-gray-300'} mt-2">${done?'驕疲�貂医∩��30,000繧ｳ繧､繝ｳ迯ｲ蠕�':'驕疲�縺吶ｋ縺ｨ30,000繧ｳ繧､繝ｳ'}</p></div>`);
+  }
+
+  function renderEffectSettingsV86(){
+    ensureProgressV86();
+    const s = userData.settings.v86;
+    const level = s.effectLevel || 'auto';
+    const toggles = [
+      ['auto','閾ｪ蜍�','FPS縺ｫ蜷医ｏ縺帙※閾ｪ蜍輔〒霆ｽ縺上☆繧�'],['normal','騾壼ｸｸ','隕九◆逶ｮ繧剃ｸ逡ｪ豢ｾ謇九↓縺吶ｋ'],['low','蟆代↑繧�','繧ｨ繝輔ぉ繧ｯ繝医ｒ蟆代＠貂帙ｉ縺�'],['minimum','譛蟆�','繧ｹ繝槭�縺ｧ荳逡ｪ霆ｽ縺上☆繧�']
+    ].map(x => `<button class="effectLevelV86 ${level===x[0]?'btn-gold':'btn-neon'} px-4 py-3 rounded font-bold" data-level="${x[0]}">${x[1]}<br><span class="text-xs">${x[2]}</span></button>`).join('');
+    makeScreenV86('effectSettingsScreenV86','EFFECT SETTINGS','text-purple-300', `<p class="text-gray-300 text-sm">繧ｲ繝ｼ繝�蜀�ｮｹ縺ｯ螟峨∴縺壹∵緒逕ｻ縺ｮ驥阪＆縺�縺題ｪｿ謨ｴ縺励∪縺吶�</p><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${toggles}</div><div class="nsv-v86-card"><p class="text-sm text-cyan-200">迴ｾ蝨ｨ縺ｮ閾ｪ蜍戊ｻｽ驥丞喧繝ｬ繝吶Ν��${autoLightLevelV86}</p><p class="text-xs text-gray-300 mt-1">FPS縺御ｸ九′繧九→縲√ヱ繝ｼ繝�ぅ繧ｯ繝ｫ繝ｻ蜈峨�謨ｰ蟄苓｡ｨ遉ｺ繧貞ｰ代＠縺壹▽貂帙ｉ縺励∪縺吶�</p></div>`);
+    document.querySelectorAll('.effectLevelV86').forEach(b => b.addEventListener('click', () => { userData.settings.v86.effectLevel = b.dataset.level; saveSafeV86(); applyEffectSettingV86(); renderEffectSettingsV86(); }));
+  }
+
+  function statusLineV86(name, ok, detail='') { return `<div class="nsv-v86-card"><div class="flex justify-between gap-2"><b>${esc86(name)}</b><span class="${ok?'nsv-v86-status-ok':'nsv-v86-status-bad'}">${ok?'OK':'遒ｺ隱榊ｿ�ｦ�'}</span></div>${detail?`<p class="text-xs text-gray-300 mt-1">${esc86(detail)}</p>`:''}</div>`; }
+  function renderDiagnosticsV86(){
+    protectCriticalButtonsV86(); syncToggleStateV86();
+    const checks = [];
+    checks.push(statusLineV86('繧ｻ繝ｼ繝悶ョ繝ｼ繧ｿ', !!userData && typeof userData === 'object', '繝舌ャ繧ｯ繧｢繝��2蛟九ｒ閾ｪ蜍穂ｿ晏ｭ倥＠縺ｾ縺吶�'));
+    checks.push(statusLineV86('繝懊ち繝ｳ蜃ｦ逅�', ['startBtn','openShopBtn','openCollectionBtn','pauseBtn'].every(id=>$86(id)), '繝帙�繝�繝ｻ繧ｷ繝ｧ繝��繝ｻ繧ｳ繝ｬ繧ｯ繧ｷ繝ｧ繝ｳ繝ｻ荳譎ょ●豁｢繧堤｢ｺ隱阪�'));
+    checks.push(statusLineV86('繝医げ繝ｫ蜃ｦ逅�', ['joystickToggle','lightModeToggle','pauseJoystickToggle','pauseLightModeToggle'].every(id=>$86(id)), 'ON/OFF陦ｨ遉ｺ繧貞酔譛溘＠縺ｾ縺吶�'));
+    checks.push(statusLineV86('繝√�繝亥�逅�', !!(window.NEON_SURVIVOR_CHEATS_V83 || (typeof CHEATS_V83 !== 'undefined')), '繝帙�繝�縺ｨ荳譎ょ●豁｢縺ｮ7譯√さ繝ｼ繝画ｬ�ｒ遒ｺ隱阪�'));
+    checks.push(statusLineV86('逕ｻ髱｢繧ｵ繧､繧ｺ', (innerWidth||0)>0 && (innerHeight||0)>0, `${innerWidth} x ${innerHeight}`));
+    checks.push(statusLineV86('FPS迥ｶ諷�', avgFrameV86 < 50, `蟷ｳ蝮�ヵ繝ｬ繝ｼ繝�譎る俣�夂ｴ�${avgFrameV86.toFixed(1)}ms / 閾ｪ蜍戊ｻｽ驥丞喧Lv.${autoLightLevelV86}`));
+    makeScreenV86('diagnosticScreenV86','DIAGNOSIS','text-cyan-300', `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto max-h-[72vh] pr-1">${checks.join('')}</div><button id="repairUiV86" class="btn-gold px-4 py-3 rounded font-bold">UI繧貞�菫ｮ蠕ｩ</button>`);
+    $86('repairUiV86')?.addEventListener('click', () => { bootV86(); renderDiagnosticsV86(); });
+  }
+
+  function ensureScreensV86(){
+    if (!$86('presetScreenV86')) renderPresetScreenV86();
+    if (!$86('achievementsScreenV86')) renderAchievementsV86();
+    if (!$86('bossCodexScreenV86')) renderBossCodexV86();
+    if (!$86('effectSettingsScreenV86')) renderEffectSettingsV86();
+    if (!$86('diagnosticScreenV86')) renderDiagnosticsV86();
+    if (!$86('dailyChallengeScreenV86')) renderDailyChallengeV86();
+  }
+
+  try {
+    if (typeof showScreen === 'function' && !showScreen.__v86Wrapped) {
+      showScreen = function showScreenV86(screenId){
+        try {
+          BASE_SCREENS_V86.forEach(id => { const el = $86(id); if (!el) return; if (id === screenId) el.classList.remove('hidden'); else el.classList.add('hidden'); });
+          if (!screenId) return;
+          if (screenId === 'startScreen') {
+            if (gameState !== 'playing') {
+              $86('uiLayer')?.classList.add('hidden'); $86('pauseScreen')?.classList.add('hidden'); $86('joystickZone')?.classList.add('hidden'); $86('bossWarning')?.classList.add('hidden'); $86('levelUpScreen')?.classList.add('hidden');
+            }
+            fixJapaneseV86(); protectCriticalButtonsV86(); syncToggleStateV86();
+          }
+        } catch(e) { console.warn('[V86] showScreen repair', e); }
+      };
+      showScreen.__v86Wrapped = true;
+    }
+  } catch(e) {}
+
+  function routeV86(id){
+    try {
+      switch(id){
+        case 'startBtn': if (gameState !== 'playing' && gameState !== 'paused') initGame('solo'); return true;
+        case 'onlineStartBtn': if (gameState !== 'playing' && gameState !== 'paused') openOnlineRoleSelect(); return true;
+        case 'openUpgradeBtn': if (typeof renderUpgradeScreen === 'function') renderUpgradeScreen(); showScreen('upgradeScreen'); return true;
+        case 'closeUpgradeBtn': showScreen('startScreen'); return true;
+        case 'openMissionBtn': if (typeof renderMissionScreen === 'function') renderMissionScreen(); showScreen('missionsScreen'); return true;
+        case 'closeMissionsBtn': showScreen('startScreen'); return true;
+        case 'openCollectionBtn': if (typeof renderCollectionScreen === 'function') renderCollectionScreen(); showScreen('collectionScreen'); return true;
+        case 'closeCollectionBtn': showScreen('startScreen'); return true;
+        case 'openWeaponCodexBtn': if (typeof renderWeaponCodexScreen === 'function') renderWeaponCodexScreen(); showScreen('weaponCodexScreen'); return true;
+        case 'closeWeaponCodexBtn': showScreen('startScreen'); return true;
+        case 'openShopBtn': if (typeof renderShopV59 === 'function') renderShopV59(); showScreen('shopScreen'); return true;
+        case 'openLeaderboardBtn': if (typeof renderLeaderboardV59 === 'function') renderLeaderboardV59(); else if (typeof renderLeaderboard20260504 === 'function') renderLeaderboard20260504(); showScreen('leaderboardScreen'); return true;
+        case 'openBattlePassBtn': if (typeof renderBattlePassV2 === 'function') renderBattlePassV2('base'); else if (typeof renderBattlePassFallbackV59 === 'function') renderBattlePassFallbackV59(); showScreen('battlePassScreen'); return true;
+        case 'openDailyEventBtn': if (typeof renderDailyEventScreenV82 === 'function') renderDailyEventScreenV82(); showScreen('eventModeScreen'); return true;
+        case 'openDailyChallengeBtnV86': renderDailyChallengeV86(); showScreen('dailyChallengeScreenV86'); return true;
+        case 'openPresetBtnV86': renderPresetScreenV86(); showScreen('presetScreenV86'); return true;
+        case 'openAchievementsBtnV86': renderAchievementsV86(); showScreen('achievementsScreenV86'); return true;
+        case 'openBossCodexBtnV86': renderBossCodexV86(); showScreen('bossCodexScreenV86'); return true;
+        case 'openEffectSettingsBtnV86': renderEffectSettingsV86(); showScreen('effectSettingsScreenV86'); return true;
+        case 'openDiagnosticsBtnV86': renderDiagnosticsV86(); showScreen('diagnosticScreenV86'); return true;
+        case 'pauseBtn': if (gameState === 'playing' || gameState === 'paused') pauseAction(); return true;
+        case 'resumeBtn': if (gameState === 'paused') pauseAction(); return true;
+        case 'titleFromPauseBtn': if (typeof endRunAndReturnToMenu === 'function') endRunAndReturnToMenu(); else showScreen('startScreen'); return true;
+        case 'restartBtn': gameState = 'start'; if (typeof stopOnlineMode === 'function') stopOnlineMode(); selectedOnlineRoleId = null; currentOnlineRole = null; if (typeof syncJoystickVisibility === 'function') syncJoystickVisibility(); if (typeof loadData === 'function') loadData(); showScreen('startScreen'); return true;
+        default:
+          if (id && id.startsWith('close') && id.endsWith('V86')) { showScreen('startScreen'); return true; }
+          if (id === 'closeShopBtnV59' || id === 'closeLeaderboardBtn' || id === 'closeBattlePassBtn' || id === 'closeBattlePassBtnV2') { showScreen('startScreen'); return true; }
+      }
+    } catch(e) { console.warn('[V86] route repaired', id, e); try { showScreen('startScreen'); } catch(_) {} return true; }
+    return false;
+  }
+
+  try {
+    const oldRouteButtonV59 = (typeof routeButtonV59 === 'function') ? routeButtonV59 : null;
+    routeButtonV59 = function routeButtonV59V86(id){ if (routeV86(id)) return true; return oldRouteButtonV59 ? oldRouteButtonV59(id) : false; };
+  } catch(e) {}
+
+  function buttonEventV86(ev){
+    try {
+      const btn = ev.target && ev.target.closest ? ev.target.closest('button') : null;
+      if (!btn || !btn.id) return;
+      const now = Date.now();
+      if (now - (lastTapV86.get(btn.id) || 0) < 180) { ev.preventDefault(); return; }
+      if (routeV86(btn.id)) { lastTapV86.set(btn.id, now); ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); }
+    } catch(e) {}
+  }
+  window.addEventListener('pointerup', buttonEventV86, true);
+  window.addEventListener('touchend', buttonEventV86, true);
+  window.addEventListener('click', buttonEventV86, true);
+
+  function capArrV86(arr, cap){ try { if (Array.isArray(arr) && arr.length > cap) arr.splice(0, arr.length - cap); } catch(e) {} }
+  function applyEffectSettingV86(){
+    ensureProgressV86();
+    const pref = userData.settings.v86.effectLevel || 'auto';
+    let level = autoLightLevelV86;
+    if (pref === 'normal') level = 0; if (pref === 'low') level = Math.max(level, 2); if (pref === 'minimum') level = 3;
+    document.body.classList.remove('nsv-v86-auto-light-1','nsv-v86-auto-light-2','nsv-v86-auto-light-3');
+    if (level > 0) document.body.classList.add('nsv-v86-auto-light-' + level);
+    if (level >= 2 && !isLightMode) setLightModeV86(true, true);
+    const particleCap = level >= 3 ? 80 : level >= 2 ? 140 : level >= 1 ? 220 : 360;
+    const effectCap = level >= 3 ? 45 : level >= 2 ? 80 : level >= 1 ? 130 : 220;
+    capArrV86(particles, particleCap); capArrV86(floatingTexts, level>=3?28:level>=2?45:80); capArrV86(effects, effectCap);
+    capArrV86(enemyBullets, level>=3?80:level>=2?120:220); capArrV86(bullets, level>=3?180:level>=2?260:420);
+    capArrV86(enemies, level>=3?220:level>=2?280:360);
+  }
+
+  try {
+    if (typeof createParticles === 'function' && !createParticles.__v86Wrapped) {
+      const oldCreateParticlesV86 = createParticles;
+      createParticles = function createParticlesV86(x,y,count=8,color='#0ff',size=3){
+        let c = Math.max(0, Math.floor(num86(count,0)));
+        const pref = userData?.settings?.v86?.effectLevel || 'auto';
+        const level = pref === 'minimum' ? 3 : pref === 'low' ? 2 : autoLightLevelV86;
+        if (level === 1) c = Math.ceil(c * .7); else if (level === 2) c = Math.ceil(c * .45); else if (level >= 3) c = Math.ceil(c * .22);
+        if (num86(gameTime) > 600) c = Math.ceil(c * .55);
+        if (particles.length > 220) c = Math.min(c, 2);
+        return oldCreateParticlesV86.call(this,x,y,c,color,size);
+      };
+      createParticles.__v86Wrapped = true;
+    }
+  } catch(e) {}
+
+  function monitorV86(){
+    try {
+      const now = (performance && performance.now) ? performance.now() : Date.now();
+      const dt = Math.max(1, now - lastFrameV86); lastFrameV86 = now;
+      avgFrameV86 = avgFrameV86 * .94 + dt * .06;
+      if (gameState === 'playing') {
+        const visualLoad = num86(particles?.length)+num86(effects?.length)*1.5+num86(floatingTexts?.length)*.7+num86(enemyBullets?.length)*.4;
+        const next = avgFrameV86 > 52 || visualLoad > 900 ? 3 : avgFrameV86 > 38 || visualLoad > 650 ? 2 : avgFrameV86 > 27 || visualLoad > 430 ? 1 : 0;
+        autoLightLevelV86 = Math.max(autoLightLevelV86 * .985, next);
+        autoLightLevelV86 = Math.round(Math.max(0, Math.min(3, autoLightLevelV86)));
+        applyEffectSettingV86();
+        checkAchievementsV86();
+      }
+    } catch(e) {}
+    requestAnimationFrame(monitorV86);
+  }
+
+  function bootV86(){
+    try {
+      document.body.classList.toggle('nsv-v86-mobile', isMobileLikeV86());
+      ensureProgressV86();
+      fixJapaneseV86();
+      ensureFeatureButtonsV86();
+      ensureScreensV86();
+      installToggleHandlersV86();
+      const savedJoy = localStorage.getItem('neon_survivor_joystick_enabled_v86'); if (savedJoy !== null) isJoystickEnabled = savedJoy === '1';
+      const savedLight = localStorage.getItem('neon_survivor_light_mode_v86'); if (savedLight !== null) isLightMode = savedLight === '1';
+      document.body.classList.toggle('light-mode', !!isLightMode);
+      syncToggleStateV86();
+      protectCriticalButtonsV86();
+      applyEffectSettingV86();
+      try { const badge = document.querySelector('[id*="V85"], #nsvV85Badge, #nsvV84Badge, #nsvV82Badge'); if (badge) badge.remove(); } catch(e) {}
+      let badge = $86('nsvV86Badge');
+      if (!badge) { badge = document.createElement('div'); badge.id = 'nsvV86Badge'; document.body.appendChild(badge); }
+      badge.textContent = V86_TAG;
+      badge.style.cssText = 'position:fixed;left:8px;bottom:6px;z-index:100000;color:#67e8f9;background:rgba(0,0,0,.62);border:1px solid rgba(34,211,238,.35);border-radius:8px;padding:3px 8px;font:700 10px Orbitron,Noto Sans JP,sans-serif;pointer-events:none;';
+    } catch(e) { console.warn('[V86] boot repair', e); }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootV86, { once:true }); else bootV86();
+  window.addEventListener('pageshow', bootV86, { passive:true });
+  window.addEventListener('resize', () => setTimeout(bootV86, 120), { passive:true });
+  setInterval(bootV86, 7000);
+  requestAnimationFrame(monitorV86);
+  window.NEON_SURVIVOR_V86 = { tag:V86_TAG, boot:bootV86, route:routeV86, diagnose:renderDiagnosticsV86, preset:applyPresetV86 };
 })();
 
 </script>
