@@ -378,9 +378,9 @@
                 <button id="openMissionBtn" class="btn-purple menu-secondary px-6 py-3 font-bold rounded cursor-pointer">MISSIONS</button>
                 <button id="openCollectionBtn" class="btn-green menu-secondary px-6 py-3 font-bold rounded cursor-pointer">COLLECTION</button>
                 <button id="openWeaponCodexBtn" class="btn-neon menu-secondary px-6 py-3 font-bold rounded cursor-pointer">WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">&#27494;&#22120;&#22259;&#37969;&#12434;&#12377;&#12368;&#35211;&#12427;</span></button>
-                <button id="openShopBtn" class="btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer">SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β</span></button>
+                <button id="openShopBtn" class="btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer">SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span></button>
                 <button id="openBattlePassBtn" class="btn-purple menu-secondary px-6 py-3 font-bold rounded cursor-pointer">NEON PASS<br><span class="text-xs text-purple-100 font-bold">蝣ｱ驟ｬ繧定ｦ九ｋ</span></button>
-                <button id="openLeaderboardBtn" class="btn-neon menu-secondary px-6 py-3 font-bold rounded cursor-pointer">RANKING<br><span class="text-xs text-cyan-100 font-bold">繧ｹ繧ｳ繧｢遒ｺ隱�</span></button>
+                <button id="openLeaderboardBtn" class="btn-neon menu-secondary px-6 py-3 font-bold rounded cursor-pointer">RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span></button>
                 <div class="bg-gray-900/80 p-4 rounded-xl border border-gray-500 flex items-center justify-between gap-3">
                     <span class="text-cyan-300 font-bold text-sm tracking-wider">&#12472;&#12519;&#12452;&#12473;&#12486;&#12451;&#12483;&#12463;</span>
                     <label class="flex items-center cursor-pointer gap-3">
@@ -10132,7 +10132,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             const btn = document.createElement('button');
             btn.id = 'openLeaderboardBtn';
             btn.className = 'btn-neon menu-secondary px-6 py-3 font-bold rounded cursor-pointer';
-            btn.innerHTML = 'RANKING<br><span class="text-xs text-cyan-100 font-bold">\u53CB\u9054\u3068\u6BD4\u3079\u308B</span>';
+            btn.innerHTML = 'RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>';
             grid?.appendChild(btn);
             btn.addEventListener('click', () => { renderLeaderboard20260504(); showScreen('leaderboardScreen'); });
         }
@@ -10588,7 +10588,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             const btn = document.createElement('button');
             btn.id = 'openShopBtn';
             btn.className = 'btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer';
-            btn.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">\u30C1\u30B1\u30C3\u30C8\u4EA4\u63DB</span>';
+            btn.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>';
             grid?.appendChild(btn);
             btn.addEventListener('click', () => { renderShopScreen20260504(); showScreen('shopScreen'); });
         }
@@ -11053,7 +11053,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         let shop = document.getElementById('openShopBtn');
         if (shop) { const clone = shop.cloneNode(true); shop.replaceWith(clone); shop = clone; }
         if (!shop && grid) { shop = document.createElement('button'); shop.id='openShopBtn'; shop.className='btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer'; grid.appendChild(shop); }
-        if (shop) { shop.innerHTML='SHOP<br><span class="text-xs text-yellow-100 font-bold">\u30C1\u30B1\u30C3\u30C8\u4EA4\u63DB</span>'; shop.addEventListener('click', () => { renderShopV2(); showScreen('shopScreen'); }); }
+        if (shop) { shop.innerHTML='SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>'; shop.addEventListener('click', () => { renderShopV2(); showScreen('shopScreen'); }); }
     }
 
 
@@ -11787,7 +11787,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         if (!btn.__v13Wired) { btn.__v13Wired = true; btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); fn(); }, { passive:false }); }
         btn.style.pointerEvents = 'auto'; btn.disabled = false;
       }
-      addBtn('openLeaderboardBtn', 'btn-neon', 'RANKING<br><span class="text-xs text-cyan-100 font-bold">\u53CB\u9054\u3068\u52DD\u8CA0</span>', () => { renderV13FriendLeaderboard(); showScreen('leaderboardScreen'); });
+      addBtn('openLeaderboardBtn', 'btn-neon', 'RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>', () => { renderV13FriendLeaderboard(); showScreen('leaderboardScreen'); });
       addBtn('openDailyEventBtnV13', 'btn-purple', 'DAILY EVENT<br><span class="text-xs text-purple-100 font-bold">1\u65E51\u56DE</span>', () => { try { renderEventModeScreen20260504?.(); showScreen('eventModeScreen'); setTimeout(removeBlackholeEventCardsV13, 30); } catch(e){ renderV13DailyEventFallback(); } });
       addBtn('adminContactBtn', 'btn-green', '\u7BA1\u7406\u8005\u3078\u9023\u7D61<br><span class="text-xs text-green-100 font-bold">FORM</span>', () => { window.open(ADMIN_FORM_URL, '_blank', 'noopener,noreferrer'); });
       if (!document.getElementById('nsvV13StartCheat')) {
@@ -13483,7 +13483,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                     const grid = start.querySelector('.nsv-v30-grid') || start.querySelector('.menu-grid');
                     if (!grid) return;
                     let rank = q34('openLeaderboardBtn');
-                    rank = setButton(rank, 'openLeaderboardBtn', 'btn-neon', 'RANKING<br><span class="text-xs text-cyan-100 font-bold">\u53CB\u9054\u3068\u52DD\u8CA0</span>');
+                    rank = setButton(rank, 'openLeaderboardBtn', 'btn-neon', 'RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>');
                     let admin = q34('adminContactBtn');
                     admin = setButton(admin, 'adminContactBtn', 'btn-green', '\u7BA1\u7406\u8005\u3078\u9023\u7D61<br><span class="text-xs text-green-100 font-bold">FORM</span>');
                     const desired = ['openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn','openBattlePassBtn','openShopBtn','openLeaderboardBtn','openDailyEventBtnV33','openDailyEventBtnV30','adminContactBtn'];
@@ -14137,8 +14137,8 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                         normalizeHomeButtonV37('openCollectionBtn','btn-green','COLLECTION'),
                         normalizeHomeButtonV37('openWeaponCodexBtn','btn-neon','WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">\u6B66\u5668\u56F3\u9451</span>'),
                         normalizeHomeButtonV37('openBattlePassBtn','btn-purple','NEON PASS'),
-                        normalizeHomeButtonV37('openShopBtn','btn-gold','SHOP<br><span class="text-xs text-yellow-100 font-bold">\u30C1\u30B1\u30C3\u30C8\u4EA4\u63DB</span>'),
-                        normalizeHomeButtonV37('openLeaderboardBtn','btn-neon','RANKING<br><span class="text-xs text-cyan-100 font-bold">\u53CB\u9054\u3068\u52DD\u8CA0</span>'),
+                        normalizeHomeButtonV37('openShopBtn','btn-gold','SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>'),
+                        normalizeHomeButtonV37('openLeaderboardBtn','btn-neon','RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>'),
                         normalizeHomeButtonV37('openDailyEventBtnV35','btn-purple','DAILY EVENT'),
                         normalizeHomeButtonV37('adminContactBtn','btn-green','\u7BA1\u7406\u8005\u3078\u9023\u7D61')
                     ];
@@ -15183,8 +15183,8 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                     const grid = panel?.querySelector('.nsv-v37-menu-grid') || panel?.querySelector('.nsv-v30-grid') || panel?.querySelector('.menu-grid');
                     if (!grid) return;
                     const defs = [
-                        ['openShopBtn','btn-gold','SHOP<br><span class="text-xs text-yellow-100 font-bold">\u30C1\u30B1\u30C3\u30C8\u30FB\u30A2\u30A4\u30C6\u30E0</span>'],
-                        ['openLeaderboardBtn','btn-neon','RANKING<br><span class="text-xs text-cyan-100 font-bold">\u53CB\u9054\u30E9\u30F3\u30AD\u30F3\u30B0</span>']
+                        ['openShopBtn','btn-gold','SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>'],
+                        ['openLeaderboardBtn','btn-neon','RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>']
                     ];
                     defs.forEach(([id, cls, html]) => {
                         let b = q59(id);
@@ -16533,7 +16533,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         btn.dataset.v63Clean = '1';
       }
       btn.className = 'btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer transition-all';
-      btn.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">\u30B7\u30E7\u30C3\u30D7</span>';
+      btn.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>';
       btn.disabled = false;
       btn.style.pointerEvents = 'auto';
       btn.onclick = (e) => {
@@ -17378,7 +17378,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
     const shop = $('openShopBtn');
     if (shop) {
       shop.className = 'btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer transition-all';
-      shop.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β</span>';
+      shop.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>';
       shop.disabled = false; shop.style.pointerEvents = 'auto';
     }
     const col = $('openCollectionBtn');
@@ -17639,6 +17639,69 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   try { new MutationObserver(() => { oneBadge(); fixCollectionText(); }).observe(document.body, {childList:true, subtree:true}); } catch(e) {}
   setTimeout(boot, 100); setTimeout(boot, 600); setTimeout(boot, 1600); setInterval(boot, 500);
   window.NEON_SURVIVOR_V75_COLLECTION_BADGE_STABLE = { boot, oneBadge, fixCollectionText };
+})();
+</script>
+
+
+
+<script id="nsvV76ButtonLabelUnifier">
+/* ===== V76 BUTTON LABEL UNIFIER: SHOP/RANKING descriptions fixed to one label ===== */
+(() => {
+  'use strict';
+  const TAG = 'V76 BUTTON LABEL STABLE';
+  const SHOP_HTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>';
+  const RANK_HTML = 'RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>';
+  const $ = (id) => document.getElementById(id);
+
+  function installV76Style(){
+    if ($('nsvV76ButtonLabelStyle')) return;
+    const s = document.createElement('style');
+    s.id = 'nsvV76ButtonLabelStyle';
+    s.textContent = `
+      #nsvV74Badge{position:fixed!important;left:10px!important;bottom:8px!important;z-index:1000008!important;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:none!important;color:#bbf7d0!important;background:rgba(2,6,23,.95)!important;border:1px solid rgba(52,211,153,.75)!important;border-radius:999px!important;padding:4px 11px!important;font:900 11px/1.2 Orbitron,'Noto Sans JP',monospace!important;letter-spacing:.08em!important;box-shadow:0 0 13px rgba(16,185,129,.38)!important;white-space:nowrap!important;}
+      #nsvV72Badge,#nsvV73Badge,#nsvV70Badge,#nsvV63Badge,#nsvV59Badge,#nsvV37Badge,#nsvV35Badge,#nsvV34Badge,#nsvV33Badge,#nsvV31Badge,#nsvV30Badge,#nsvV13Badge,.nsv-v59-badge,.nsv-v63-badge{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}
+      #startScreen #openShopBtn span,#startScreen #openLeaderboardBtn span{display:inline-block!important;margin-top:.2rem!important;line-height:1.15!important;}
+    `;
+    document.head.appendChild(s);
+  }
+
+  function setButtonHTML(btn, html, cls){
+    if (!btn) return;
+    btn.innerHTML = html;
+    btn.classList.add(...cls.split(' ').filter(Boolean));
+    btn.dataset.nsvV76Label = 'fixed';
+  }
+
+  function unifyButtonLabelsV76(){
+    try {
+      installV76Style();
+      setButtonHTML($('openShopBtn'), SHOP_HTML, 'btn-gold menu-secondary');
+      setButtonHTML($('openLeaderboardBtn'), RANK_HTML, 'btn-neon menu-secondary');
+
+      // Old patches sometimes recreate the buttons. Catch any recreated button by text too.
+      const start = $('startScreen') || document;
+      start.querySelectorAll('button').forEach(btn => {
+        const text = (btn.textContent || '').replace(/\s+/g, ' ').trim();
+        if (btn.id === 'openShopBtn' || /^SHOP( |$)/.test(text)) setButtonHTML(btn, SHOP_HTML, 'btn-gold menu-secondary');
+        if (btn.id === 'openLeaderboardBtn' || /^RANKING( |$)/.test(text)) setButtonHTML(btn, RANK_HTML, 'btn-neon menu-secondary');
+      });
+
+      // Keep one latest badge only.
+      document.querySelectorAll('[id*="Badge"],.nsv-v59-badge,.nsv-v63-badge').forEach(el => { if (el.id !== 'nsvV74Badge') el.remove(); });
+      let badge = $('nsvV74Badge');
+      if (!badge) { badge = document.createElement('div'); badge.id = 'nsvV74Badge'; document.body.appendChild(badge); }
+      badge.textContent = TAG;
+    } catch(e) {}
+  }
+
+  function boot(){ unifyButtonLabelsV76(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true}); else boot();
+  window.addEventListener('load', boot, {passive:true});
+  window.addEventListener('pageshow', boot, {passive:true});
+  try { new MutationObserver(boot).observe(document.body, {childList:true, subtree:true}); } catch(e) {}
+  [80, 250, 700, 1500, 3000, 6000].forEach(ms => setTimeout(boot, ms));
+  setInterval(boot, 2000);
+  window.NEON_SURVIVOR_V76_BUTTON_LABEL_STABLE = { boot, unifyButtonLabelsV76 };
 })();
 </script>
 
