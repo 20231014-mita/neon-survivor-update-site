@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V77 START / BUTTON STABLE / no-preview build -->
+<!-- V78 JAPANESE TEXT / PAUSE CENTER / CHEAT FIX / no-preview build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -374,9 +374,9 @@
             <h1 class="neon-title text-6xl md:text-7xl font-bold neon-text tracking-wider text-center">NEON<br>SURVIVOR</h1>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
                 <div class="bg-gray-900/80 p-4 rounded-xl border border-cyan-500/40">
-                    <label for="nicknameInput" class="block text-cyan-300 font-bold text-sm mb-2 tracking-wider">繝九ャ繧ｯ繝阪�繝� <span class="text-cyan-200">窶ｻ遨ｺ谺�↑繧臼LAYER</span></label>
+                    <label for="nicknameInput" class="block text-cyan-300 font-bold text-sm mb-2 tracking-wider">郢昜ｹ昴Ε郢ｧ�ｯ郢晞亂�ｽ郢晢ｿｽ <span class="text-cyan-200">遯ｶ�ｻ驕ｨ�ｺ隹ｺ�ｽ竊醍ｹｧ閾ｼLAYER</span></label>
                     <input id="nicknameInput" class="menu-input" maxlength="12" placeholder="" autocomplete="off">
-                    <p id="nicknameWarn" class="hidden text-red-300 text-xs mt-2">遨ｺ谺��蝣ｴ蜷医�PLAYER縺ｧ繧ｹ繧ｿ繝ｼ繝医＠縺ｾ縺吶�</p>
+                    <p id="nicknameWarn" class="hidden text-red-300 text-xs mt-2">驕ｨ�ｺ隹ｺ�ｽ�ｽ陜｣�ｴ陷ｷ蛹ｻ�ｽPLAYER邵ｺ�ｧ郢ｧ�ｹ郢ｧ�ｿ郢晢ｽｼ郢晏現��邵ｺ�ｾ邵ｺ蜷ｶﾂ�ｽ</p>
                     <p class="menu-help">&#21517;&#21069;&#12434;&#20837;&#12428;&#12427;&#12392;&#12473;&#12479;&#12540;&#12488;&#12391;&#12365;&#12414;&#12377;</p>
                 </div>
                 <div class="bg-gray-900/80 p-4 rounded-xl border border-yellow-500/40 flex flex-col justify-center">
@@ -392,9 +392,9 @@
                 <button id="openMissionBtn" class="btn-purple menu-secondary px-6 py-3 font-bold rounded cursor-pointer">MISSIONS</button>
                 <button id="openCollectionBtn" class="btn-green menu-secondary px-6 py-3 font-bold rounded cursor-pointer">COLLECTION</button>
                 <button id="openWeaponCodexBtn" class="btn-neon menu-secondary px-6 py-3 font-bold rounded cursor-pointer">WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">&#27494;&#22120;&#22259;&#37969;&#12434;&#12377;&#12368;&#35211;&#12427;</span></button>
-                <button id="openShopBtn" class="btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer">SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span></button>
-                <button id="openBattlePassBtn" class="btn-purple menu-secondary px-6 py-3 font-bold rounded cursor-pointer">NEON PASS<br><span class="text-xs text-purple-100 font-bold">蝣ｱ驟ｬ繧定ｦ九ｋ</span></button>
-                <button id="openLeaderboardBtn" class="btn-neon menu-secondary px-6 py-3 font-bold rounded cursor-pointer">RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span></button>
+                <button id="openShopBtn" class="btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer">SHOP<br><span class="text-xs text-yellow-100 font-bold">郢昶�縺鍋ｹ晢ｿｽ繝ｨ郢晢ｽｻ郢ｧ�｢郢ｧ�､郢晢ｿｽﾎ定滋�､隰��ｽ</span></button>
+                <button id="openBattlePassBtn" class="btn-purple menu-secondary px-6 py-3 font-bold rounded cursor-pointer">NEON PASS<br><span class="text-xs text-purple-100 font-bold">陜｣�ｱ鬩滂ｽｬ郢ｧ螳夲ｽｦ荵晢ｽ�</span></button>
+                <button id="openLeaderboardBtn" class="btn-neon menu-secondary px-6 py-3 font-bold rounded cursor-pointer">RANKING<br><span class="text-xs text-cyan-100 font-bold">陷ｿ遏ｩ��ｹ晢ｽｩ郢晢ｽｳ郢ｧ�ｭ郢晢ｽｳ郢ｧ�ｰ</span></button>
                 <div class="bg-gray-900/80 p-4 rounded-xl border border-gray-500 flex items-center justify-between gap-3">
                     <span class="text-cyan-300 font-bold text-sm tracking-wider">&#12472;&#12519;&#12452;&#12473;&#12486;&#12451;&#12483;&#12463;</span>
                     <label class="flex items-center cursor-pointer gap-3">
@@ -2284,7 +2284,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             const input = document.getElementById('nicknameInput');
             const warn = document.getElementById('nicknameWarn');
             let nick = getNickname();
-            // V77: 遨ｺ谺�〒豁｢縺ｾ繧峨↑縺�ｈ縺�↓縲∵悴蜈･蜉帙↑繧� PLAYER 縺ｧ髢句ｧ九＠縺ｾ縺吶�
+            // V77: 驕ｨ�ｺ隹ｺ�ｽ縲定ｱ�ｽ｢邵ｺ�ｾ郢ｧ蟲ｨ竊醍ｸｺ�ｽ�育ｸｺ�ｽ竊鍋ｸｲ竏ｵ謔ｴ陷茨ｽ･陷牙ｸ吮�郢ｧ�ｽ PLAYER 邵ｺ�ｧ鬮｢蜿･�ｧ荵晢ｼ�邵ｺ�ｾ邵ｺ蜷ｶﾂ�ｽ
             if (!nick) {
                 nick = 'PLAYER';
                 if (input) input.value = nick;
@@ -10152,7 +10152,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             const btn = document.createElement('button');
             btn.id = 'openLeaderboardBtn';
             btn.className = 'btn-neon menu-secondary px-6 py-3 font-bold rounded cursor-pointer';
-            btn.innerHTML = 'RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>';
+            btn.innerHTML = 'RANKING<br><span class="text-xs text-cyan-100 font-bold">陷ｿ遏ｩ��ｹ晢ｽｩ郢晢ｽｳ郢ｧ�ｭ郢晢ｽｳ郢ｧ�ｰ</span>';
             grid?.appendChild(btn);
             btn.addEventListener('click', () => { renderLeaderboard20260504(); showScreen('leaderboardScreen'); });
         }
@@ -10608,7 +10608,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             const btn = document.createElement('button');
             btn.id = 'openShopBtn';
             btn.className = 'btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer';
-            btn.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>';
+            btn.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">郢昶�縺鍋ｹ晢ｿｽ繝ｨ郢晢ｽｻ郢ｧ�｢郢ｧ�､郢晢ｿｽﾎ定滋�､隰��ｽ</span>';
             grid?.appendChild(btn);
             btn.addEventListener('click', () => { renderShopScreen20260504(); showScreen('shopScreen'); });
         }
@@ -11073,7 +11073,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         let shop = document.getElementById('openShopBtn');
         if (shop) { const clone = shop.cloneNode(true); shop.replaceWith(clone); shop = clone; }
         if (!shop && grid) { shop = document.createElement('button'); shop.id='openShopBtn'; shop.className='btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer'; grid.appendChild(shop); }
-        if (shop) { shop.innerHTML='SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>'; shop.addEventListener('click', () => { renderShopV2(); showScreen('shopScreen'); }); }
+        if (shop) { shop.innerHTML='SHOP<br><span class="text-xs text-yellow-100 font-bold">郢昶�縺鍋ｹ晢ｿｽ繝ｨ郢晢ｽｻ郢ｧ�｢郢ｧ�､郢晢ｿｽﾎ定滋�､隰��ｽ</span>'; shop.addEventListener('click', () => { renderShopV2(); showScreen('shopScreen'); }); }
     }
 
 
@@ -11807,7 +11807,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         if (!btn.__v13Wired) { btn.__v13Wired = true; btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); fn(); }, { passive:false }); }
         btn.style.pointerEvents = 'auto'; btn.disabled = false;
       }
-      addBtn('openLeaderboardBtn', 'btn-neon', 'RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>', () => { renderV13FriendLeaderboard(); showScreen('leaderboardScreen'); });
+      addBtn('openLeaderboardBtn', 'btn-neon', 'RANKING<br><span class="text-xs text-cyan-100 font-bold">陷ｿ遏ｩ��ｹ晢ｽｩ郢晢ｽｳ郢ｧ�ｭ郢晢ｽｳ郢ｧ�ｰ</span>', () => { renderV13FriendLeaderboard(); showScreen('leaderboardScreen'); });
       addBtn('openDailyEventBtnV13', 'btn-purple', 'DAILY EVENT<br><span class="text-xs text-purple-100 font-bold">1\u65E51\u56DE</span>', () => { try { renderEventModeScreen20260504?.(); showScreen('eventModeScreen'); setTimeout(removeBlackholeEventCardsV13, 30); } catch(e){ renderV13DailyEventFallback(); } });
       addBtn('adminContactBtn', 'btn-green', '\u7BA1\u7406\u8005\u3078\u9023\u7D61<br><span class="text-xs text-green-100 font-bold">FORM</span>', () => { window.open(ADMIN_FORM_URL, '_blank', 'noopener,noreferrer'); });
       if (!document.getElementById('nsvV13StartCheat')) {
@@ -13503,7 +13503,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                     const grid = start.querySelector('.nsv-v30-grid') || start.querySelector('.menu-grid');
                     if (!grid) return;
                     let rank = q34('openLeaderboardBtn');
-                    rank = setButton(rank, 'openLeaderboardBtn', 'btn-neon', 'RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>');
+                    rank = setButton(rank, 'openLeaderboardBtn', 'btn-neon', 'RANKING<br><span class="text-xs text-cyan-100 font-bold">陷ｿ遏ｩ��ｹ晢ｽｩ郢晢ｽｳ郢ｧ�ｭ郢晢ｽｳ郢ｧ�ｰ</span>');
                     let admin = q34('adminContactBtn');
                     admin = setButton(admin, 'adminContactBtn', 'btn-green', '\u7BA1\u7406\u8005\u3078\u9023\u7D61<br><span class="text-xs text-green-100 font-bold">FORM</span>');
                     const desired = ['openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn','openBattlePassBtn','openShopBtn','openLeaderboardBtn','openDailyEventBtnV33','openDailyEventBtnV30','adminContactBtn'];
@@ -14157,8 +14157,8 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                         normalizeHomeButtonV37('openCollectionBtn','btn-green','COLLECTION'),
                         normalizeHomeButtonV37('openWeaponCodexBtn','btn-neon','WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">\u6B66\u5668\u56F3\u9451</span>'),
                         normalizeHomeButtonV37('openBattlePassBtn','btn-purple','NEON PASS'),
-                        normalizeHomeButtonV37('openShopBtn','btn-gold','SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>'),
-                        normalizeHomeButtonV37('openLeaderboardBtn','btn-neon','RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>'),
+                        normalizeHomeButtonV37('openShopBtn','btn-gold','SHOP<br><span class="text-xs text-yellow-100 font-bold">郢昶�縺鍋ｹ晢ｿｽ繝ｨ郢晢ｽｻ郢ｧ�｢郢ｧ�､郢晢ｿｽﾎ定滋�､隰��ｽ</span>'),
+                        normalizeHomeButtonV37('openLeaderboardBtn','btn-neon','RANKING<br><span class="text-xs text-cyan-100 font-bold">陷ｿ遏ｩ��ｹ晢ｽｩ郢晢ｽｳ郢ｧ�ｭ郢晢ｽｳ郢ｧ�ｰ</span>'),
                         normalizeHomeButtonV37('openDailyEventBtnV35','btn-purple','DAILY EVENT'),
                         normalizeHomeButtonV37('adminContactBtn','btn-green','\u7BA1\u7406\u8005\u3078\u9023\u7D61')
                     ];
@@ -15203,8 +15203,8 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                     const grid = panel?.querySelector('.nsv-v37-menu-grid') || panel?.querySelector('.nsv-v30-grid') || panel?.querySelector('.menu-grid');
                     if (!grid) return;
                     const defs = [
-                        ['openShopBtn','btn-gold','SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>'],
-                        ['openLeaderboardBtn','btn-neon','RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>']
+                        ['openShopBtn','btn-gold','SHOP<br><span class="text-xs text-yellow-100 font-bold">郢昶�縺鍋ｹ晢ｿｽ繝ｨ郢晢ｽｻ郢ｧ�｢郢ｧ�､郢晢ｿｽﾎ定滋�､隰��ｽ</span>'],
+                        ['openLeaderboardBtn','btn-neon','RANKING<br><span class="text-xs text-cyan-100 font-bold">陷ｿ遏ｩ��ｹ晢ｽｩ郢晢ｽｳ郢ｧ�ｭ郢晢ｽｳ郢ｧ�ｰ</span>']
                     ];
                     defs.forEach(([id, cls, html]) => {
                         let b = q59(id);
@@ -15846,7 +15846,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
       const label = document.createElement('div');
       label.id = 'nsvV74LocalOnlineLabel';
       label.className = 'nsv-v74-local-online';
-      label.textContent = 'ONLINE險ｭ螳壹↑縺暦ｼ壹％縺ｮ逕ｻ髱｢縺ｯ繝ｭ繝ｼ繧ｫ繝ｫ遒ｺ隱阪Δ繝ｼ繝峨〒縺吶よ悽譬ｼ蜷梧悄縺ｫ縺ｯFirebase險ｭ螳壹′蠢�ｦ√〒縺吶�';
+      label.textContent = 'ONLINE髫ｪ�ｭ陞ｳ螢ｹ竊醍ｸｺ證ｦ�ｼ螢ｹ��ｸｺ�ｮ騾包ｽｻ鬮ｱ�｢邵ｺ�ｯ郢晢ｽｭ郢晢ｽｼ郢ｧ�ｫ郢晢ｽｫ驕抵ｽｺ髫ｱ髦ｪﾎ皮ｹ晢ｽｼ郢晏ｳｨ縲堤ｸｺ蜷ｶﾂ繧域た隴ｬ�ｼ陷ｷ譴ｧ謔�ｸｺ�ｫ邵ｺ�ｯFirebase髫ｪ�ｭ陞ｳ螢ｹ窶ｲ陟｢�ｽ�ｦ竏壹堤ｸｺ蜷ｶﾂ�ｽ';
       const panel = parent.querySelector?.('.menu-panel') || parent;
       const head = panel.children?.[0];
       if (head && head.parentNode) head.parentNode.insertBefore(label, head.nextSibling); else panel.prepend(label);
@@ -16023,7 +16023,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
       patchCoreV74();
       switch(id){
         case 'startBtn': if (gameState === 'start' || gameState === 'gameover') initGame('solo'); return true;
-        case 'onlineStartBtn': if (!isFirebaseReadyV74()) { try { window.NEON_SURVIVOR_REAL_TOAST?.('ONLINE', '繝ｭ繝ｼ繧ｫ繝ｫ遒ｺ隱阪Δ繝ｼ繝峨〒陦ｨ遉ｺ縺励∪縺�'); } catch(e) {} } if (gameState === 'start' || gameState === 'gameover') openOnlineRoleSelect(); setTimeout(()=>repairScreensV74('onlineRoleScreen'), 60); return true;
+        case 'onlineStartBtn': if (!isFirebaseReadyV74()) { try { window.NEON_SURVIVOR_REAL_TOAST?.('ONLINE', '郢晢ｽｭ郢晢ｽｼ郢ｧ�ｫ郢晢ｽｫ驕抵ｽｺ髫ｱ髦ｪﾎ皮ｹ晢ｽｼ郢晏ｳｨ縲帝勗�ｨ驕会ｽｺ邵ｺ蜉ｱ竏ｪ邵ｺ�ｽ'); } catch(e) {} } if (gameState === 'start' || gameState === 'gameover') openOnlineRoleSelect(); setTimeout(()=>repairScreensV74('onlineRoleScreen'), 60); return true;
         case 'openUpgradeBtn': renderUpgradeScreen(); showScreen('upgradeScreen'); return true;
         case 'closeUpgradeBtn': showScreen('startScreen'); return true;
         case 'openMissionBtn': renderMissionScreen(); showScreen('missionsScreen'); return true;
@@ -16553,7 +16553,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         btn.dataset.v63Clean = '1';
       }
       btn.className = 'btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer transition-all';
-      btn.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>';
+      btn.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">郢昶�縺鍋ｹ晢ｿｽ繝ｨ郢晢ｽｻ郢ｧ�｢郢ｧ�､郢晢ｿｽﾎ定滋�､隰��ｽ</span>';
       btn.disabled = false;
       btn.style.pointerEvents = 'auto';
       btn.onclick = (e) => {
@@ -17090,11 +17090,11 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   const EQUIP_TYPES = new Set(['skin','aura','cape','backpack','trail','pet','emote','intro','elimination','bossFinish','nameplate','badge']);
   const SCREEN_IDS = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen','shopScreen','battlePassScreen','leaderboardScreen','dailyEventScreen'];
   const fallbackNames = {
-    classic:'繧ｯ繝ｩ繧ｷ繝�け繝阪が繝ｳ', none:'縺ｪ縺�', ruby:'繝ｫ繝薙�繝悶Ξ繧､繧ｫ繝ｼ', gold:'繧ｴ繝ｼ繝ｫ繝峨し繝舌う繝舌�', void:'繝ｴ繧ｩ繧､繝峨Λ繝ｳ繝翫�', emerald:'繧ｨ繝｡繝ｩ繝ｫ繝峨ぎ繝ｼ繝�ぅ繧｢繝ｳ', angel:'逋ｽ驫繧ｨ繝ｳ繧ｸ繧ｧ繝ｫ繧ｳ繧｢', obsidian:'鮟呈屆繧ｷ繝｣繝峨え繧ｳ繧｢', solar:'螟ｪ髯ｽ逾槭�繝ｪ繧ｪ繧ｹ', sapphire:'繧ｵ繝輔ぃ繧､繧｢繧ｹ繝医Λ繧､繧ｫ繝ｼ',
-    crimson:'邏�動縺ｮ闍ｱ髮��繝ｳ繝�', royal:'邇玖��鮟�≡繝槭Φ繝�', voidCape:'陌夂ｩｺ縺ｮ譏滄峇繝槭Φ繝�', stormCape:'髮ｷ蟶昴�闥ｼ髮ｷ繝槭Φ繝�', phantom:'蟷ｻ蠖ｱ繧ｯ繝ｭ繝ｼ繧ｯ', galaxy:'驫豐ｳ闊ｪ豬ｷ繝槭Φ繝�', inferno:'讌ｭ轣ｫ蟆�ｻ阪�繝ｳ繝�', monarch:'隕�視縺ｮ鮟帝≡繝槭Φ繝�',
-    cyanFlame:'闥ｼ轤弱が繝ｼ繝ｩ', goldSpark:'鮟�≡繧ｹ繝代�繧ｯ', voidMist:'陌夂ｩｺ繝溘せ繝�', toxicPulse:'迪帶ｯ偵ヱ繝ｫ繧ｹ', royalHalo:'邇玖��鮟�≡蜀�', solarFlare:'螟ｪ髯ｽ繝輔Ξ繧｢', stormKing:'髮ｷ蟶昴が繝ｼ繝ｩ',
-    skin_neon_runner_s1:'繝阪が繝ｳ繝ｻ繝励Ο繝医Λ繝ｳ繝翫�', aura_neon_pulse_s1:'繝阪が繝ｳ繝代Ν繧ｹ繝ｻ繧ｳ繧｢', back_neon_core_s1:'繧ｼ繝ｭ繝ｩ繧､繝医�繝ｪ繧｢繧ｯ繧ｿ繝ｼ', trail_neon_line_s1:'繝悶Ν繝ｼ繧ｰ繝ｪ繝�ラ繝ｻ繝医Ξ繧､繝ｫ', emote_neon_pose_s1:'繝ｩ繧､繝医い繝��繝ｻ繝昴�繧ｺ', pet_neon_slime_s1:'繝阪が繝ｳ繧ｹ繝ｩ繧､繝�繝ｻ繝斐け繧ｻ繝ｫ', intro_neon_scan_s1:'繝帙Ο繧ｰ繝ｩ繝�繝ｻ繧ｹ繧ｭ繝｣繝ｳ逋ｻ蝣ｴ', elim_neon_pixel_s1:'繝斐け繧ｻ繝ｫ繝悶Ξ繧､繧ｯ謦��ｴ', finish_neon_clear_s1:'NEON OVERDRIVE 繝輔ぅ繝九ャ繧ｷ繝･', plate_neon_city_s1:'繝阪が繝ｳ繧ｷ繝�ぅ繝ｻ繝阪�繝�繝励Ξ繝ｼ繝�', badge_neon_s1:'Founder Season 1 繝舌ャ繧ｸ', box_neon_s1:'NEON GENESIS BOX',
-    skin_neon_runner_galaxy_s1:'繝阪が繝ｳ繝ｻ繝励Ο繝医Λ繝ｳ繝翫� Galaxy', aura_neon_pulse_rainbow_s1:'繝阪が繝ｳ繝代Ν繧ｹ繝ｻRainbow Core', back_neon_core_galaxy_s1:'繧ｼ繝ｭ繝ｩ繧､繝医�Galaxy Reactor', trail_neon_line_galaxy_s1:'繝悶Ν繝ｼ繧ｰ繝ｪ繝�ラ繝ｻGalaxy Trail'
+    classic:'郢ｧ�ｯ郢晢ｽｩ郢ｧ�ｷ郢晢ｿｽ縺醍ｹ晞亂縺檎ｹ晢ｽｳ', none:'邵ｺ�ｪ邵ｺ�ｽ', ruby:'郢晢ｽｫ郢晁侭�ｽ郢晄じﾎ樒ｹｧ�､郢ｧ�ｫ郢晢ｽｼ', gold:'郢ｧ�ｴ郢晢ｽｼ郢晢ｽｫ郢晏ｳｨ縺礼ｹ晁�縺�ｹ晁��ｽ', void:'郢晢ｽｴ郢ｧ�ｩ郢ｧ�､郢晏ｳｨﾎ帷ｹ晢ｽｳ郢晉ｿｫ�ｽ', emerald:'郢ｧ�ｨ郢晢ｽ｡郢晢ｽｩ郢晢ｽｫ郢晏ｳｨ縺守ｹ晢ｽｼ郢晢ｿｽ縺�ｹｧ�｢郢晢ｽｳ', angel:'騾具ｽｽ鬩ｫﾂ郢ｧ�ｨ郢晢ｽｳ郢ｧ�ｸ郢ｧ�ｧ郢晢ｽｫ郢ｧ�ｳ郢ｧ�｢', obsidian:'魄溷争螻�ｹｧ�ｷ郢晢ｽ｣郢晏ｳｨ縺育ｹｧ�ｳ郢ｧ�｢', solar:'陞滂ｽｪ鬮ｯ�ｽ騾ｾ讒ｭ�ｽ郢晢ｽｪ郢ｧ�ｪ郢ｧ�ｹ', sapphire:'郢ｧ�ｵ郢晁ｼ斐＜郢ｧ�､郢ｧ�｢郢ｧ�ｹ郢晏現ﾎ帷ｹｧ�､郢ｧ�ｫ郢晢ｽｼ',
+    crimson:'驍擾ｿｽ蜍慕ｸｺ�ｮ髣搾ｽｱ鬮ｮ�ｽ�ｽ郢晢ｽｳ郢晢ｿｽ', royal:'驍�事ﾂ�ｽ�ｽ魄滂ｿｽ竕｡郢晄ｧｭﾎｦ郢晢ｿｽ', voidCape:'髯悟､ゑｽｩ�ｺ邵ｺ�ｮ隴乗ｻ�ｳ�ｹ晄ｧｭﾎｦ郢晢ｿｽ', stormCape:'鬮ｮ�ｷ陝ｶ譏ｴ�ｽ髣･�ｼ鬮ｮ�ｷ郢晄ｧｭﾎｦ郢晢ｿｽ', phantom:'陝ｷ�ｻ陟厄ｽｱ郢ｧ�ｯ郢晢ｽｭ郢晢ｽｼ郢ｧ�ｯ', galaxy:'鬩ｫﾂ雎撰ｽｳ髣奇ｽｪ雎ｬ�ｷ郢晄ｧｭﾎｦ郢晢ｿｽ', inferno:'隶鯉ｽｭ霓｣�ｫ陝�ｿｽ�ｻ髦ｪ�ｽ郢晢ｽｳ郢晢ｿｽ', monarch:'髫包ｿｽ隕也ｸｺ�ｮ魄溷ｸ昶横郢晄ｧｭﾎｦ郢晢ｿｽ',
+    cyanFlame:'髣･�ｼ霓､蠑ｱ縺檎ｹ晢ｽｼ郢晢ｽｩ', goldSpark:'魄滂ｿｽ竕｡郢ｧ�ｹ郢昜ｻ｣�ｽ郢ｧ�ｯ', voidMist:'髯悟､ゑｽｩ�ｺ郢晄ｺ倥○郢晢ｿｽ', toxicPulse:'霑ｪ蟶ｶ�ｯ蛛ｵ繝ｱ郢晢ｽｫ郢ｧ�ｹ', royalHalo:'驍�事ﾂ�ｽ�ｽ魄滂ｿｽ竕｡陷�ｽ', solarFlare:'陞滂ｽｪ鬮ｯ�ｽ郢晁ｼ釆樒ｹｧ�｢', stormKing:'鬮ｮ�ｷ陝ｶ譏ｴ縺檎ｹ晢ｽｼ郢晢ｽｩ',
+    skin_neon_runner_s1:'郢晞亂縺檎ｹ晢ｽｳ郢晢ｽｻ郢晏干ﾎ溽ｹ晏現ﾎ帷ｹ晢ｽｳ郢晉ｿｫ�ｽ', aura_neon_pulse_s1:'郢晞亂縺檎ｹ晢ｽｳ郢昜ｻ｣ﾎ晉ｹｧ�ｹ郢晢ｽｻ郢ｧ�ｳ郢ｧ�｢', back_neon_core_s1:'郢ｧ�ｼ郢晢ｽｭ郢晢ｽｩ郢ｧ�､郢晏現�ｽ郢晢ｽｪ郢ｧ�｢郢ｧ�ｯ郢ｧ�ｿ郢晢ｽｼ', trail_neon_line_s1:'郢晄じﾎ晉ｹ晢ｽｼ郢ｧ�ｰ郢晢ｽｪ郢晢ｿｽ繝ｩ郢晢ｽｻ郢晏現ﾎ樒ｹｧ�､郢晢ｽｫ', emote_neon_pose_s1:'郢晢ｽｩ郢ｧ�､郢晏現縺�ｹ晢ｿｽ�ｽ郢晢ｽｻ郢晄亢�ｽ郢ｧ�ｺ', pet_neon_slime_s1:'郢晞亂縺檎ｹ晢ｽｳ郢ｧ�ｹ郢晢ｽｩ郢ｧ�､郢晢ｿｽ郢晢ｽｻ郢晄鱒縺醍ｹｧ�ｻ郢晢ｽｫ', intro_neon_scan_s1:'郢晏ｸ厥溽ｹｧ�ｰ郢晢ｽｩ郢晢ｿｽ郢晢ｽｻ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽ｣郢晢ｽｳ騾具ｽｻ陜｣�ｴ', elim_neon_pixel_s1:'郢晄鱒縺醍ｹｧ�ｻ郢晢ｽｫ郢晄じﾎ樒ｹｧ�､郢ｧ�ｯ隰ｦ�ｽ�ｽ�ｴ', finish_neon_clear_s1:'NEON OVERDRIVE 郢晁ｼ斐≦郢昜ｹ昴Ε郢ｧ�ｷ郢晢ｽ･', plate_neon_city_s1:'郢晞亂縺檎ｹ晢ｽｳ郢ｧ�ｷ郢晢ｿｽ縺�ｹ晢ｽｻ郢晞亂�ｽ郢晢ｿｽ郢晏干ﾎ樒ｹ晢ｽｼ郢晢ｿｽ', badge_neon_s1:'Founder Season 1 郢晁�繝｣郢ｧ�ｸ', box_neon_s1:'NEON GENESIS BOX',
+    skin_neon_runner_galaxy_s1:'郢晞亂縺檎ｹ晢ｽｳ郢晢ｽｻ郢晏干ﾎ溽ｹ晏現ﾎ帷ｹ晢ｽｳ郢晉ｿｫ�ｽ Galaxy', aura_neon_pulse_rainbow_s1:'郢晞亂縺檎ｹ晢ｽｳ郢昜ｻ｣ﾎ晉ｹｧ�ｹ郢晢ｽｻRainbow Core', back_neon_core_galaxy_s1:'郢ｧ�ｼ郢晢ｽｭ郢晢ｽｩ郢ｧ�､郢晏現�ｽGalaxy Reactor', trail_neon_line_galaxy_s1:'郢晄じﾎ晉ｹ晢ｽｼ郢ｧ�ｰ郢晢ｽｪ郢晢ｿｽ繝ｩ郢晢ｽｻGalaxy Trail'
   };
 
   function injectStyle(){
@@ -17191,36 +17191,36 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
     return [];
   }
   function itemName(id, type, raw){
-    if (raw && !/[�ｽﾃε｣ﾃらｹ晉ｸｺ陷ｷ陋ｯ邨冶耳騾暮ｫｯ陋幄ｭ∫ｵ城藍闕ｳ闕ｵ]/.test(String(raw))) return String(raw);
+    if (raw && !/[�ｽ�ｽ�πｵ�｣��ｉ�ｹ譎会ｽｸ�ｺ髯ｷ�ｷ髯具ｽｯ驍ｨ蜀ｶ閠ｳ鬨ｾ證ｮ�ｫ�ｯ髯句ｹ�ｽｭ竏ｫ�ｵ蝓手絡髣包ｽｳ髣包ｽｵ]/.test(String(raw))) return String(raw);
     if (fallbackNames[id]) return fallbackNames[id];
     const cleaned = String(id || '').replace(/^n\d+[_-]/,'').replace(/^bp[_-]?/i,'').replace(/^skin[_-]?/i,'').replace(/^aura[_-]?/i,'').replace(/^back[_-]?/i,'').replace(/^trail[_-]?/i,'').replace(/^badge[_-]?/i,'').replace(/^plate[_-]?/i,'').replace(/[_-]+/g,' ').trim();
     return cleaned ? cleaned.replace(/\b\w/g, m => m.toUpperCase()) : (TYPE_LABELS[type] || 'ITEM');
   }
 
   const fallbackDescs = {
-    classic:'譛蛻昴°繧我ｽｿ縺医ｋ蝓ｺ譛ｬ繧ｹ繧ｭ繝ｳ縺ｧ縺吶�', ruby:'謨ｵ繧偵◆縺上＆繧灘偵☆縺ｨ隗｣謾ｾ縺輔ｌ繧玖ｵ､縺�ロ繧ｪ繝ｳ繧ｹ繧ｭ繝ｳ縺ｧ縺吶�', gold:'繧ｳ繧､繝ｳ繧帝寔繧√ｋ縺ｨ隗｣謾ｾ縺輔ｌ繧矩≡濶ｲ縺ｮ繧ｹ繧ｭ繝ｳ縺ｧ縺吶�', void:'髟ｷ縺冗函縺肴ｮ九ｋ縺ｨ隗｣謾ｾ縺輔ｌ繧狗ｴｫ縺ｮ繧ｹ繧ｭ繝ｳ縺ｧ縺吶�', emerald:'繝懊せ險惹ｼ舌〒隗｣謾ｾ縺輔ｌ繧狗ｷ代�螳郁ｭｷ閠�せ繧ｭ繝ｳ縺ｧ縺吶�', angel:'逋ｽ驫縺ｮ蜈峨↓蛹�∪繧後ｋ荳贋ｽ阪せ繧ｭ繝ｳ縺ｧ縺吶�', obsidian:'鮟偵＞螟冶｣�→邏ｫ縺ｮ蜈峨′迚ｹ蠕ｴ縺ｮ繧ｹ繧ｭ繝ｳ縺ｧ縺吶�', solar:'螟ｪ髯ｽ縺ｮ繧医≧縺ｫ譏弱ｋ縺丞�繧区ｴｾ謇九↑繧ｹ繧ｭ繝ｳ縺ｧ縺吶�', sapphire:'髱偵＞繝阪が繝ｳ縺瑚ｵｰ繧九せ繝斐�繝画─縺ｮ縺ゅｋ繧ｹ繧ｭ繝ｳ縺ｧ縺吶�',
-    crimson:'襍､縺��繝ｳ繝医′蠕後ｍ縺ｫ縺ｪ縺ｳ縺剰恭髮�｢ｨ繧｢繧ｯ繧ｻ繧ｵ繝ｪ繝ｼ縺ｧ縺吶�', royal:'邇玖�ｉ縺励＞驥題牡縺ｮ繝槭Φ繝医〒縺吶�', voidCape:'螳�ｮ吶�繧医≧縺ｪ邏ｫ濶ｲ縺ｮ譏滄峇繝槭Φ繝医〒縺吶�', stormCape:'髱偵＞髮ｷ縺ｮ貍泌�縺悟�繧九�繝ｳ繝医〒縺吶�', phantom:'蠖ｱ縺ｮ繧医≧縺ｫ繧�ｌ繧玖ｻｽ縺�け繝ｭ繝ｼ繧ｯ縺ｧ縺吶�', galaxy:'驫豐ｳ繧偵う繝｡繝ｼ繧ｸ縺励◆螟ｧ縺阪ａ縺ｮ繝槭Φ繝医〒縺吶�', inferno:'轤弱�繧医≧縺ｪ濶ｲ縺ｧ逶ｮ遶九▽繝槭Φ繝医〒縺吶�', monarch:'鮟偵→驥代ｒ邨�∩蜷医ｏ縺帙◆隕�視鬚ｨ繝槭Φ繝医〒縺吶�',
-    cyanFlame:'雜ｳ蜈�↓髱偵＞轤弱′蜃ｺ繧九が繝ｼ繝ｩ縺ｧ縺吶�', goldSpark:'驥題牡縺ｮ蟆上＆縺ｪ蜈峨′蜻ｨ繧翫ｒ闊槭≧繧ｪ繝ｼ繝ｩ縺ｧ縺吶�', voidMist:'邏ｫ縺ｮ髴ｧ縺ｮ繧医≧縺ｪ繧ｨ繝輔ぉ繧ｯ繝医ｒ縺ｾ縺ｨ縺�∪縺吶�', toxicPulse:'邱代�豕｢邏九′蠎�′繧区ｯ帝｢ｨ繧ｪ繝ｼ繝ｩ縺ｧ縺吶�', royalHalo:'鬆ｭ荳翫↓驥題牡縺ｮ邇句�縺梧ｵｮ縺九�繧ｪ繝ｼ繝ｩ縺ｧ縺吶�', solarFlare:'螟ｪ髯ｽ縺ｮ轤弱�繧医≧縺ｪ霈ｪ縺後ｆ繧峨ａ縺阪∪縺吶�', stormKing:'菴薙�蜻ｨ繧翫↓邏ｰ縺�峭縺瑚ｵｰ繧九が繝ｼ繝ｩ縺ｧ縺吶�',
-    skin_neon_runner_s1:'蜈ｨ霄ｫ縺ｫ繝阪が繝ｳ繝ｩ繧､繝ｳ縺悟�縺｣縺欖eason 1髯仙ｮ壹せ繧ｭ繝ｳ縺ｧ縺吶�', aura_neon_pulse_s1:'菴薙�蜻ｨ繧翫↓髱偵＞繝阪が繝ｳ繝代Ν繧ｹ縺悟ｺ�′繧九が繝ｼ繝ｩ縺ｧ縺吶�', back_neon_core_s1:'閭御ｸｭ縺ｫ蟆上＆縺ｪ繝阪が繝ｳ繝ｪ繧｢繧ｯ繧ｿ繝ｼ繧定｣�ｙ縺励∪縺吶�', trail_neon_line_s1:'遘ｻ蜍輔＠縺溘≠縺ｨ縺ｫ髱偵＞繝ｩ繧､繝ｳ縺梧ｮ九ｋ繝医Ξ繧､繝ｫ縺ｧ縺吶�', emote_neon_pose_s1:'蜈峨ｋ繝昴�繧ｺ繧呈ｱｺ繧√ｋ繧ｨ繝｢繝ｼ繝医〒縺吶�', pet_neon_slime_s1:'蟆上＆縺ｪ繝阪が繝ｳ繧ｹ繝ｩ繧､繝�縺後▽縺�※縺上ｋ繝壹ャ繝医〒縺吶�', intro_neon_scan_s1:'繝帙Ο繧ｰ繝ｩ繝�縺ｮ繧医≧縺ｪ繧ｹ繧ｭ繝｣繝ｳ貍泌�縺ｧ逋ｻ蝣ｴ縺励∪縺吶�', elim_neon_pixel_s1:'謨ｵ繧貞偵＠縺溘→縺阪↓繝斐け繧ｻ繝ｫ縺後�縺倥￠繧区ｼ泌�縺ｧ縺吶�', finish_neon_clear_s1:'繝懊せ謦��ｴ譎ゅ↓豢ｾ謇九↑繝輔ぅ繝九ャ繧ｷ繝･貍泌�繧貞�縺励∪縺吶�', plate_neon_city_s1:'蜷榊燕陦ｨ遉ｺ繧偵ロ繧ｪ繝ｳ繧ｷ繝�ぅ鬚ｨ縺ｫ螟峨∴縺ｾ縺吶�', badge_neon_s1:'蜷榊燕縺ｮ讓ｪ縺ｫ莉倥￠繧峨ｌ繧鬼eason 1髯仙ｮ壹ヰ繝�ず縺ｧ縺吶�', box_neon_s1:'Season 1髯仙ｮ壹い繧､繝�Β縺悟�縺｣縺溽音蛻･BOX縺ｧ縺吶�',
-    skin_neon_runner_galaxy_s1:'蝓ｺ譛ｬ繧ｹ繧ｭ繝ｳ縺ｮ驫豐ｳ繝舌�繧ｸ繝ｧ繝ｳ縺ｧ縺吶ゆｽ薙�繝ｩ繧､繝ｳ縺ｫ譏滄峇繧ｫ繝ｩ繝ｼ縺梧ｵ√ｌ縺ｾ縺吶�', aura_neon_pulse_rainbow_s1:'陌ｹ濶ｲ縺ｮ繝阪が繝ｳ繝代Ν繧ｹ縺悟ｺ�′繧狗音蛻･繧ｪ繝ｼ繝ｩ縺ｧ縺吶�', back_neon_core_galaxy_s1:'驫豐ｳ繧ｫ繝ｩ繝ｼ縺ｮ繝ｪ繧｢繧ｯ繧ｿ繝ｼ繧定レ荳ｭ縺ｫ陬�ｙ縺励∪縺吶�', trail_neon_line_galaxy_s1:'遘ｻ蜍輔＠縺溘≠縺ｨ縺ｫ驫豐ｳ濶ｲ縺ｮ繝ｩ繧､繝ｳ縺梧ｮ九ｋ繝医Ξ繧､繝ｫ縺ｧ縺吶�'
+    classic:'隴崢陋ｻ譏ｴﾂｰ郢ｧ謌托ｽｽ�ｿ邵ｺ蛹ｻ�玖搏�ｺ隴幢ｽｬ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', ruby:'隰ｨ�ｵ郢ｧ蛛ｵ笳�ｸｺ荳奇ｼ�ｹｧ轣伉蛛ｵ笘�ｸｺ�ｨ髫暦ｽ｣隰ｾ�ｾ邵ｺ霈費ｽ檎ｹｧ邇厄ｽｵ�､邵ｺ�ｽ繝ｭ郢ｧ�ｪ郢晢ｽｳ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', gold:'郢ｧ�ｳ郢ｧ�､郢晢ｽｳ郢ｧ蟶晏ｯ皮ｹｧ竏夲ｽ狗ｸｺ�ｨ髫暦ｽ｣隰ｾ�ｾ邵ｺ霈費ｽ檎ｹｧ遏ｩ竕｡豼ｶ�ｲ邵ｺ�ｮ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', void:'鬮滂ｽｷ邵ｺ蜀怜�邵ｺ閧ｴ�ｮ荵晢ｽ狗ｸｺ�ｨ髫暦ｽ｣隰ｾ�ｾ邵ｺ霈費ｽ檎ｹｧ迢暦ｽｴ�ｫ邵ｺ�ｮ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', emerald:'郢晄㈱縺幃坎諠ｹ�ｼ闊後帝囓�｣隰ｾ�ｾ邵ｺ霈費ｽ檎ｹｧ迢暦ｽｷ莉｣�ｽ陞ｳ驛�ｽｭ�ｷ髢��ｽ縺帷ｹｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', angel:'騾具ｽｽ鬩ｫﾂ邵ｺ�ｮ陷亥ｳｨ竊楢峪�ｽ竏ｪ郢ｧ蠕鯉ｽ玖叉雍具ｽｽ髦ｪ縺帷ｹｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', obsidian:'魄溷��櫁棔蜀ｶ�｣�ｽ竊帝ｏ�ｫ邵ｺ�ｮ陷亥ｳｨ窶ｲ霑夲ｽｹ陟包ｽｴ邵ｺ�ｮ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', solar:'陞滂ｽｪ鬮ｯ�ｽ邵ｺ�ｮ郢ｧ蛹ｻ竕ｧ邵ｺ�ｫ隴丞ｼｱ�狗ｸｺ荳橸ｿｽ郢ｧ蛹ｺ�ｴ�ｾ隰�ｹ昶�郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', sapphire:'鬮ｱ蛛ｵ�樒ｹ晞亂縺檎ｹ晢ｽｳ邵ｺ迹夲ｽｵ�ｰ郢ｧ荵昴○郢晄鱒�ｽ郢晉判笏邵ｺ�ｮ邵ｺ繧�ｽ狗ｹｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ',
+    crimson:'隘搾ｽ､邵ｺ�ｽ�ｽ郢晢ｽｳ郢晏現窶ｲ陟募ｾ鯉ｽ咲ｸｺ�ｫ邵ｺ�ｪ邵ｺ�ｳ邵ｺ蜑ｰ諱ｭ鬮ｮ�ｽ�｢�ｨ郢ｧ�｢郢ｧ�ｯ郢ｧ�ｻ郢ｧ�ｵ郢晢ｽｪ郢晢ｽｼ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', royal:'驍�事ﾂ�ｽ�臥ｸｺ蜉ｱ�樣ｩ･鬘檎横邵ｺ�ｮ郢晄ｧｭﾎｦ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ', voidCape:'陞ｳ�ｽ�ｮ蜷ｶ�ｽ郢ｧ蛹ｻ竕ｧ邵ｺ�ｪ驍擾ｽｫ豼ｶ�ｲ邵ｺ�ｮ隴乗ｻ�ｳ�ｹ晄ｧｭﾎｦ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ', stormCape:'鬮ｱ蛛ｵ�樣ｫｮ�ｷ邵ｺ�ｮ雋肴ｳ鯉ｿｽ邵ｺ謔滂ｿｽ郢ｧ荵晢ｿｽ郢晢ｽｳ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ', phantom:'陟厄ｽｱ邵ｺ�ｮ郢ｧ蛹ｻ竕ｧ邵ｺ�ｫ郢ｧ�ｽ�檎ｹｧ邇厄ｽｻ�ｽ邵ｺ�ｽ縺醍ｹ晢ｽｭ郢晢ｽｼ郢ｧ�ｯ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', galaxy:'鬩ｫﾂ雎撰ｽｳ郢ｧ蛛ｵ縺�ｹ晢ｽ｡郢晢ｽｼ郢ｧ�ｸ邵ｺ蜉ｱ笳�棔�ｧ邵ｺ髦ｪ�∫ｸｺ�ｮ郢晄ｧｭﾎｦ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ', inferno:'霓､蠑ｱ�ｽ郢ｧ蛹ｻ竕ｧ邵ｺ�ｪ豼ｶ�ｲ邵ｺ�ｧ騾ｶ�ｮ驕ｶ荵昶命郢晄ｧｭﾎｦ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ', monarch:'魄溷�竊帝ｩ･莉｣�帝お�ｽ竏ｩ陷ｷ蛹ｻ�冗ｸｺ蟶吮螺髫包ｿｽ隕夜ｬ夲ｽｨ郢晄ｧｭﾎｦ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ',
+    cyanFlame:'髮懶ｽｳ陷茨ｿｽ竊馴ｫｱ蛛ｵ�櫁ｽ､蠑ｱ窶ｲ陷�ｽｺ郢ｧ荵昴′郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', goldSpark:'鬩･鬘檎横邵ｺ�ｮ陝�ｸ奇ｼ�ｸｺ�ｪ陷亥ｳｨ窶ｲ陷ｻ�ｨ郢ｧ鄙ｫ�帝頼讒ｭ竕ｧ郢ｧ�ｪ郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', voidMist:'驍擾ｽｫ邵ｺ�ｮ鬮ｴ�ｧ邵ｺ�ｮ郢ｧ蛹ｻ竕ｧ邵ｺ�ｪ郢ｧ�ｨ郢晁ｼ斐♂郢ｧ�ｯ郢晏現�堤ｸｺ�ｾ邵ｺ�ｨ邵ｺ�ｽ竏ｪ邵ｺ蜷ｶﾂ�ｽ', toxicPulse:'驍ｱ莉｣�ｽ雎包ｽ｢驍丈ｹ昶ｲ陟趣ｿｽ窶ｲ郢ｧ蛹ｺ�ｯ蟶晢ｽ｢�ｨ郢ｧ�ｪ郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', royalHalo:'鬯�ｽｭ闕ｳ鄙ｫ竊馴ｩ･鬘檎横邵ｺ�ｮ驍�唱�ｽ邵ｺ譴ｧ�ｵ�ｮ邵ｺ荵晢ｿｽ郢ｧ�ｪ郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', solarFlare:'陞滂ｽｪ鬮ｯ�ｽ邵ｺ�ｮ霓､蠑ｱ�ｽ郢ｧ蛹ｻ竕ｧ邵ｺ�ｪ髴茨ｽｪ邵ｺ蠕鯉ｽ�ｹｧ蟲ｨ�∫ｸｺ髦ｪ竏ｪ邵ｺ蜷ｶﾂ�ｽ', stormKing:'闖ｴ阮呻ｿｽ陷ｻ�ｨ郢ｧ鄙ｫ竊馴ｏ�ｰ邵ｺ�ｽ蟲ｭ邵ｺ迹夲ｽｵ�ｰ郢ｧ荵昴′郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ',
+    skin_neon_runner_s1:'陷茨ｽｨ髴�ｽｫ邵ｺ�ｫ郢晞亂縺檎ｹ晢ｽｳ郢晢ｽｩ郢ｧ�､郢晢ｽｳ邵ｺ謔滂ｿｽ邵ｺ�｣邵ｺ谺貌ason 1鬮ｯ莉呻ｽｮ螢ｹ縺帷ｹｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', aura_neon_pulse_s1:'闖ｴ阮呻ｿｽ陷ｻ�ｨ郢ｧ鄙ｫ竊馴ｫｱ蛛ｵ�樒ｹ晞亂縺檎ｹ晢ｽｳ郢昜ｻ｣ﾎ晉ｹｧ�ｹ邵ｺ謔滂ｽｺ�ｽ窶ｲ郢ｧ荵昴′郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', back_neon_core_s1:'髢ｭ蠕｡�ｸ�ｭ邵ｺ�ｫ陝�ｸ奇ｼ�ｸｺ�ｪ郢晞亂縺檎ｹ晢ｽｳ郢晢ｽｪ郢ｧ�｢郢ｧ�ｯ郢ｧ�ｿ郢晢ｽｼ郢ｧ螳夲ｽ｣�ｽ�咏ｸｺ蜉ｱ竏ｪ邵ｺ蜷ｶﾂ�ｽ', trail_neon_line_s1:'驕假ｽｻ陷崎ｼ費ｼ�邵ｺ貅倪旺邵ｺ�ｨ邵ｺ�ｫ鬮ｱ蛛ｵ�樒ｹ晢ｽｩ郢ｧ�､郢晢ｽｳ邵ｺ譴ｧ�ｮ荵晢ｽ狗ｹ晏現ﾎ樒ｹｧ�､郢晢ｽｫ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', emote_neon_pose_s1:'陷亥ｳｨ�狗ｹ晄亢�ｽ郢ｧ�ｺ郢ｧ蜻茨ｽｱ�ｺ郢ｧ竏夲ｽ狗ｹｧ�ｨ郢晢ｽ｢郢晢ｽｼ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ', pet_neon_slime_s1:'陝�ｸ奇ｼ�ｸｺ�ｪ郢晞亂縺檎ｹ晢ｽｳ郢ｧ�ｹ郢晢ｽｩ郢ｧ�､郢晢ｿｽ邵ｺ蠕娯命邵ｺ�ｽ窶ｻ邵ｺ荳奇ｽ狗ｹ晏｣ｹ繝｣郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ', intro_neon_scan_s1:'郢晏ｸ厥溽ｹｧ�ｰ郢晢ｽｩ郢晢ｿｽ邵ｺ�ｮ郢ｧ蛹ｻ竕ｧ邵ｺ�ｪ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽ｣郢晢ｽｳ雋肴ｳ鯉ｿｽ邵ｺ�ｧ騾具ｽｻ陜｣�ｴ邵ｺ蜉ｱ竏ｪ邵ｺ蜷ｶﾂ�ｽ', elim_neon_pixel_s1:'隰ｨ�ｵ郢ｧ雋楪蛛ｵ��邵ｺ貅倪�邵ｺ髦ｪ竊鍋ｹ晄鱒縺醍ｹｧ�ｻ郢晢ｽｫ邵ｺ蠕鯉ｿｽ邵ｺ蛟･��郢ｧ蛹ｺ�ｼ豕鯉ｿｽ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', finish_neon_clear_s1:'郢晄㈱縺幄ｬｦ�ｽ�ｽ�ｴ隴弱ｅ竊楢ｱ｢�ｾ隰�ｹ昶�郢晁ｼ斐≦郢昜ｹ昴Ε郢ｧ�ｷ郢晢ｽ･雋肴ｳ鯉ｿｽ郢ｧ雋橸ｿｽ邵ｺ蜉ｱ竏ｪ邵ｺ蜷ｶﾂ�ｽ', plate_neon_city_s1:'陷ｷ讎顔√髯ｦ�ｨ驕会ｽｺ郢ｧ蛛ｵ繝ｭ郢ｧ�ｪ郢晢ｽｳ郢ｧ�ｷ郢晢ｿｽ縺�ｬ夲ｽｨ邵ｺ�ｫ陞溷ｳｨ竏ｴ邵ｺ�ｾ邵ｺ蜷ｶﾂ�ｽ', badge_neon_s1:'陷ｷ讎顔√邵ｺ�ｮ隶難ｽｪ邵ｺ�ｫ闔牙･��郢ｧ蟲ｨ�檎ｹｧ鬯ｼeason 1鬮ｯ莉呻ｽｮ螢ｹ繝ｰ郢晢ｿｽ縺夂ｸｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', box_neon_s1:'Season 1鬮ｯ莉呻ｽｮ螢ｹ縺�ｹｧ�､郢晢ｿｽﾎ堤ｸｺ謔滂ｿｽ邵ｺ�｣邵ｺ貅ｽ髻ｳ陋ｻ�･BOX邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ',
+    skin_neon_runner_galaxy_s1:'陜難ｽｺ隴幢ｽｬ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｮ鬩ｫﾂ雎撰ｽｳ郢晁��ｽ郢ｧ�ｸ郢晢ｽｧ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ繧�ｽｽ阮呻ｿｽ郢晢ｽｩ郢ｧ�､郢晢ｽｳ邵ｺ�ｫ隴乗ｻ�ｳ�ｹｧ�ｫ郢晢ｽｩ郢晢ｽｼ邵ｺ譴ｧ�ｵ竏夲ｽ檎ｸｺ�ｾ邵ｺ蜷ｶﾂ�ｽ', aura_neon_pulse_rainbow_s1:'髯鯉ｽｹ豼ｶ�ｲ邵ｺ�ｮ郢晞亂縺檎ｹ晢ｽｳ郢昜ｻ｣ﾎ晉ｹｧ�ｹ邵ｺ謔滂ｽｺ�ｽ窶ｲ郢ｧ迢鈴浹陋ｻ�･郢ｧ�ｪ郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', back_neon_core_galaxy_s1:'鬩ｫﾂ雎撰ｽｳ郢ｧ�ｫ郢晢ｽｩ郢晢ｽｼ邵ｺ�ｮ郢晢ｽｪ郢ｧ�｢郢ｧ�ｯ郢ｧ�ｿ郢晢ｽｼ郢ｧ螳壹Ξ闕ｳ�ｭ邵ｺ�ｫ髯ｬ�ｽ�咏ｸｺ蜉ｱ竏ｪ邵ｺ蜷ｶﾂ�ｽ', trail_neon_line_galaxy_s1:'驕假ｽｻ陷崎ｼ費ｼ�邵ｺ貅倪旺邵ｺ�ｨ邵ｺ�ｫ鬩ｫﾂ雎撰ｽｳ豼ｶ�ｲ邵ｺ�ｮ郢晢ｽｩ郢ｧ�､郢晢ｽｳ邵ｺ譴ｧ�ｮ荵晢ｽ狗ｹ晏現ﾎ樒ｹｧ�､郢晢ｽｫ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ'
   };
   function looksBrokenText(v){
-    return !v || /[�ｽﾃε｣ﾃらｹ晉ｸｺ陷ｷ陋ｯ邨冶耳騾暮ｫｯ陋幄ｭ∫ｵ城藍闕ｳ闕ｵ]/.test(String(v));
+    return !v || /[�ｽ�ｽ�πｵ�｣��ｉ�ｹ譎会ｽｸ�ｺ髯ｷ�ｷ髯具ｽｯ驍ｨ蜀ｶ閠ｳ鬨ｾ證ｮ�ｫ�ｯ髯句ｹ�ｽｭ竏ｫ�ｵ蝓手絡髣包ｽｳ髣包ｽｵ]/.test(String(v));
   }
   function itemDesc(id, type, raw){
     if (fallbackDescs[id]) return fallbackDescs[id];
     if (!looksBrokenText(raw)) return String(raw);
-    if (type === 'skin') return '蜈･謇区ｸ医∩縺ｮ繧ｹ繧ｭ繝ｳ縺ｧ縺吶ゅヨ繧ｰ繝ｫ繧丹N縺ｫ縺吶ｋ縺ｨ隕九◆逶ｮ縺ｫ蜿肴丐縺輔ｌ縺ｾ縺吶�';
-    if (type === 'aura') return '蜈･謇区ｸ医∩縺ｮ繧ｪ繝ｼ繝ｩ縺ｧ縺吶ゅヨ繧ｰ繝ｫ繧丹N縺ｫ縺吶ｋ縺ｨ繝励Ξ繧､繝､繝ｼ縺ｮ蜻ｨ繧翫↓陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶�';
-    if (type === 'cape') return '蜈･謇区ｸ医∩縺ｮ繝槭Φ繝医〒縺吶ゅヨ繧ｰ繝ｫ繧丹N縺ｫ縺吶ｋ縺ｨ閭御ｸｭ縺ｫ陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶�';
-    if (type === 'badge') return '蜷榊燕縺ｮ讓ｪ縺ｫ莉倥￠繧峨ｌ繧九ヰ繝�ず縺ｧ縺吶�';
-    if (type === 'nameplate') return '蜷榊燕陦ｨ遉ｺ縺ｮ繝�じ繧､繝ｳ繧貞､峨∴繧九い繧､繝�Β縺ｧ縺吶�';
-    if (type === 'trail') return '遘ｻ蜍輔＠縺溘≠縺ｨ縺ｫ谿九ｋ霆瑚ｷ｡繧ｨ繝輔ぉ繧ｯ繝医〒縺吶�';
-    if (type === 'backpack') return '閭御ｸｭ縺ｫ陬�ｙ縺吶ｋ繧｢繧ｯ繧ｻ繧ｵ繝ｪ繝ｼ縺ｧ縺吶�';
-    if (type === 'pet') return '繝励Ξ繧､繝､繝ｼ縺ｫ縺､縺�※縺上ｋ蟆上＆縺ｪ莉ｲ髢薙〒縺吶�';
-    if (type === 'emote') return '繧ｳ繝ｬ繧ｯ繧ｷ繝ｧ繝ｳ縺ｧ遒ｺ隱阪〒縺阪ｋ貍泌�繧｢繧､繝�Β縺ｧ縺吶�';
-    if (type === 'box') return '髯仙ｮ壼�ｱ驟ｬ縺悟�縺｣縺檻OX縺ｧ縺吶�';
-    return '蜈･謇区ｸ医∩縺ｮ繧ｳ繝ｬ繧ｯ繧ｷ繝ｧ繝ｳ繧｢繧､繝�Β縺ｧ縺吶�';
+    if (type === 'skin') return '陷茨ｽ･隰�玄�ｸ蛹ｻ竏ｩ邵ｺ�ｮ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ繧�Κ郢ｧ�ｰ郢晢ｽｫ郢ｧ荳ｹN邵ｺ�ｫ邵ｺ蜷ｶ�狗ｸｺ�ｨ髫穂ｹ昶螺騾ｶ�ｮ邵ｺ�ｫ陷ｿ閧ｴ荳千ｸｺ霈費ｽ檎ｸｺ�ｾ邵ｺ蜷ｶﾂ�ｽ';
+    if (type === 'aura') return '陷茨ｽ･隰�玄�ｸ蛹ｻ竏ｩ邵ｺ�ｮ郢ｧ�ｪ郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ繧�Κ郢ｧ�ｰ郢晢ｽｫ郢ｧ荳ｹN邵ｺ�ｫ邵ｺ蜷ｶ�狗ｸｺ�ｨ郢晏干ﾎ樒ｹｧ�､郢晢ｽ､郢晢ｽｼ邵ｺ�ｮ陷ｻ�ｨ郢ｧ鄙ｫ竊馴勗�ｨ驕会ｽｺ邵ｺ霈費ｽ檎ｸｺ�ｾ邵ｺ蜷ｶﾂ�ｽ';
+    if (type === 'cape') return '陷茨ｽ･隰�玄�ｸ蛹ｻ竏ｩ邵ｺ�ｮ郢晄ｧｭﾎｦ郢晏現縲堤ｸｺ蜷ｶﾂ繧�Κ郢ｧ�ｰ郢晢ｽｫ郢ｧ荳ｹN邵ｺ�ｫ邵ｺ蜷ｶ�狗ｸｺ�ｨ髢ｭ蠕｡�ｸ�ｭ邵ｺ�ｫ髯ｦ�ｨ驕会ｽｺ邵ｺ霈費ｽ檎ｸｺ�ｾ邵ｺ蜷ｶﾂ�ｽ';
+    if (type === 'badge') return '陷ｷ讎顔√邵ｺ�ｮ隶難ｽｪ邵ｺ�ｫ闔牙･��郢ｧ蟲ｨ�檎ｹｧ荵昴Σ郢晢ｿｽ縺夂ｸｺ�ｧ邵ｺ蜷ｶﾂ�ｽ';
+    if (type === 'nameplate') return '陷ｷ讎顔√髯ｦ�ｨ驕会ｽｺ邵ｺ�ｮ郢晢ｿｽ縺倡ｹｧ�､郢晢ｽｳ郢ｧ雋橸ｽ､蟲ｨ竏ｴ郢ｧ荵昴＞郢ｧ�､郢晢ｿｽﾎ堤ｸｺ�ｧ邵ｺ蜷ｶﾂ�ｽ';
+    if (type === 'trail') return '驕假ｽｻ陷崎ｼ費ｼ�邵ｺ貅倪旺邵ｺ�ｨ邵ｺ�ｫ隹ｿ荵晢ｽ矩怕迹夲ｽｷ�｡郢ｧ�ｨ郢晁ｼ斐♂郢ｧ�ｯ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ';
+    if (type === 'backpack') return '髢ｭ蠕｡�ｸ�ｭ邵ｺ�ｫ髯ｬ�ｽ�咏ｸｺ蜷ｶ�狗ｹｧ�｢郢ｧ�ｯ郢ｧ�ｻ郢ｧ�ｵ郢晢ｽｪ郢晢ｽｼ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ';
+    if (type === 'pet') return '郢晏干ﾎ樒ｹｧ�､郢晢ｽ､郢晢ｽｼ邵ｺ�ｫ邵ｺ�､邵ｺ�ｽ窶ｻ邵ｺ荳奇ｽ玖氣荳奇ｼ�ｸｺ�ｪ闔会ｽｲ鬮｢阮吶堤ｸｺ蜷ｶﾂ�ｽ';
+    if (type === 'emote') return '郢ｧ�ｳ郢晢ｽｬ郢ｧ�ｯ郢ｧ�ｷ郢晢ｽｧ郢晢ｽｳ邵ｺ�ｧ驕抵ｽｺ髫ｱ髦ｪ縲堤ｸｺ髦ｪ�玖ｲ肴ｳ鯉ｿｽ郢ｧ�｢郢ｧ�､郢晢ｿｽﾎ堤ｸｺ�ｧ邵ｺ蜷ｶﾂ�ｽ';
+    if (type === 'box') return '鬮ｯ莉呻ｽｮ螢ｼ�ｽ�ｱ鬩滂ｽｬ邵ｺ謔滂ｿｽ邵ｺ�｣邵ｺ讙ｻOX邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ';
+    return '陷茨ｽ･隰�玄�ｸ蛹ｻ竏ｩ邵ｺ�ｮ郢ｧ�ｳ郢晢ｽｬ郢ｧ�ｯ郢ｧ�ｷ郢晢ｽｧ郢晢ｽｳ郢ｧ�｢郢ｧ�､郢晢ｿｽﾎ堤ｸｺ�ｧ邵ｺ蜷ｶﾂ�ｽ';
   }
   function isEquipped(type, id){
     const u = user();
@@ -17237,7 +17237,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
     else if (type === 'cape') u.equippedCape = id;
     else u.cosmetics.equipped[type] = id;
     save();
-    toast('COLLECTION', '陬�ｙ繧丹N縺ｫ縺励∪縺励◆');
+    toast('COLLECTION', '髯ｬ�ｽ�咏ｹｧ荳ｹN邵ｺ�ｫ邵ｺ蜉ｱ竏ｪ邵ｺ蜉ｱ笳�');
     renderCollectionV72();
   }
   function unequip(type){
@@ -17247,7 +17247,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
     else if (type === 'cape') u.equippedCape = DEFAULT_BY_TYPE.cape;
     else if (u.cosmetics?.equipped) delete u.cosmetics.equipped[type];
     save();
-    toast('COLLECTION', '陬�ｙ繧丹FF縺ｫ縺励∪縺励◆');
+    toast('COLLECTION', '髯ｬ�ｽ�咏ｹｧ荳ｹFF邵ｺ�ｫ邵ｺ蜉ｱ竏ｪ邵ｺ蜉ｱ笳�');
     renderCollectionV72();
   }
   function missionItems(){
@@ -17259,10 +17259,10 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         if ((type === 'aura' || type === 'cape') && def.id === 'none') return;
         const unlocked = type === 'skin' ? !!u.unlocks.skins[def.id] : type === 'aura' ? !!u.unlocks.auras[def.id] : !!u.unlocks.capes[def.id];
         if (!unlocked) return;
-        out.push({type, id:String(def.id), icon:def.icon || '氏', name:itemName(def.id, type, def.name), desc:itemDesc(def.id, type, def.desc), source:'MISSION / NORMAL'});
+        out.push({type, id:String(def.id), icon:def.icon || '﨟樊ｰ�', name:itemName(def.id, type, def.name), desc:itemDesc(def.id, type, def.desc), source:'MISSION / NORMAL'});
       });
     });
-    if (!out.some(x => x.type === 'skin' && x.id === 'classic')) out.unshift({type:'skin', id:'classic', icon:'鳩', name:'繧ｯ繝ｩ繧ｷ繝�け繝阪が繝ｳ', desc:'譛蛻昴°繧我ｽｿ縺医ｋ蝓ｺ譛ｬ繧ｹ繧ｭ繝ｳ縺ｧ縺吶�', source:'NORMAL'});
+    if (!out.some(x => x.type === 'skin' && x.id === 'classic')) out.unshift({type:'skin', id:'classic', icon:'﨟樣ｳｩ', name:'郢ｧ�ｯ郢晢ｽｩ郢ｧ�ｷ郢晢ｿｽ縺醍ｹ晞亂縺檎ｹ晢ｽｳ', desc:'隴崢陋ｻ譏ｴﾂｰ郢ｧ謌托ｽｽ�ｿ邵ｺ蛹ｻ�玖搏�ｺ隴幢ｽｬ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', source:'NORMAL'});
     return out;
   }
   function passItems(){
@@ -17273,7 +17273,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
       const obj = val && typeof val === 'object' ? val : {};
       const type = String(obj.type || (key.includes('badge') ? 'badge' : key.includes('plate') ? 'nameplate' : key.includes('trail') ? 'trail' : key.includes('back') ? 'backpack' : key.includes('pet') ? 'pet' : key.includes('aura') ? 'aura' : key.includes('skin') ? 'skin' : key.includes('box') ? 'box' : 'item'));
       const id = String(obj.id || key);
-      out.push({type, id, icon:obj.icon || '氏', name:itemName(id, type, obj.name), desc:itemDesc(id, type, obj.desc), source:obj.seasonLabel || 'NEON PASS / Season 1'});
+      out.push({type, id, icon:obj.icon || '﨟樊ｰ�', name:itemName(id, type, obj.name), desc:itemDesc(id, type, obj.desc), source:obj.seasonLabel || 'NEON PASS / Season 1'});
     });
     return out;
   }
@@ -17283,7 +17283,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
     const typeLabel = TYPE_LABELS[item.type] || String(item.type || 'ITEM').toUpperCase();
     const disabled = canEquip ? '' : 'disabled';
     const toggle = canEquip ? `<div class="nsv-v72-status"><div><span class="text-xs text-gray-400 font-bold">EQUIP TOGGLE</span><br><b class="${on ? 'text-green-300' : 'text-red-300'}">${on ? 'ON' : 'OFF'}</b></div><label class="nsv-v72-switch"><input type="checkbox" class="nsv-v72-collection-toggle" data-type="${esc(item.type)}" data-id="${esc(item.id)}" ${on ? 'checked' : ''} ${disabled}><span class="nsv-v72-slider"></span></label></div>` : `<p class="text-xs text-gray-400 mt-3">VIEW ONLY</p>`;
-    return `<div class="nsv-v72-card collection-card unlocked ${isPass ? 'pass' : ''} ${on ? 'on' : ''}"><div class="text-3xl">${esc(item.icon || '氏')}</div><div class="nsv-v72-type">${esc(typeLabel)}</div><h3 class="nsv-v72-name">${esc(item.name)}</h3><p class="nsv-v72-desc">${esc(item.desc || '')}</p><p class="nsv-v72-source">${esc(item.source || '')}</p>${toggle}</div>`;
+    return `<div class="nsv-v72-card collection-card unlocked ${isPass ? 'pass' : ''} ${on ? 'on' : ''}"><div class="text-3xl">${esc(item.icon || '﨟樊ｰ�')}</div><div class="nsv-v72-type">${esc(typeLabel)}</div><h3 class="nsv-v72-name">${esc(item.name)}</h3><p class="nsv-v72-desc">${esc(item.desc || '')}</p><p class="nsv-v72-source">${esc(item.source || '')}</p>${toggle}</div>`;
   }
   function renderCollectionV72(){
     injectStyle();
@@ -17294,13 +17294,13 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
     const h2 = screen.querySelector('h2');
     if (h2) h2.textContent = 'COLLECTION';
     const desc = h2 ? h2.parentElement?.querySelector('p') : screen.querySelector('p');
-    if (desc) desc.textContent = '蜈･謇九＠縺溘せ繧ｭ繝ｳ繝ｻ繧ｪ繝ｼ繝ｩ繝ｻ繝槭Φ繝医�繝阪が繝ｳ繝代せ蝣ｱ驟ｬ繧偵√ヨ繧ｰ繝ｫ縺ｧON/OFF縺ｧ縺阪∪縺吶�';
+    if (desc) desc.textContent = '陷茨ｽ･隰�ｹ晢ｼ�邵ｺ貅倥○郢ｧ�ｭ郢晢ｽｳ郢晢ｽｻ郢ｧ�ｪ郢晢ｽｼ郢晢ｽｩ郢晢ｽｻ郢晄ｧｭﾎｦ郢晏現�ｽ郢晞亂縺檎ｹ晢ｽｳ郢昜ｻ｣縺幄撻�ｱ鬩滂ｽｬ郢ｧ蛛ｵﾂ竏壹Κ郢ｧ�ｰ郢晢ｽｫ邵ｺ�ｧON/OFF邵ｺ�ｧ邵ｺ髦ｪ竏ｪ邵ｺ蜷ｶﾂ�ｽ';
     const m = missionItems();
     const p = passItems();
     container.innerHTML = `
-      <section class="nsv-v72-section"><h3 class="nsv-v72-section-title">MISSION / NORMAL REWARDS</h3><div class="nsv-v72-grid">${m.map(x => collectionCard(x, false)).join('') || '<div class="nsv-v72-card"><h3 class="text-gray-300 font-bold">縺ｾ縺�蝣ｱ驟ｬ縺後≠繧翫∪縺帙ｓ</h3></div>'}</div></section>
-      <section class="nsv-v72-section"><h3 class="nsv-v72-section-title text-cyan-300">NEON PASS REWARDS</h3><div class="nsv-v72-grid">${p.map(x => collectionCard(x, true)).join('') || '<div class="nsv-v72-card"><h3 class="text-gray-300 font-bold">縺ｾ縺�NEON PASS蝣ｱ驟ｬ縺後≠繧翫∪縺帙ｓ</h3><p class="text-sm text-gray-400 mt-1">NEON PASS縺ｧ蝣ｱ驟ｬ繧貞�謇九☆繧九→縺薙％縺ｫ陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶�</p></div>'}</div></section>
-      <section class="nsv-v72-section"><div class="nsv-v72-card"><h3 class="text-xl font-bold text-cyan-200">WEAPON CODEX</h3><p class="text-sm text-gray-300 mt-1">豁ｦ蝎ｨ縺ｮ隗｣謾ｾ迥ｶ諷九→蜃ｺ迴ｾON/OFF縺ｯ WEAPON CODEX 縺ｧ遒ｺ隱阪〒縺阪∪縺吶�</p></div></section>`;
+      <section class="nsv-v72-section"><h3 class="nsv-v72-section-title">MISSION / NORMAL REWARDS</h3><div class="nsv-v72-grid">${m.map(x => collectionCard(x, false)).join('') || '<div class="nsv-v72-card"><h3 class="text-gray-300 font-bold">邵ｺ�ｾ邵ｺ�ｽ陜｣�ｱ鬩滂ｽｬ邵ｺ蠕娯旺郢ｧ鄙ｫ竏ｪ邵ｺ蟶呻ｽ�</h3></div>'}</div></section>
+      <section class="nsv-v72-section"><h3 class="nsv-v72-section-title text-cyan-300">NEON PASS REWARDS</h3><div class="nsv-v72-grid">${p.map(x => collectionCard(x, true)).join('') || '<div class="nsv-v72-card"><h3 class="text-gray-300 font-bold">邵ｺ�ｾ邵ｺ�ｽNEON PASS陜｣�ｱ鬩滂ｽｬ邵ｺ蠕娯旺郢ｧ鄙ｫ竏ｪ邵ｺ蟶呻ｽ�</h3><p class="text-sm text-gray-400 mt-1">NEON PASS邵ｺ�ｧ陜｣�ｱ鬩滂ｽｬ郢ｧ雋橸ｿｽ隰�ｹ昶�郢ｧ荵昶�邵ｺ阮呻ｼ�ｸｺ�ｫ髯ｦ�ｨ驕会ｽｺ邵ｺ霈費ｽ檎ｸｺ�ｾ邵ｺ蜷ｶﾂ�ｽ</p></div>'}</div></section>
+      <section class="nsv-v72-section"><div class="nsv-v72-card"><h3 class="text-xl font-bold text-cyan-200">WEAPON CODEX</h3><p class="text-sm text-gray-300 mt-1">雎�ｽｦ陜趣ｽｨ邵ｺ�ｮ髫暦ｽ｣隰ｾ�ｾ霑･�ｶ隲ｷ荵昶�陷�ｽｺ霑ｴ�ｾON/OFF邵ｺ�ｯ WEAPON CODEX 邵ｺ�ｧ驕抵ｽｺ髫ｱ髦ｪ縲堤ｸｺ髦ｪ竏ｪ邵ｺ蜷ｶﾂ�ｽ</p></div></section>`;
     container.querySelectorAll('.nsv-v72-collection-toggle').forEach(input => input.addEventListener('change', () => {
       const type = input.dataset.type;
       const id = input.dataset.id;
@@ -17309,10 +17309,10 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   }
   function dailyShopItems(){
     const pool = [];
-    getDefList('skin').filter(x => x && x.id !== 'classic').forEach(x => pool.push({kind:'skin', price:150000, icon:x.icon || '耳', name:itemName(x.id,'skin',x.name), desc:x.desc || '繧ｹ繧ｭ繝ｳ繧定ｧ｣謾ｾ縺励∪縺吶�', id:x.id, typeLabel:'SKIN'}));
-    getDefList('aura').filter(x => x && x.id !== 'none').forEach(x => pool.push({kind:'aura', price:120000, icon:x.icon || '笨ｨ', name:itemName(x.id,'aura',x.name), desc:x.desc || '繧ｪ繝ｼ繝ｩ繧定ｧ｣謾ｾ縺励∪縺吶�', id:x.id, typeLabel:'AURA'}));
-    getDefList('cape').filter(x => x && x.id !== 'none').forEach(x => pool.push({kind:'cape', price:130000, icon:x.icon || '衍', name:itemName(x.id,'cape',x.name), desc:x.desc || '繝槭Φ繝医ｒ隗｣謾ｾ縺励∪縺吶�', id:x.id, typeLabel:'CAPE'}));
-    pool.push({kind:'boost', price:80000, icon:'笞｡', name:'繧ｯ繧､繝�け蠑ｷ蛹悶ヱ繝�け', desc:'繝ｩ繝ｳ繝繝�縺ｪ豌ｸ荵�い繝��繧ｰ繝ｬ繝ｼ繝峨ｒ蟆代＠蠑ｷ蛹悶＠縺ｾ縺吶�', id:'quick_upgrade', typeLabel:'BOOST'});
+    getDefList('skin').filter(x => x && x.id !== 'classic').forEach(x => pool.push({kind:'skin', price:150000, icon:x.icon || '﨟櫁ｳ', name:itemName(x.id,'skin',x.name), desc:x.desc || '郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ郢ｧ螳夲ｽｧ�｣隰ｾ�ｾ邵ｺ蜉ｱ竏ｪ邵ｺ蜷ｶﾂ�ｽ', id:x.id, typeLabel:'SKIN'}));
+    getDefList('aura').filter(x => x && x.id !== 'none').forEach(x => pool.push({kind:'aura', price:120000, icon:x.icon || '隨ｨ�ｨ', name:itemName(x.id,'aura',x.name), desc:x.desc || '郢ｧ�ｪ郢晢ｽｼ郢晢ｽｩ郢ｧ螳夲ｽｧ�｣隰ｾ�ｾ邵ｺ蜉ｱ竏ｪ邵ｺ蜷ｶﾂ�ｽ', id:x.id, typeLabel:'AURA'}));
+    getDefList('cape').filter(x => x && x.id !== 'none').forEach(x => pool.push({kind:'cape', price:130000, icon:x.icon || '﨟櫁｡�', name:itemName(x.id,'cape',x.name), desc:x.desc || '郢晄ｧｭﾎｦ郢晏現�帝囓�｣隰ｾ�ｾ邵ｺ蜉ｱ竏ｪ邵ｺ蜷ｶﾂ�ｽ', id:x.id, typeLabel:'CAPE'}));
+    pool.push({kind:'boost', price:80000, icon:'隨橸ｽ｡', name:'郢ｧ�ｯ郢ｧ�､郢晢ｿｽ縺題�托ｽｷ陋ｹ謔ｶ繝ｱ郢晢ｿｽ縺�', desc:'郢晢ｽｩ郢晢ｽｳ郢敖郢晢ｿｽ邵ｺ�ｪ雎鯉ｽｸ闕ｵ�ｽ縺�ｹ晢ｿｽ�ｽ郢ｧ�ｰ郢晢ｽｬ郢晢ｽｼ郢晏ｳｨ�定氣莉｣��陟托ｽｷ陋ｹ謔ｶ��邵ｺ�ｾ邵ｺ蜷ｶﾂ�ｽ', id:'quick_upgrade', typeLabel:'BOOST'});
     let seed = Number(new Date().toISOString().slice(0,10).replace(/-/g,''));
     const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
@@ -17340,7 +17340,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
       u.upgrades[k] = Math.min(99, Math.floor(num(u.upgrades[k])) + 3);
     }
     save();
-    toast('SHOP', `${item.name} 繧定ｳｼ蜈･縺励∪縺励◆`);
+    toast('SHOP', `${item.name} 郢ｧ螳夲ｽｳ�ｼ陷茨ｽ･邵ｺ蜉ｱ竏ｪ邵ｺ蜉ｱ笳�`);
     renderShopV72();
   }
   function buyTicket(){
@@ -17349,7 +17349,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
     u.coins = Math.max(0, Math.floor(u.coins - PASS_TICKET_COST));
     u.passTickets = Math.floor(num(u.passTickets)) + 1;
     save();
-    toast('SHOP', '繝阪が繝ｳ繝代せ繝√こ繝�ヨ繧�1譫壻ｺ､謠帙＠縺ｾ縺励◆');
+    toast('SHOP', '郢晞亂縺檎ｹ晢ｽｳ郢昜ｻ｣縺帷ｹ昶�縺鍋ｹ晢ｿｽ繝ｨ郢ｧ�ｽ1隴ｫ螢ｻ�ｺ�､隰�蟶呻ｼ�邵ｺ�ｾ邵ｺ蜉ｱ笳�');
     renderShopV72();
   }
   function buyPass(){
@@ -17362,7 +17362,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
     u.battlePass.premium = true;
     u.battlePassV2.premium = true;
     save();
-    toast('NEON PASS', 'NEON PASS繧定ｳｼ蜈･縺励∪縺励◆');
+    toast('NEON PASS', 'NEON PASS郢ｧ螳夲ｽｳ�ｼ陷茨ｽ･邵ｺ蜉ｱ竏ｪ邵ｺ蜉ｱ笳�');
     renderShopV72();
   }
   function renderShopV72(){
@@ -17375,14 +17375,14 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
     const itemHtml = items.map((item, idx) => {
       const owned = ownsShopItem(item);
       const canBuy = !owned && u.coins >= item.price;
-      return `<div class="nsv-v72-shop-card"><div><div class="text-4xl mb-2">${esc(item.icon)}</div><div class="nsv-v72-type">${esc(item.typeLabel)}</div><h3 class="text-lg font-black text-white mt-2">${esc(item.name)}</h3><p class="text-sm text-gray-300 mt-2">${esc(item.desc)}</p><p class="text-yellow-200 font-black mt-3">ｪ� ${yen(item.price)}</p></div><button class="nsv-v72-buy-daily nsv-v72-buy ${canBuy ? 'btn-gold' : 'bg-gray-800 text-gray-500 border border-gray-600'} px-4 py-2 rounded font-black" data-index="${idx}" ${canBuy ? '' : 'disabled'}>${owned ? '謇譛画ｸ医∩' : canBuy ? '雉ｼ蜈･' : '繧ｳ繧､繝ｳ荳崎ｶｳ'}</button></div>`;
+      return `<div class="nsv-v72-shop-card"><div><div class="text-4xl mb-2">${esc(item.icon)}</div><div class="nsv-v72-type">${esc(item.typeLabel)}</div><h3 class="text-lg font-black text-white mt-2">${esc(item.name)}</h3><p class="text-sm text-gray-300 mt-2">${esc(item.desc)}</p><p class="text-yellow-200 font-black mt-3">﨟橸ｽｪ�ｽ ${yen(item.price)}</p></div><button class="nsv-v72-buy-daily nsv-v72-buy ${canBuy ? 'btn-gold' : 'bg-gray-800 text-gray-500 border border-gray-600'} px-4 py-2 rounded font-black" data-index="${idx}" ${canBuy ? '' : 'disabled'}>${owned ? '隰�隴帷判�ｸ蛹ｻ竏ｩ' : canBuy ? '髮会ｽｼ陷茨ｽ･' : '郢ｧ�ｳ郢ｧ�､郢晢ｽｳ闕ｳ蟠趣ｽｶ�ｳ'}</button></div>`;
     }).join('');
     div.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3';
     div.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4">
-      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-black text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">GAME SHOP</h2><p class="text-gray-300 text-sm mt-2">繝√こ繝�ヨ縺�縺代〒縺ｪ縺上∵律譖ｿ繧上ｊ繧ｹ繧ｭ繝ｳ繝ｻ繧ｪ繝ｼ繝ｩ繝ｻ繝槭Φ繝医ｂ縺薙％縺ｧ雉ｼ蜈･縺ｧ縺阪∪縺吶�</p></div><button id="closeShopBtnV72" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div>
-      <div class="nsv-v72-shop-balance"><div class="nsv-v72-shop-card text-center"><div class="text-xs text-gray-400 font-bold">謇謖√さ繧､繝ｳ</div><div class="text-3xl font-black text-yellow-300">ｪ� ${yen(u.coins)}</div></div><div class="nsv-v72-shop-card text-center"><div class="text-xs text-gray-400 font-bold">繝√こ繝�ヨ</div><div class="text-3xl font-black text-cyan-300">次�� ${yen(u.passTickets)}</div></div><div class="nsv-v72-shop-card text-center"><div class="text-xs text-gray-400 font-bold">NEON PASS</div><div class="text-2xl font-black ${premium ? 'text-green-300' : 'text-gray-300'}">${premium ? '雉ｼ蜈･貂医∩' : '譛ｪ雉ｼ蜈･'}</div></div></div>
-      <section class="nsv-v72-section"><h3 class="nsv-v72-section-title text-yellow-300">PASS ITEMS</h3><div class="nsv-v72-shop-grid"><div class="nsv-v72-shop-card feature"><div><div class="text-5xl mb-2">次��</div><h3 class="text-2xl font-black text-yellow-300">繝阪が繝ｳ繝代せ繝√こ繝�ヨ</h3><p class="text-sm text-gray-300 mt-2">繧ｳ繧､繝ｳ繧偵メ繧ｱ繝�ヨ1譫壹↓莠､謠帙＠縺ｾ縺吶�</p><p class="text-xl font-black text-yellow-200 mt-3">蠢�ｦ√さ繧､繝ｳ��${yen(PASS_TICKET_COST)}</p></div><button id="buyTicketBtnV72" class="btn-gold nsv-v72-buy px-5 py-3 rounded font-black" ${u.coins >= PASS_TICKET_COST ? '' : 'disabled'}>繝√こ繝�ヨ繧�1譫壻ｺ､謠�</button></div><div class="nsv-v72-shop-card feature"><div><div class="text-5xl mb-2">箝�</div><h3 class="text-2xl font-black text-cyan-300">NEON PASS</h3><p class="text-sm text-gray-300 mt-2">繝√こ繝�ヨ1譫壹〒迴ｾ蝨ｨ縺ｮNEON PASS繧定ｳｼ蜈･縺励∪縺吶�</p><p class="text-sm mt-3 ${premium ? 'text-green-300' : 'text-gray-300'}">迥ｶ諷具ｼ�${premium ? '雉ｼ蜈･貂医∩' : '譛ｪ雉ｼ蜈･'}</p></div><button id="buyPassBtnV72" class="btn-neon nsv-v72-buy px-5 py-3 rounded font-black" ${(u.passTickets > 0 && !premium) ? '' : 'disabled'}>${premium ? '雉ｼ蜈･貂医∩' : 'NEON PASS繧定ｳｼ蜈･'}</button></div></div></section>
-      <section class="nsv-v72-section"><div class="flex items-center justify-between border-b border-gray-600 pb-2"><div><h3 class="nsv-v72-section-title text-cyan-300 m-0">DAILY ITEMS</h3><p class="text-xs text-gray-400">豈取律螟峨ｏ繧九す繝ｧ繝��繧｢繧､繝�Β縺ｧ縺吶りｳｼ蜈･蠕後�COLLECTION縺ｧON/OFF縺ｧ縺阪∪縺吶�</p></div><span class="nsv-v72-pill">${items.length} ITEMS</span></div><div class="nsv-v72-shop-grid mt-3">${itemHtml}</div></section>
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-black text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">GAME SHOP</h2><p class="text-gray-300 text-sm mt-2">郢昶�縺鍋ｹ晢ｿｽ繝ｨ邵ｺ�ｽ邵ｺ莉｣縲堤ｸｺ�ｪ邵ｺ荳環竏ｵ蠕玖ｭ厄ｽｿ郢ｧ荳奇ｽ顔ｹｧ�ｹ郢ｧ�ｭ郢晢ｽｳ郢晢ｽｻ郢ｧ�ｪ郢晢ｽｼ郢晢ｽｩ郢晢ｽｻ郢晄ｧｭﾎｦ郢晏現�らｸｺ阮呻ｼ�ｸｺ�ｧ髮会ｽｼ陷茨ｽ･邵ｺ�ｧ邵ｺ髦ｪ竏ｪ邵ｺ蜷ｶﾂ�ｽ</p></div><button id="closeShopBtnV72" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div>
+      <div class="nsv-v72-shop-balance"><div class="nsv-v72-shop-card text-center"><div class="text-xs text-gray-400 font-bold">隰�隰問�縺慕ｹｧ�､郢晢ｽｳ</div><div class="text-3xl font-black text-yellow-300">﨟橸ｽｪ�ｽ ${yen(u.coins)}</div></div><div class="nsv-v72-shop-card text-center"><div class="text-xs text-gray-400 font-bold">郢昶�縺鍋ｹ晢ｿｽ繝ｨ</div><div class="text-3xl font-black text-cyan-300">﨟樊ｬ｡�ｽ�ｽ ${yen(u.passTickets)}</div></div><div class="nsv-v72-shop-card text-center"><div class="text-xs text-gray-400 font-bold">NEON PASS</div><div class="text-2xl font-black ${premium ? 'text-green-300' : 'text-gray-300'}">${premium ? '髮会ｽｼ陷茨ｽ･雋ょ現竏ｩ' : '隴幢ｽｪ髮会ｽｼ陷茨ｽ･'}</div></div></div>
+      <section class="nsv-v72-section"><h3 class="nsv-v72-section-title text-yellow-300">PASS ITEMS</h3><div class="nsv-v72-shop-grid"><div class="nsv-v72-shop-card feature"><div><div class="text-5xl mb-2">﨟樊ｬ｡�ｽ�ｽ</div><h3 class="text-2xl font-black text-yellow-300">郢晞亂縺檎ｹ晢ｽｳ郢昜ｻ｣縺帷ｹ昶�縺鍋ｹ晢ｿｽ繝ｨ</h3><p class="text-sm text-gray-300 mt-2">郢ｧ�ｳ郢ｧ�､郢晢ｽｳ郢ｧ蛛ｵ繝｡郢ｧ�ｱ郢晢ｿｽ繝ｨ1隴ｫ螢ｹ竊楢滋�､隰�蟶呻ｼ�邵ｺ�ｾ邵ｺ蜷ｶﾂ�ｽ</p><p class="text-xl font-black text-yellow-200 mt-3">陟｢�ｽ�ｦ竏壹＆郢ｧ�､郢晢ｽｳ�ｽ�ｽ${yen(PASS_TICKET_COST)}</p></div><button id="buyTicketBtnV72" class="btn-gold nsv-v72-buy px-5 py-3 rounded font-black" ${u.coins >= PASS_TICKET_COST ? '' : 'disabled'}>郢昶�縺鍋ｹ晢ｿｽ繝ｨ郢ｧ�ｽ1隴ｫ螢ｻ�ｺ�､隰��ｽ</button></div><div class="nsv-v72-shop-card feature"><div><div class="text-5xl mb-2">邂晢ｿｽ</div><h3 class="text-2xl font-black text-cyan-300">NEON PASS</h3><p class="text-sm text-gray-300 mt-2">郢昶�縺鍋ｹ晢ｿｽ繝ｨ1隴ｫ螢ｹ縲定ｿｴ�ｾ陜ｨ�ｨ邵ｺ�ｮNEON PASS郢ｧ螳夲ｽｳ�ｼ陷茨ｽ･邵ｺ蜉ｱ竏ｪ邵ｺ蜷ｶﾂ�ｽ</p><p class="text-sm mt-3 ${premium ? 'text-green-300' : 'text-gray-300'}">霑･�ｶ隲ｷ蜈ｷ�ｼ�ｽ${premium ? '髮会ｽｼ陷茨ｽ･雋ょ現竏ｩ' : '隴幢ｽｪ髮会ｽｼ陷茨ｽ･'}</p></div><button id="buyPassBtnV72" class="btn-neon nsv-v72-buy px-5 py-3 rounded font-black" ${(u.passTickets > 0 && !premium) ? '' : 'disabled'}>${premium ? '髮会ｽｼ陷茨ｽ･雋ょ現竏ｩ' : 'NEON PASS郢ｧ螳夲ｽｳ�ｼ陷茨ｽ･'}</button></div></div></section>
+      <section class="nsv-v72-section"><div class="flex items-center justify-between border-b border-gray-600 pb-2"><div><h3 class="nsv-v72-section-title text-cyan-300 m-0">DAILY ITEMS</h3><p class="text-xs text-gray-400">雎亥叙蠕玖棔蟲ｨ�冗ｹｧ荵昴☆郢晢ｽｧ郢晢ｿｽ�ｽ郢ｧ�｢郢ｧ�､郢晢ｿｽﾎ堤ｸｺ�ｧ邵ｺ蜷ｶﾂ繧奇ｽｳ�ｼ陷茨ｽ･陟募ｾ鯉ｿｽCOLLECTION邵ｺ�ｧON/OFF邵ｺ�ｧ邵ｺ髦ｪ竏ｪ邵ｺ蜷ｶﾂ�ｽ</p></div><span class="nsv-v72-pill">${items.length} ITEMS</span></div><div class="nsv-v72-shop-grid mt-3">${itemHtml}</div></section>
     </div>`;
     $('closeShopBtnV72')?.addEventListener('click', () => showScreen('startScreen'));
     $('buyTicketBtnV72')?.addEventListener('click', buyTicket);
@@ -17398,7 +17398,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
     const shop = $('openShopBtn');
     if (shop) {
       shop.className = 'btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer transition-all';
-      shop.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>';
+      shop.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">郢昶�縺鍋ｹ晢ｿｽ繝ｨ郢晢ｽｻ郢ｧ�｢郢ｧ�､郢晢ｿｽﾎ定滋�､隰��ｽ</span>';
       shop.disabled = false; shop.style.pointerEvents = 'auto';
     }
     const col = $('openCollectionBtn');
@@ -17597,18 +17597,18 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   'use strict';
   const TAG = 'V75 COLLECTION / BADGE STABLE';
   const $ = (id) => document.getElementById(id);
-  const badRe = /[�ｽﾃε｣ﾃらｹ晉ｸｺ陷ｷ陋ｯ邨冶耳騾暮ｫｯ陋幄ｭ∫ｵ城藍闕ｳ闕ｵ]/;
+  const badRe = /[�ｽ�ｽ�πｵ�｣��ｉ�ｹ譎会ｽｸ�ｺ髯ｷ�ｷ髯具ｽｯ驍ｨ蜀ｶ閠ｳ鬨ｾ證ｮ�ｫ�ｯ髯句ｹ�ｽｭ竏ｫ�ｵ蝓手絡髣包ｽｳ髣包ｽｵ]/;
   const names = {
-    classic:'繧ｯ繝ｩ繧ｷ繝�け繝阪が繝ｳ', ruby:'繝ｫ繝薙�繝悶Ξ繧､繧ｫ繝ｼ', gold:'繧ｴ繝ｼ繝ｫ繝峨し繝舌う繝舌�', void:'繝ｴ繧ｩ繧､繝峨Λ繝ｳ繝翫�', emerald:'繧ｨ繝｡繝ｩ繝ｫ繝峨ぎ繝ｼ繝�ぅ繧｢繝ｳ', angel:'逋ｽ驫繧ｨ繝ｳ繧ｸ繧ｧ繝ｫ繧ｳ繧｢', obsidian:'鮟呈屆繧ｷ繝｣繝峨え繧ｳ繧｢', solar:'螟ｪ髯ｽ逾槭�繝ｪ繧ｪ繧ｹ', sapphire:'繧ｵ繝輔ぃ繧､繧｢繧ｹ繝医Λ繧､繧ｫ繝ｼ',
-    none:'縺ｪ縺�', cyanFlame:'闥ｼ轤弱が繝ｼ繝ｩ', goldSpark:'鮟�≡繧ｹ繝代�繧ｯ', voidMist:'陌夂ｩｺ繝溘せ繝�', toxicPulse:'迪帶ｯ偵ヱ繝ｫ繧ｹ', royalHalo:'邇玖��鮟�≡蜀�', solarFlare:'螟ｪ髯ｽ繝輔Ξ繧｢', stormKing:'髮ｷ蟶昴が繝ｼ繝ｩ',
-    crimson:'邏�動縺ｮ闍ｱ髮��繝ｳ繝�', royal:'邇玖��鮟�≡繝槭Φ繝�', voidCape:'陌夂ｩｺ縺ｮ譏滄峇繝槭Φ繝�', stormCape:'髮ｷ蟶昴�闥ｼ髮ｷ繝槭Φ繝�', phantom:'蟷ｻ蠖ｱ繧ｯ繝ｭ繝ｼ繧ｯ', galaxy:'驫豐ｳ闊ｪ豬ｷ繝槭Φ繝�', inferno:'讌ｭ轣ｫ蟆�ｻ阪�繝ｳ繝�', monarch:'隕�視縺ｮ鮟帝≡繝槭Φ繝�',
-    skin_neon_runner_s1:'繝阪が繝ｳ繝ｻ繝励Ο繝医Λ繝ｳ繝翫�', aura_neon_pulse_s1:'繝阪が繝ｳ繝代Ν繧ｹ繝ｻ繧ｳ繧｢', back_neon_core_s1:'繧ｼ繝ｭ繝ｩ繧､繝医�繝ｪ繧｢繧ｯ繧ｿ繝ｼ', trail_neon_line_s1:'繝悶Ν繝ｼ繧ｰ繝ｪ繝�ラ繝ｻ繝医Ξ繧､繝ｫ', emote_neon_pose_s1:'繝ｩ繧､繝医い繝��繝ｻ繝昴�繧ｺ', pet_neon_slime_s1:'繝阪が繝ｳ繧ｹ繝ｩ繧､繝�繝ｻ繝斐け繧ｻ繝ｫ', intro_neon_scan_s1:'繝帙Ο繧ｰ繝ｩ繝�繝ｻ繧ｹ繧ｭ繝｣繝ｳ逋ｻ蝣ｴ', elim_neon_pixel_s1:'繝斐け繧ｻ繝ｫ繝悶Ξ繧､繧ｯ謦��ｴ', finish_neon_clear_s1:'NEON OVERDRIVE 繝輔ぅ繝九ャ繧ｷ繝･', plate_neon_city_s1:'繝阪が繝ｳ繧ｷ繝�ぅ繝ｻ繝阪�繝�繝励Ξ繝ｼ繝�', badge_neon_s1:'Founder Season 1 繝舌ャ繧ｸ', box_neon_s1:'NEON GENESIS BOX', skin_neon_runner_galaxy_s1:'繝阪が繝ｳ繝ｻ繝励Ο繝医Λ繝ｳ繝翫� Galaxy', aura_neon_pulse_rainbow_s1:'繝阪が繝ｳ繝代Ν繧ｹ繝ｻRainbow Core', back_neon_core_galaxy_s1:'繧ｼ繝ｭ繝ｩ繧､繝医�Galaxy Reactor', trail_neon_line_galaxy_s1:'繝悶Ν繝ｼ繧ｰ繝ｪ繝�ラ繝ｻGalaxy Trail'
+    classic:'郢ｧ�ｯ郢晢ｽｩ郢ｧ�ｷ郢晢ｿｽ縺醍ｹ晞亂縺檎ｹ晢ｽｳ', ruby:'郢晢ｽｫ郢晁侭�ｽ郢晄じﾎ樒ｹｧ�､郢ｧ�ｫ郢晢ｽｼ', gold:'郢ｧ�ｴ郢晢ｽｼ郢晢ｽｫ郢晏ｳｨ縺礼ｹ晁�縺�ｹ晁��ｽ', void:'郢晢ｽｴ郢ｧ�ｩ郢ｧ�､郢晏ｳｨﾎ帷ｹ晢ｽｳ郢晉ｿｫ�ｽ', emerald:'郢ｧ�ｨ郢晢ｽ｡郢晢ｽｩ郢晢ｽｫ郢晏ｳｨ縺守ｹ晢ｽｼ郢晢ｿｽ縺�ｹｧ�｢郢晢ｽｳ', angel:'騾具ｽｽ鬩ｫﾂ郢ｧ�ｨ郢晢ｽｳ郢ｧ�ｸ郢ｧ�ｧ郢晢ｽｫ郢ｧ�ｳ郢ｧ�｢', obsidian:'魄溷争螻�ｹｧ�ｷ郢晢ｽ｣郢晏ｳｨ縺育ｹｧ�ｳ郢ｧ�｢', solar:'陞滂ｽｪ鬮ｯ�ｽ騾ｾ讒ｭ�ｽ郢晢ｽｪ郢ｧ�ｪ郢ｧ�ｹ', sapphire:'郢ｧ�ｵ郢晁ｼ斐＜郢ｧ�､郢ｧ�｢郢ｧ�ｹ郢晏現ﾎ帷ｹｧ�､郢ｧ�ｫ郢晢ｽｼ',
+    none:'邵ｺ�ｪ邵ｺ�ｽ', cyanFlame:'髣･�ｼ霓､蠑ｱ縺檎ｹ晢ｽｼ郢晢ｽｩ', goldSpark:'魄滂ｿｽ竕｡郢ｧ�ｹ郢昜ｻ｣�ｽ郢ｧ�ｯ', voidMist:'髯悟､ゑｽｩ�ｺ郢晄ｺ倥○郢晢ｿｽ', toxicPulse:'霑ｪ蟶ｶ�ｯ蛛ｵ繝ｱ郢晢ｽｫ郢ｧ�ｹ', royalHalo:'驍�事ﾂ�ｽ�ｽ魄滂ｿｽ竕｡陷�ｽ', solarFlare:'陞滂ｽｪ鬮ｯ�ｽ郢晁ｼ釆樒ｹｧ�｢', stormKing:'鬮ｮ�ｷ陝ｶ譏ｴ縺檎ｹ晢ｽｼ郢晢ｽｩ',
+    crimson:'驍擾ｿｽ蜍慕ｸｺ�ｮ髣搾ｽｱ鬮ｮ�ｽ�ｽ郢晢ｽｳ郢晢ｿｽ', royal:'驍�事ﾂ�ｽ�ｽ魄滂ｿｽ竕｡郢晄ｧｭﾎｦ郢晢ｿｽ', voidCape:'髯悟､ゑｽｩ�ｺ邵ｺ�ｮ隴乗ｻ�ｳ�ｹ晄ｧｭﾎｦ郢晢ｿｽ', stormCape:'鬮ｮ�ｷ陝ｶ譏ｴ�ｽ髣･�ｼ鬮ｮ�ｷ郢晄ｧｭﾎｦ郢晢ｿｽ', phantom:'陝ｷ�ｻ陟厄ｽｱ郢ｧ�ｯ郢晢ｽｭ郢晢ｽｼ郢ｧ�ｯ', galaxy:'鬩ｫﾂ雎撰ｽｳ髣奇ｽｪ雎ｬ�ｷ郢晄ｧｭﾎｦ郢晢ｿｽ', inferno:'隶鯉ｽｭ霓｣�ｫ陝�ｿｽ�ｻ髦ｪ�ｽ郢晢ｽｳ郢晢ｿｽ', monarch:'髫包ｿｽ隕也ｸｺ�ｮ魄溷ｸ昶横郢晄ｧｭﾎｦ郢晢ｿｽ',
+    skin_neon_runner_s1:'郢晞亂縺檎ｹ晢ｽｳ郢晢ｽｻ郢晏干ﾎ溽ｹ晏現ﾎ帷ｹ晢ｽｳ郢晉ｿｫ�ｽ', aura_neon_pulse_s1:'郢晞亂縺檎ｹ晢ｽｳ郢昜ｻ｣ﾎ晉ｹｧ�ｹ郢晢ｽｻ郢ｧ�ｳ郢ｧ�｢', back_neon_core_s1:'郢ｧ�ｼ郢晢ｽｭ郢晢ｽｩ郢ｧ�､郢晏現�ｽ郢晢ｽｪ郢ｧ�｢郢ｧ�ｯ郢ｧ�ｿ郢晢ｽｼ', trail_neon_line_s1:'郢晄じﾎ晉ｹ晢ｽｼ郢ｧ�ｰ郢晢ｽｪ郢晢ｿｽ繝ｩ郢晢ｽｻ郢晏現ﾎ樒ｹｧ�､郢晢ｽｫ', emote_neon_pose_s1:'郢晢ｽｩ郢ｧ�､郢晏現縺�ｹ晢ｿｽ�ｽ郢晢ｽｻ郢晄亢�ｽ郢ｧ�ｺ', pet_neon_slime_s1:'郢晞亂縺檎ｹ晢ｽｳ郢ｧ�ｹ郢晢ｽｩ郢ｧ�､郢晢ｿｽ郢晢ｽｻ郢晄鱒縺醍ｹｧ�ｻ郢晢ｽｫ', intro_neon_scan_s1:'郢晏ｸ厥溽ｹｧ�ｰ郢晢ｽｩ郢晢ｿｽ郢晢ｽｻ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽ｣郢晢ｽｳ騾具ｽｻ陜｣�ｴ', elim_neon_pixel_s1:'郢晄鱒縺醍ｹｧ�ｻ郢晢ｽｫ郢晄じﾎ樒ｹｧ�､郢ｧ�ｯ隰ｦ�ｽ�ｽ�ｴ', finish_neon_clear_s1:'NEON OVERDRIVE 郢晁ｼ斐≦郢昜ｹ昴Ε郢ｧ�ｷ郢晢ｽ･', plate_neon_city_s1:'郢晞亂縺檎ｹ晢ｽｳ郢ｧ�ｷ郢晢ｿｽ縺�ｹ晢ｽｻ郢晞亂�ｽ郢晢ｿｽ郢晏干ﾎ樒ｹ晢ｽｼ郢晢ｿｽ', badge_neon_s1:'Founder Season 1 郢晁�繝｣郢ｧ�ｸ', box_neon_s1:'NEON GENESIS BOX', skin_neon_runner_galaxy_s1:'郢晞亂縺檎ｹ晢ｽｳ郢晢ｽｻ郢晏干ﾎ溽ｹ晏現ﾎ帷ｹ晢ｽｳ郢晉ｿｫ�ｽ Galaxy', aura_neon_pulse_rainbow_s1:'郢晞亂縺檎ｹ晢ｽｳ郢昜ｻ｣ﾎ晉ｹｧ�ｹ郢晢ｽｻRainbow Core', back_neon_core_galaxy_s1:'郢ｧ�ｼ郢晢ｽｭ郢晢ｽｩ郢ｧ�､郢晏現�ｽGalaxy Reactor', trail_neon_line_galaxy_s1:'郢晄じﾎ晉ｹ晢ｽｼ郢ｧ�ｰ郢晢ｽｪ郢晢ｿｽ繝ｩ郢晢ｽｻGalaxy Trail'
   };
   const descs = {
-    classic:'譛蛻昴°繧我ｽｿ縺医ｋ蝓ｺ譛ｬ繧ｹ繧ｭ繝ｳ縺ｧ縺吶�', ruby:'謨ｵ繧偵◆縺上＆繧灘偵☆縺ｨ隗｣謾ｾ縺輔ｌ繧玖ｵ､縺�ロ繧ｪ繝ｳ繧ｹ繧ｭ繝ｳ縺ｧ縺吶�', gold:'繧ｳ繧､繝ｳ繧帝寔繧√ｋ縺ｨ隗｣謾ｾ縺輔ｌ繧矩≡濶ｲ縺ｮ繧ｹ繧ｭ繝ｳ縺ｧ縺吶�', void:'髟ｷ縺冗函縺肴ｮ九ｋ縺ｨ隗｣謾ｾ縺輔ｌ繧狗ｴｫ縺ｮ繧ｹ繧ｭ繝ｳ縺ｧ縺吶�', emerald:'繝懊せ險惹ｼ舌〒隗｣謾ｾ縺輔ｌ繧狗ｷ代�螳郁ｭｷ閠�せ繧ｭ繝ｳ縺ｧ縺吶�', angel:'逋ｽ驫縺ｮ蜈峨↓蛹�∪繧後ｋ荳贋ｽ阪せ繧ｭ繝ｳ縺ｧ縺吶�', obsidian:'鮟偵＞螟冶｣�→邏ｫ縺ｮ蜈峨′迚ｹ蠕ｴ縺ｮ繧ｹ繧ｭ繝ｳ縺ｧ縺吶�', solar:'螟ｪ髯ｽ縺ｮ繧医≧縺ｫ譏弱ｋ縺丞�繧区ｴｾ謇九↑繧ｹ繧ｭ繝ｳ縺ｧ縺吶�', sapphire:'髱偵＞繝阪が繝ｳ縺瑚ｵｰ繧九せ繝斐�繝画─縺ｮ縺ゅｋ繧ｹ繧ｭ繝ｳ縺ｧ縺吶�',
-    cyanFlame:'雜ｳ蜈�↓髱偵＞轤弱′蜃ｺ繧九が繝ｼ繝ｩ縺ｧ縺吶�', goldSpark:'驥題牡縺ｮ蟆上＆縺ｪ蜈峨′蜻ｨ繧翫ｒ闊槭≧繧ｪ繝ｼ繝ｩ縺ｧ縺吶�', voidMist:'邏ｫ縺ｮ髴ｧ縺ｮ繧医≧縺ｪ繧ｨ繝輔ぉ繧ｯ繝医ｒ縺ｾ縺ｨ縺�∪縺吶�', toxicPulse:'邱代�豕｢邏九′蠎�′繧区ｯ帝｢ｨ繧ｪ繝ｼ繝ｩ縺ｧ縺吶�', royalHalo:'鬆ｭ荳翫↓驥題牡縺ｮ邇句�縺梧ｵｮ縺九�繧ｪ繝ｼ繝ｩ縺ｧ縺吶�', solarFlare:'螟ｪ髯ｽ縺ｮ轤弱�繧医≧縺ｪ霈ｪ縺後ｆ繧峨ａ縺阪∪縺吶�', stormKing:'菴薙�蜻ｨ繧翫↓邏ｰ縺�峭縺瑚ｵｰ繧九が繝ｼ繝ｩ縺ｧ縺吶�',
-    crimson:'襍､縺��繝ｳ繝医′蠕後ｍ縺ｫ縺ｪ縺ｳ縺剰恭髮�｢ｨ繧｢繧ｯ繧ｻ繧ｵ繝ｪ繝ｼ縺ｧ縺吶�', royal:'邇玖�ｉ縺励＞驥題牡縺ｮ繝槭Φ繝医〒縺吶�', voidCape:'螳�ｮ吶�繧医≧縺ｪ邏ｫ濶ｲ縺ｮ譏滄峇繝槭Φ繝医〒縺吶�', stormCape:'髱偵＞髮ｷ縺ｮ貍泌�縺悟�繧九�繝ｳ繝医〒縺吶�', phantom:'蠖ｱ縺ｮ繧医≧縺ｫ繧�ｌ繧玖ｻｽ縺�け繝ｭ繝ｼ繧ｯ縺ｧ縺吶�', galaxy:'驫豐ｳ繧偵う繝｡繝ｼ繧ｸ縺励◆螟ｧ縺阪ａ縺ｮ繝槭Φ繝医〒縺吶�', inferno:'轤弱�繧医≧縺ｪ濶ｲ縺ｧ逶ｮ遶九▽繝槭Φ繝医〒縺吶�', monarch:'鮟偵→驥代ｒ邨�∩蜷医ｏ縺帙◆隕�視鬚ｨ繝槭Φ繝医〒縺吶�',
-    skin_neon_runner_s1:'蜈ｨ霄ｫ縺ｫ繝阪が繝ｳ繝ｩ繧､繝ｳ縺悟�縺｣縺欖eason 1髯仙ｮ壹せ繧ｭ繝ｳ縺ｧ縺吶�', aura_neon_pulse_s1:'菴薙�蜻ｨ繧翫↓髱偵＞繝阪が繝ｳ繝代Ν繧ｹ縺悟ｺ�′繧九が繝ｼ繝ｩ縺ｧ縺吶�', back_neon_core_s1:'閭御ｸｭ縺ｫ蟆上＆縺ｪ繝阪が繝ｳ繝ｪ繧｢繧ｯ繧ｿ繝ｼ繧定｣�ｙ縺励∪縺吶�', trail_neon_line_s1:'遘ｻ蜍輔＠縺溘≠縺ｨ縺ｫ髱偵＞繝ｩ繧､繝ｳ縺梧ｮ九ｋ繝医Ξ繧､繝ｫ縺ｧ縺吶�', emote_neon_pose_s1:'蜈峨ｋ繝昴�繧ｺ繧呈ｱｺ繧√ｋ繧ｨ繝｢繝ｼ繝医〒縺吶�', pet_neon_slime_s1:'蟆上＆縺ｪ繝阪が繝ｳ繧ｹ繝ｩ繧､繝�縺後▽縺�※縺上ｋ繝壹ャ繝医〒縺吶�', intro_neon_scan_s1:'繝帙Ο繧ｰ繝ｩ繝�縺ｮ繧医≧縺ｪ繧ｹ繧ｭ繝｣繝ｳ貍泌�縺ｧ逋ｻ蝣ｴ縺励∪縺吶�', elim_neon_pixel_s1:'謨ｵ繧貞偵＠縺溘→縺阪↓繝斐け繧ｻ繝ｫ縺後�縺倥￠繧区ｼ泌�縺ｧ縺吶�', finish_neon_clear_s1:'繝懊せ謦��ｴ譎ゅ↓豢ｾ謇九↑繝輔ぅ繝九ャ繧ｷ繝･貍泌�繧貞�縺励∪縺吶�', plate_neon_city_s1:'蜷榊燕陦ｨ遉ｺ繧偵ロ繧ｪ繝ｳ繧ｷ繝�ぅ鬚ｨ縺ｫ螟峨∴縺ｾ縺吶�', badge_neon_s1:'蜷榊燕縺ｮ讓ｪ縺ｫ莉倥￠繧峨ｌ繧鬼eason 1髯仙ｮ壹ヰ繝�ず縺ｧ縺吶�', box_neon_s1:'Season 1髯仙ｮ壹い繧､繝�Β縺悟�縺｣縺溽音蛻･BOX縺ｧ縺吶�', skin_neon_runner_galaxy_s1:'蝓ｺ譛ｬ繧ｹ繧ｭ繝ｳ縺ｮ驫豐ｳ繝舌�繧ｸ繝ｧ繝ｳ縺ｧ縺吶ゆｽ薙�繝ｩ繧､繝ｳ縺ｫ譏滄峇繧ｫ繝ｩ繝ｼ縺梧ｵ√ｌ縺ｾ縺吶�', aura_neon_pulse_rainbow_s1:'陌ｹ濶ｲ縺ｮ繝阪が繝ｳ繝代Ν繧ｹ縺悟ｺ�′繧狗音蛻･繧ｪ繝ｼ繝ｩ縺ｧ縺吶�', back_neon_core_galaxy_s1:'驫豐ｳ繧ｫ繝ｩ繝ｼ縺ｮ繝ｪ繧｢繧ｯ繧ｿ繝ｼ繧定レ荳ｭ縺ｫ陬�ｙ縺励∪縺吶�', trail_neon_line_galaxy_s1:'遘ｻ蜍輔＠縺溘≠縺ｨ縺ｫ驫豐ｳ濶ｲ縺ｮ繝ｩ繧､繝ｳ縺梧ｮ九ｋ繝医Ξ繧､繝ｫ縺ｧ縺吶�'
+    classic:'隴崢陋ｻ譏ｴﾂｰ郢ｧ謌托ｽｽ�ｿ邵ｺ蛹ｻ�玖搏�ｺ隴幢ｽｬ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', ruby:'隰ｨ�ｵ郢ｧ蛛ｵ笳�ｸｺ荳奇ｼ�ｹｧ轣伉蛛ｵ笘�ｸｺ�ｨ髫暦ｽ｣隰ｾ�ｾ邵ｺ霈費ｽ檎ｹｧ邇厄ｽｵ�､邵ｺ�ｽ繝ｭ郢ｧ�ｪ郢晢ｽｳ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', gold:'郢ｧ�ｳ郢ｧ�､郢晢ｽｳ郢ｧ蟶晏ｯ皮ｹｧ竏夲ｽ狗ｸｺ�ｨ髫暦ｽ｣隰ｾ�ｾ邵ｺ霈費ｽ檎ｹｧ遏ｩ竕｡豼ｶ�ｲ邵ｺ�ｮ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', void:'鬮滂ｽｷ邵ｺ蜀怜�邵ｺ閧ｴ�ｮ荵晢ｽ狗ｸｺ�ｨ髫暦ｽ｣隰ｾ�ｾ邵ｺ霈費ｽ檎ｹｧ迢暦ｽｴ�ｫ邵ｺ�ｮ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', emerald:'郢晄㈱縺幃坎諠ｹ�ｼ闊後帝囓�｣隰ｾ�ｾ邵ｺ霈費ｽ檎ｹｧ迢暦ｽｷ莉｣�ｽ陞ｳ驛�ｽｭ�ｷ髢��ｽ縺帷ｹｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', angel:'騾具ｽｽ鬩ｫﾂ邵ｺ�ｮ陷亥ｳｨ竊楢峪�ｽ竏ｪ郢ｧ蠕鯉ｽ玖叉雍具ｽｽ髦ｪ縺帷ｹｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', obsidian:'魄溷��櫁棔蜀ｶ�｣�ｽ竊帝ｏ�ｫ邵ｺ�ｮ陷亥ｳｨ窶ｲ霑夲ｽｹ陟包ｽｴ邵ｺ�ｮ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', solar:'陞滂ｽｪ鬮ｯ�ｽ邵ｺ�ｮ郢ｧ蛹ｻ竕ｧ邵ｺ�ｫ隴丞ｼｱ�狗ｸｺ荳橸ｿｽ郢ｧ蛹ｺ�ｴ�ｾ隰�ｹ昶�郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', sapphire:'鬮ｱ蛛ｵ�樒ｹ晞亂縺檎ｹ晢ｽｳ邵ｺ迹夲ｽｵ�ｰ郢ｧ荵昴○郢晄鱒�ｽ郢晉判笏邵ｺ�ｮ邵ｺ繧�ｽ狗ｹｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ',
+    cyanFlame:'髮懶ｽｳ陷茨ｿｽ竊馴ｫｱ蛛ｵ�櫁ｽ､蠑ｱ窶ｲ陷�ｽｺ郢ｧ荵昴′郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', goldSpark:'鬩･鬘檎横邵ｺ�ｮ陝�ｸ奇ｼ�ｸｺ�ｪ陷亥ｳｨ窶ｲ陷ｻ�ｨ郢ｧ鄙ｫ�帝頼讒ｭ竕ｧ郢ｧ�ｪ郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', voidMist:'驍擾ｽｫ邵ｺ�ｮ鬮ｴ�ｧ邵ｺ�ｮ郢ｧ蛹ｻ竕ｧ邵ｺ�ｪ郢ｧ�ｨ郢晁ｼ斐♂郢ｧ�ｯ郢晏現�堤ｸｺ�ｾ邵ｺ�ｨ邵ｺ�ｽ竏ｪ邵ｺ蜷ｶﾂ�ｽ', toxicPulse:'驍ｱ莉｣�ｽ雎包ｽ｢驍丈ｹ昶ｲ陟趣ｿｽ窶ｲ郢ｧ蛹ｺ�ｯ蟶晢ｽ｢�ｨ郢ｧ�ｪ郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', royalHalo:'鬯�ｽｭ闕ｳ鄙ｫ竊馴ｩ･鬘檎横邵ｺ�ｮ驍�唱�ｽ邵ｺ譴ｧ�ｵ�ｮ邵ｺ荵晢ｿｽ郢ｧ�ｪ郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', solarFlare:'陞滂ｽｪ鬮ｯ�ｽ邵ｺ�ｮ霓､蠑ｱ�ｽ郢ｧ蛹ｻ竕ｧ邵ｺ�ｪ髴茨ｽｪ邵ｺ蠕鯉ｽ�ｹｧ蟲ｨ�∫ｸｺ髦ｪ竏ｪ邵ｺ蜷ｶﾂ�ｽ', stormKing:'闖ｴ阮呻ｿｽ陷ｻ�ｨ郢ｧ鄙ｫ竊馴ｏ�ｰ邵ｺ�ｽ蟲ｭ邵ｺ迹夲ｽｵ�ｰ郢ｧ荵昴′郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ',
+    crimson:'隘搾ｽ､邵ｺ�ｽ�ｽ郢晢ｽｳ郢晏現窶ｲ陟募ｾ鯉ｽ咲ｸｺ�ｫ邵ｺ�ｪ邵ｺ�ｳ邵ｺ蜑ｰ諱ｭ鬮ｮ�ｽ�｢�ｨ郢ｧ�｢郢ｧ�ｯ郢ｧ�ｻ郢ｧ�ｵ郢晢ｽｪ郢晢ｽｼ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', royal:'驍�事ﾂ�ｽ�臥ｸｺ蜉ｱ�樣ｩ･鬘檎横邵ｺ�ｮ郢晄ｧｭﾎｦ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ', voidCape:'陞ｳ�ｽ�ｮ蜷ｶ�ｽ郢ｧ蛹ｻ竕ｧ邵ｺ�ｪ驍擾ｽｫ豼ｶ�ｲ邵ｺ�ｮ隴乗ｻ�ｳ�ｹ晄ｧｭﾎｦ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ', stormCape:'鬮ｱ蛛ｵ�樣ｫｮ�ｷ邵ｺ�ｮ雋肴ｳ鯉ｿｽ邵ｺ謔滂ｿｽ郢ｧ荵晢ｿｽ郢晢ｽｳ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ', phantom:'陟厄ｽｱ邵ｺ�ｮ郢ｧ蛹ｻ竕ｧ邵ｺ�ｫ郢ｧ�ｽ�檎ｹｧ邇厄ｽｻ�ｽ邵ｺ�ｽ縺醍ｹ晢ｽｭ郢晢ｽｼ郢ｧ�ｯ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', galaxy:'鬩ｫﾂ雎撰ｽｳ郢ｧ蛛ｵ縺�ｹ晢ｽ｡郢晢ｽｼ郢ｧ�ｸ邵ｺ蜉ｱ笳�棔�ｧ邵ｺ髦ｪ�∫ｸｺ�ｮ郢晄ｧｭﾎｦ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ', inferno:'霓､蠑ｱ�ｽ郢ｧ蛹ｻ竕ｧ邵ｺ�ｪ豼ｶ�ｲ邵ｺ�ｧ騾ｶ�ｮ驕ｶ荵昶命郢晄ｧｭﾎｦ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ', monarch:'魄溷�竊帝ｩ･莉｣�帝お�ｽ竏ｩ陷ｷ蛹ｻ�冗ｸｺ蟶吮螺髫包ｿｽ隕夜ｬ夲ｽｨ郢晄ｧｭﾎｦ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ',
+    skin_neon_runner_s1:'陷茨ｽｨ髴�ｽｫ邵ｺ�ｫ郢晞亂縺檎ｹ晢ｽｳ郢晢ｽｩ郢ｧ�､郢晢ｽｳ邵ｺ謔滂ｿｽ邵ｺ�｣邵ｺ谺貌ason 1鬮ｯ莉呻ｽｮ螢ｹ縺帷ｹｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', aura_neon_pulse_s1:'闖ｴ阮呻ｿｽ陷ｻ�ｨ郢ｧ鄙ｫ竊馴ｫｱ蛛ｵ�樒ｹ晞亂縺檎ｹ晢ｽｳ郢昜ｻ｣ﾎ晉ｹｧ�ｹ邵ｺ謔滂ｽｺ�ｽ窶ｲ郢ｧ荵昴′郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', back_neon_core_s1:'髢ｭ蠕｡�ｸ�ｭ邵ｺ�ｫ陝�ｸ奇ｼ�ｸｺ�ｪ郢晞亂縺檎ｹ晢ｽｳ郢晢ｽｪ郢ｧ�｢郢ｧ�ｯ郢ｧ�ｿ郢晢ｽｼ郢ｧ螳夲ｽ｣�ｽ�咏ｸｺ蜉ｱ竏ｪ邵ｺ蜷ｶﾂ�ｽ', trail_neon_line_s1:'驕假ｽｻ陷崎ｼ費ｼ�邵ｺ貅倪旺邵ｺ�ｨ邵ｺ�ｫ鬮ｱ蛛ｵ�樒ｹ晢ｽｩ郢ｧ�､郢晢ｽｳ邵ｺ譴ｧ�ｮ荵晢ｽ狗ｹ晏現ﾎ樒ｹｧ�､郢晢ｽｫ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', emote_neon_pose_s1:'陷亥ｳｨ�狗ｹ晄亢�ｽ郢ｧ�ｺ郢ｧ蜻茨ｽｱ�ｺ郢ｧ竏夲ｽ狗ｹｧ�ｨ郢晢ｽ｢郢晢ｽｼ郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ', pet_neon_slime_s1:'陝�ｸ奇ｼ�ｸｺ�ｪ郢晞亂縺檎ｹ晢ｽｳ郢ｧ�ｹ郢晢ｽｩ郢ｧ�､郢晢ｿｽ邵ｺ蠕娯命邵ｺ�ｽ窶ｻ邵ｺ荳奇ｽ狗ｹ晏｣ｹ繝｣郢晏現縲堤ｸｺ蜷ｶﾂ�ｽ', intro_neon_scan_s1:'郢晏ｸ厥溽ｹｧ�ｰ郢晢ｽｩ郢晢ｿｽ邵ｺ�ｮ郢ｧ蛹ｻ竕ｧ邵ｺ�ｪ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽ｣郢晢ｽｳ雋肴ｳ鯉ｿｽ邵ｺ�ｧ騾具ｽｻ陜｣�ｴ邵ｺ蜉ｱ竏ｪ邵ｺ蜷ｶﾂ�ｽ', elim_neon_pixel_s1:'隰ｨ�ｵ郢ｧ雋楪蛛ｵ��邵ｺ貅倪�邵ｺ髦ｪ竊鍋ｹ晄鱒縺醍ｹｧ�ｻ郢晢ｽｫ邵ｺ蠕鯉ｿｽ邵ｺ蛟･��郢ｧ蛹ｺ�ｼ豕鯉ｿｽ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', finish_neon_clear_s1:'郢晄㈱縺幄ｬｦ�ｽ�ｽ�ｴ隴弱ｅ竊楢ｱ｢�ｾ隰�ｹ昶�郢晁ｼ斐≦郢昜ｹ昴Ε郢ｧ�ｷ郢晢ｽ･雋肴ｳ鯉ｿｽ郢ｧ雋橸ｿｽ邵ｺ蜉ｱ竏ｪ邵ｺ蜷ｶﾂ�ｽ', plate_neon_city_s1:'陷ｷ讎顔√髯ｦ�ｨ驕会ｽｺ郢ｧ蛛ｵ繝ｭ郢ｧ�ｪ郢晢ｽｳ郢ｧ�ｷ郢晢ｿｽ縺�ｬ夲ｽｨ邵ｺ�ｫ陞溷ｳｨ竏ｴ邵ｺ�ｾ邵ｺ蜷ｶﾂ�ｽ', badge_neon_s1:'陷ｷ讎顔√邵ｺ�ｮ隶難ｽｪ邵ｺ�ｫ闔牙･��郢ｧ蟲ｨ�檎ｹｧ鬯ｼeason 1鬮ｯ莉呻ｽｮ螢ｹ繝ｰ郢晢ｿｽ縺夂ｸｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', box_neon_s1:'Season 1鬮ｯ莉呻ｽｮ螢ｹ縺�ｹｧ�､郢晢ｿｽﾎ堤ｸｺ謔滂ｿｽ邵ｺ�｣邵ｺ貅ｽ髻ｳ陋ｻ�･BOX邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', skin_neon_runner_galaxy_s1:'陜難ｽｺ隴幢ｽｬ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｮ鬩ｫﾂ雎撰ｽｳ郢晁��ｽ郢ｧ�ｸ郢晢ｽｧ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ繧�ｽｽ阮呻ｿｽ郢晢ｽｩ郢ｧ�､郢晢ｽｳ邵ｺ�ｫ隴乗ｻ�ｳ�ｹｧ�ｫ郢晢ｽｩ郢晢ｽｼ邵ｺ譴ｧ�ｵ竏夲ｽ檎ｸｺ�ｾ邵ｺ蜷ｶﾂ�ｽ', aura_neon_pulse_rainbow_s1:'髯鯉ｽｹ豼ｶ�ｲ邵ｺ�ｮ郢晞亂縺檎ｹ晢ｽｳ郢昜ｻ｣ﾎ晉ｹｧ�ｹ邵ｺ謔滂ｽｺ�ｽ窶ｲ郢ｧ迢鈴浹陋ｻ�･郢ｧ�ｪ郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ', back_neon_core_galaxy_s1:'鬩ｫﾂ雎撰ｽｳ郢ｧ�ｫ郢晢ｽｩ郢晢ｽｼ邵ｺ�ｮ郢晢ｽｪ郢ｧ�｢郢ｧ�ｯ郢ｧ�ｿ郢晢ｽｼ郢ｧ螳壹Ξ闕ｳ�ｭ邵ｺ�ｫ髯ｬ�ｽ�咏ｸｺ蜉ｱ竏ｪ邵ｺ蜷ｶﾂ�ｽ', trail_neon_line_galaxy_s1:'驕假ｽｻ陷崎ｼ費ｼ�邵ｺ貅倪旺邵ｺ�ｨ邵ｺ�ｫ鬩ｫﾂ雎撰ｽｳ豼ｶ�ｲ邵ｺ�ｮ郢晢ｽｩ郢ｧ�､郢晢ｽｳ邵ｺ譴ｧ�ｮ荵晢ｽ狗ｹ晏現ﾎ樒ｹｧ�､郢晢ｽｫ邵ｺ�ｧ邵ｺ蜷ｶﾂ�ｽ'
   };
   function installStyle(){
     if ($('nsvV75CollectionBadgeStyle')) return;
@@ -17641,7 +17641,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
       const h2 = screen.querySelector('h2');
       if (h2) h2.textContent = 'COLLECTION';
       const topP = h2?.parentElement?.querySelector('p') || screen.querySelector('.menu-panel p');
-      if (topP) topP.textContent = '蜈･謇九＠縺溘せ繧ｭ繝ｳ繝ｻ繧ｪ繝ｼ繝ｩ繝ｻ繝槭Φ繝医�繝阪が繝ｳ繝代せ蝣ｱ驟ｬ繧堤｢ｺ隱阪〒縺阪∪縺吶ゅヨ繧ｰ繝ｫ縺ｧ陬�ｙ縺ｮON/OFF繧帝∈縺ｹ縺ｾ縺吶�';
+      if (topP) topP.textContent = '陷茨ｽ･隰�ｹ晢ｼ�邵ｺ貅倥○郢ｧ�ｭ郢晢ｽｳ郢晢ｽｻ郢ｧ�ｪ郢晢ｽｼ郢晢ｽｩ郢晢ｽｻ郢晄ｧｭﾎｦ郢晏現�ｽ郢晞亂縺檎ｹ晢ｽｳ郢昜ｻ｣縺幄撻�ｱ鬩滂ｽｬ郢ｧ蝣､�｢�ｺ髫ｱ髦ｪ縲堤ｸｺ髦ｪ竏ｪ邵ｺ蜷ｶﾂ繧�Κ郢ｧ�ｰ郢晢ｽｫ邵ｺ�ｧ髯ｬ�ｽ�咏ｸｺ�ｮON/OFF郢ｧ蟶昶�邵ｺ�ｹ邵ｺ�ｾ邵ｺ蜷ｶﾂ�ｽ';
       screen.querySelectorAll('.nsv-v72-card').forEach(card => {
         const input = card.querySelector('.nsv-v72-collection-toggle');
         const id = input?.dataset?.id;
@@ -17651,9 +17651,9 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         if (id && names[id] && nameEl) nameEl.textContent = names[id];
         if (id && descs[id] && descEl) descEl.textContent = descs[id];
         if (descEl && badRe.test(descEl.textContent || '')) {
-          descEl.textContent = type === 'skin' ? '蜈･謇区ｸ医∩縺ｮ繧ｹ繧ｭ繝ｳ縺ｧ縺吶ゅヨ繧ｰ繝ｫ繧丹N縺ｫ縺吶ｋ縺ｨ隕九◆逶ｮ縺ｫ蜿肴丐縺輔ｌ縺ｾ縺吶�' : type === 'aura' ? '蜈･謇区ｸ医∩縺ｮ繧ｪ繝ｼ繝ｩ縺ｧ縺吶ゅヨ繧ｰ繝ｫ繧丹N縺ｫ縺吶ｋ縺ｨ繝励Ξ繧､繝､繝ｼ縺ｮ蜻ｨ繧翫↓陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶�' : type === 'cape' ? '蜈･謇区ｸ医∩縺ｮ繝槭Φ繝医〒縺吶ゅヨ繧ｰ繝ｫ繧丹N縺ｫ縺吶ｋ縺ｨ閭御ｸｭ縺ｫ陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶�' : '蜈･謇区ｸ医∩縺ｮ繧ｳ繝ｬ繧ｯ繧ｷ繝ｧ繝ｳ繧｢繧､繝�Β縺ｧ縺吶�';
+          descEl.textContent = type === 'skin' ? '陷茨ｽ･隰�玄�ｸ蛹ｻ竏ｩ邵ｺ�ｮ郢ｧ�ｹ郢ｧ�ｭ郢晢ｽｳ邵ｺ�ｧ邵ｺ蜷ｶﾂ繧�Κ郢ｧ�ｰ郢晢ｽｫ郢ｧ荳ｹN邵ｺ�ｫ邵ｺ蜷ｶ�狗ｸｺ�ｨ髫穂ｹ昶螺騾ｶ�ｮ邵ｺ�ｫ陷ｿ閧ｴ荳千ｸｺ霈費ｽ檎ｸｺ�ｾ邵ｺ蜷ｶﾂ�ｽ' : type === 'aura' ? '陷茨ｽ･隰�玄�ｸ蛹ｻ竏ｩ邵ｺ�ｮ郢ｧ�ｪ郢晢ｽｼ郢晢ｽｩ邵ｺ�ｧ邵ｺ蜷ｶﾂ繧�Κ郢ｧ�ｰ郢晢ｽｫ郢ｧ荳ｹN邵ｺ�ｫ邵ｺ蜷ｶ�狗ｸｺ�ｨ郢晏干ﾎ樒ｹｧ�､郢晢ｽ､郢晢ｽｼ邵ｺ�ｮ陷ｻ�ｨ郢ｧ鄙ｫ竊馴勗�ｨ驕会ｽｺ邵ｺ霈費ｽ檎ｸｺ�ｾ邵ｺ蜷ｶﾂ�ｽ' : type === 'cape' ? '陷茨ｽ･隰�玄�ｸ蛹ｻ竏ｩ邵ｺ�ｮ郢晄ｧｭﾎｦ郢晏現縲堤ｸｺ蜷ｶﾂ繧�Κ郢ｧ�ｰ郢晢ｽｫ郢ｧ荳ｹN邵ｺ�ｫ邵ｺ蜷ｶ�狗ｸｺ�ｨ髢ｭ蠕｡�ｸ�ｭ邵ｺ�ｫ髯ｦ�ｨ驕会ｽｺ邵ｺ霈費ｽ檎ｸｺ�ｾ邵ｺ蜷ｶﾂ�ｽ' : '陷茨ｽ･隰�玄�ｸ蛹ｻ竏ｩ邵ｺ�ｮ郢ｧ�ｳ郢晢ｽｬ郢ｧ�ｯ郢ｧ�ｷ郢晢ｽｧ郢晢ｽｳ郢ｧ�｢郢ｧ�､郢晢ｿｽﾎ堤ｸｺ�ｧ邵ｺ蜷ｶﾂ�ｽ';
         }
-        if (nameEl && badRe.test(nameEl.textContent || '') && id) nameEl.textContent = names[id] || '繧ｳ繝ｬ繧ｯ繧ｷ繝ｧ繝ｳ繧｢繧､繝�Β';
+        if (nameEl && badRe.test(nameEl.textContent || '') && id) nameEl.textContent = names[id] || '郢ｧ�ｳ郢晢ｽｬ郢ｧ�ｯ郢ｧ�ｷ郢晢ｽｧ郢晢ｽｳ郢ｧ�｢郢ｧ�､郢晢ｿｽﾎ�';
       });
     } catch(e) {}
   }
@@ -17679,8 +17679,8 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 (() => {
   'use strict';
   const TAG = 'V76 BUTTON LABEL STABLE';
-  const SHOP_HTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>';
-  const RANK_HTML = 'RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>';
+  const SHOP_HTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">郢昶�縺鍋ｹ晢ｿｽ繝ｨ郢晢ｽｻ郢ｧ�｢郢ｧ�､郢晢ｿｽﾎ定滋�､隰��ｽ</span>';
+  const RANK_HTML = 'RANKING<br><span class="text-xs text-cyan-100 font-bold">陷ｿ遏ｩ��ｹ晢ｽｩ郢晢ｽｳ郢ｧ�ｭ郢晢ｽｳ郢ｧ�ｰ</span>';
   const $ = (id) => document.getElementById(id);
 
   function installV76Style(){
@@ -17776,6 +17776,527 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   document.addEventListener('click', boot, true);
   [120, 700, 1800].forEach(ms => setTimeout(boot, ms));
   window.NEON_SURVIVOR_V77_START_BUTTON_SAFETY = { boot, ensureNickname };
+})();
+</script>
+
+
+<!-- =========================================================
+     V78 JAPANESE TEXT / PAUSE CENTER / CHEAT FIX
+     - 譌･譛ｬ隱樊枚蟄怜喧縺代�隕九∴繧矩Κ蛻�ｒ譛蠕後↓荳頑嶌縺�
+     - 荳譎ょ●豁｢逕ｻ髱｢繧剃ｸｭ螟ｮ蟇�○
+     - 繝√�繝亥�蜉帶ｬ�ｒ譌･譛ｬ隱槫喧
+     - 繝√�繝亥愛螳壹ｒ螳牙�蛹�
+     ========================================================= -->
+<style id="nsvV78JapaneseCheatFixStyle">
+  #pauseScreen:not(.hidden){
+    position:fixed!important;
+    inset:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    text-align:center!important;
+    padding:12px!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    pointer-events:auto!important;
+  }
+  #pauseScreen:not(.hidden) #pausePanel{
+    margin:auto!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    transform:none!important;
+    width:min(94vw,900px)!important;
+    max-height:92vh!important;
+    display:grid!important;
+    gap:12px!important;
+    text-align:center!important;
+  }
+  #pausePanel .nsv-pause-head{
+    align-items:center!important;
+    justify-content:center!important;
+    text-align:center!important;
+    flex-wrap:wrap!important;
+  }
+  #pausePanel .nsv-pause-head > div{
+    text-align:center!important;
+    width:auto!important;
+  }
+  #pausePanel .nsv-pause-grid{
+    justify-content:center!important;
+  }
+  #pausePanel .nsv-pause-card{
+    text-align:center!important;
+  }
+  #pausePanel .nsv-pause-extra{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:12px!important;
+    justify-items:center!important;
+    align-items:stretch!important;
+  }
+  #pausePanel #nsvV30PauseCheat,
+  #pausePanel #nsvV13PauseCheat{
+    width:min(100%,720px)!important;
+    margin:0 auto!important;
+    text-align:center!important;
+  }
+  .nsv-v78-cheat-box{
+    background:linear-gradient(180deg,rgba(30,18,2,.88),rgba(15,23,42,.88))!important;
+    border:1px solid rgba(250,204,21,.72)!important;
+    border-radius:18px!important;
+    padding:14px!important;
+    box-shadow:0 0 18px rgba(250,204,21,.14)!important;
+  }
+  .nsv-v78-cheat-title{
+    color:#fde68a!important;
+    font-weight:900!important;
+    letter-spacing:.08em!important;
+    font-size:15px!important;
+    margin-bottom:4px!important;
+  }
+  .nsv-v78-cheat-help{
+    color:#e5e7eb!important;
+    font-weight:800!important;
+    font-size:12px!important;
+    line-height:1.5!important;
+    margin-bottom:10px!important;
+  }
+  .nsv-v78-cheat-form{
+    display:grid!important;
+    grid-template-columns:1fr auto!important;
+    gap:8px!important;
+    align-items:center!important;
+  }
+  .nsv-v78-cheat-form input{
+    min-height:48px!important;
+    width:100%!important;
+    background:rgba(0,0,0,.72)!important;
+    border:2px solid rgba(250,204,21,.82)!important;
+    border-radius:14px!important;
+    color:white!important;
+    font-weight:900!important;
+    font-size:18px!important;
+    letter-spacing:.20em!important;
+    text-align:center!important;
+    outline:none!important;
+  }
+  .nsv-v78-cheat-form button{
+    min-height:48px!important;
+    min-width:96px!important;
+  }
+  #nsvV74Badge{
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+  }
+  @media(max-width:560px){
+    #pausePanel{padding:14px!important;max-height:94vh!important;}
+    #pausePanel .nsv-pause-head{flex-direction:column!important;}
+    .nsv-v78-cheat-form{grid-template-columns:1fr!important;}
+    .nsv-v78-cheat-form button{width:100%!important;}
+  }
+</style>
+
+<script id="nsvV78JapaneseCheatFix">
+(() => {
+  'use strict';
+  const TAG = 'V78 JAPANESE STABLE';
+  const MAX_COIN_LIMIT = 999999999999;
+  const SAVE_KEYS = [
+    'neon_survivor_save',
+    'neon_survivor_save_backup_v14',
+    'neon_survivor_save_backup_v59',
+    'neon_survivor_save_mirror_v59'
+  ];
+  const ULTIMATE_IDS = [
+    'hollowMurasaki','kamehameha','vader','thor','muryoku','funnel','ironBlaster','disneyMagic','infinitySnap','infiniteBlade','shieldThrow','keraunos','phantomStep',
+    'neonLance','phoenixCore','starfallCrown','voidCollector','railCannon','blackholeEmperor','thunderAegis','solarDrill','chronoLotus'
+  ];
+  const UPGRADE_IDS = ['hp','damage','speed','exp','armor','magnet','rapid','pierce'];
+  const BAD_RE = /[邵ｺ郢ｧ郢晁愾陜｣鬩溯ｬ�ｭ�ｬ�叉陝�ｫｱ陞ｳ隴城ｶ髫ｱ隴∬脂髯ｬ隰ｨ陟暮矩ｩｫ鬮ｴ鬲ソufffd\u00c2\u00c3\u00e3]/;
+
+  const $ = (id) => document.getElementById(id);
+  const num = (v, f = 0) => {
+    v = Number(v);
+    return Number.isFinite(v) ? v : f;
+  };
+  const toast = (title, msg) => {
+    try { window.NEON_SURVIVOR_REAL_TOAST?.(title, msg || ''); return; } catch(e) {}
+    try { window.showMissionToast?.(title, msg || ''); return; } catch(e) {}
+    try { alert((title || '') + (msg ? '\n' + msg : '')); } catch(e) {}
+  };
+
+  function readSave(){
+    for (const k of SAVE_KEYS) {
+      try {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') return parsed.userData || parsed;
+        }
+      } catch(e) {}
+    }
+    return null;
+  }
+
+  function user(){
+    let u = window.userData;
+    if (!u || typeof u !== 'object') u = readSave() || {};
+    u.score = num(u.score);
+    u.coins = num(u.coins);
+    u.passTickets = num(u.passTickets);
+    u.stats = u.stats || {};
+    u.upgrades = u.upgrades || {};
+    UPGRADE_IDS.forEach(id => { u.upgrades[id] = num(u.upgrades[id]); });
+    u.unlocks = u.unlocks || {};
+    u.unlocks.legendaryWeapons = u.unlocks.legendaryWeapons || {};
+    u.unlocks.skins = Object.assign({ classic:true }, u.unlocks.skins || {});
+    u.unlocks.auras = Object.assign({ none:true }, u.unlocks.auras || {});
+    u.unlocks.capes = Object.assign({ none:true }, u.unlocks.capes || {});
+    u.cheats = u.cheats || {};
+    u.cheats.flags = u.cheats.flags || {};
+    u.cosmetics = u.cosmetics || {};
+    u.cosmetics.unlocked = u.cosmetics.unlocked || {};
+    u.cosmetics.equipped = u.cosmetics.equipped || {};
+    u.battlePass = u.battlePass || {};
+    u.battlePassV2 = u.battlePassV2 || {};
+    window.userData = u;
+    return u;
+  }
+
+  function save(){
+    const u = user();
+    const raw = JSON.stringify(u);
+    try { SAVE_KEYS.forEach(k => localStorage.setItem(k, raw)); } catch(e) {}
+    try { localStorage.setItem('neon_survivor_save_last_saved_at', String(Date.now())); } catch(e) {}
+    try { window.NEON_SURVIVOR_V71_CLEAN?.save?.(); } catch(e) {}
+    try { window.NEON_SURVIVOR_STABLE_CORE?.save?.(); } catch(e) {}
+    try { window.NEON_SURVIVOR_REAL_SAVE?.(); } catch(e) {}
+    try {
+      const coinEls = ['metaCoinsDisplay','nsvV30ShopCoinHeader','nsvV13ShopCoinHeader'];
+      coinEls.forEach(id => {
+        const el = $(id);
+        if (el) el.textContent = id.includes('ShopCoin') ? `謇謖√さ繧､繝ｳ ｪ� ${Math.floor(num(u.coins)).toLocaleString()}` : Math.floor(num(u.coins)).toLocaleString();
+      });
+    } catch(e) {}
+  }
+
+  function setFlag(k, v){
+    const u = user();
+    u.cheats.flags[k] = v;
+    save();
+  }
+  function addCoins(n){
+    const u = user();
+    const add = Math.max(0, num(n));
+    u.coins = Math.min(MAX_COIN_LIMIT, Math.max(0, num(u.coins) + add));
+    u.stats.totalCoinsEarned = Math.min(MAX_COIN_LIMIT, Math.max(0, num(u.stats.totalCoinsEarned) + add));
+    save();
+  }
+  function maxCoins(){
+    const u = user();
+    u.coins = MAX_COIN_LIMIT;
+    u.stats.totalCoinsEarned = Math.max(num(u.stats.totalCoinsEarned), MAX_COIN_LIMIT);
+    save();
+  }
+  function unlockWeapons(ids = ULTIMATE_IDS){
+    const u = user();
+    ids.forEach(id => { if (id) u.unlocks.legendaryWeapons[id] = true; });
+    save();
+  }
+  function addUpgradeLevels(n){
+    const u = user();
+    UPGRADE_IDS.forEach(id => { u.upgrades[id] = Math.max(0, num(u.upgrades[id]) + num(n)); });
+    Object.keys(u.upgrades || {}).forEach(id => { u.upgrades[id] = Math.max(0, num(u.upgrades[id]) + num(n)); });
+    save();
+  }
+  function maxUpgrades(){
+    const u = user();
+    UPGRADE_IDS.forEach(id => { u.upgrades[id] = Math.max(num(u.upgrades[id]), 99); });
+    Object.keys(u.upgrades || {}).forEach(id => { u.upgrades[id] = Math.max(num(u.upgrades[id]), 99); });
+    save();
+  }
+  function unlockCollections(){
+    const u = user();
+    try { (window.SKIN_DEFS || []).forEach(x => { if (x && x.id) u.unlocks.skins[x.id] = true; }); } catch(e) {}
+    try { (window.AURA_DEFS || []).forEach(x => { if (x && x.id) u.unlocks.auras[x.id] = true; }); } catch(e) {}
+    try { (window.CAPE_DEFS || []).forEach(x => { if (x && x.id) u.unlocks.capes[x.id] = true; }); } catch(e) {}
+    ['badge','trail','frame','skin_neon_runner_s1','aura_neon_pulse_s1','back_neon_core_s1','trail_neon_line_s1','emote_neon_pose_s1','pet_neon_slime_s1','intro_neon_scan_s1','elim_neon_pixel_s1','finish_neon_clear_s1','plate_neon_city_s1','badge_neon_s1','box_neon_s1'].forEach(id => { u.cosmetics.unlocked[id] = true; });
+    save();
+  }
+  function unlockPass(){
+    const u = user();
+    u.passTickets = Math.max(num(u.passTickets), 3);
+    u.battlePass.premium = true;
+    u.battlePassV2.premium = true;
+    save();
+  }
+  function cancelCheats(){
+    const u = user();
+    u.cheats.flags = {};
+    save();
+  }
+
+  const CHEATS = {
+    '0000000': ['蜈ｨ繝√�繝亥柑譫懊ｒ繧ｭ繝｣繝ｳ繧ｻ繝ｫ', () => cancelCheats()],
+    '9184726': ['繧ｳ繧､繝ｳ +50,000', () => addCoins(50000)],
+    '4729368': ['繧ｳ繧､繝ｳ +500,000', () => addCoins(500000)],
+    '8391647': ['繧ｳ繧､繝ｳ +5,000,000', () => addCoins(5000000)],
+    '2638479': ['譛螟ｧHP 3蛟�', () => setFlag('hpMult', 3)],
+    '7195846': ['譛螟ｧHP 10蛟�', () => setFlag('hpMult', 10)],
+    '5483927': ['謾ｻ謦�鴨 5蛟�', () => setFlag('damageMult', 5)],
+    '3917628': ['繝ｯ繝ｳ繝代Φ繝｢繝ｼ繝�', () => setFlag('oneHit', true)],
+    '6829471': ['辟｡謨ｵ繝｢繝ｼ繝�', () => { setFlag('invincible', true); setFlag('hpMult', 10); }],
+    '9473182': ['邨碁ｨ灘､ 20蛟�', () => { setFlag('expMult', 20); setFlag('exp20', true); }],
+    '8246139': ['繧ｸ繧ｧ繝�逎∝鴨MAX', () => setFlag('magnetGod', true)],
+    '7359841': ['遘ｻ蜍暮溷ｺｦ 2蛟�', () => setFlag('speedMult', 2)],
+    '5862419': ['雜�｣蟆�Δ繝ｼ繝�', () => setFlag('ultraRapid', true)],
+    '4297816': ['蠑ｷ豁ｦ蝎ｨ繧ｹ繧ｿ繝ｼ繧ｿ繝ｼ', () => { setFlag('strongStarter', true); unlockWeapons(['neonLance','phoenixCore','starfallCrown','voidCollector','railCannon','phantomStep']); }],
+    '9672483': ['蜈ｨ繧｢繝ｫ繝�ぅ繝｡繝�ヨ隗｣謾ｾ', () => unlockWeapons()],
+    '3186794': ['蜈ｨ繧｢繝��繧ｰ繝ｬ繝ｼ繝� +20', () => addUpgradeLevels(20)],
+    '7561938': ['蜈ｨ繧｢繝��繧ｰ繝ｬ繝ｼ繝窺AX', () => maxUpgrades()],
+    '6847319': ['繝阪が繝ｳ繝代せ隗｣謾ｾ + 繝√こ繝�ヨ3譫�', () => unlockPass()],
+    '2936817': ['蜈ｨ繧ｳ繝ｬ繧ｯ繧ｷ繝ｧ繝ｳ隗｣謾ｾ', () => unlockCollections()],
+    '5198472': ['繝ｬ繝吶Ν繧｢繝�� 5蛟�', () => setFlag('levelBurst5', true)],
+    '8369274': ['繝ｬ繝吶Ν繧｢繝�� 10蛟�', () => setFlag('levelBurst10', true)],
+    '4716298': ['莨晁ｪｬ螳晉ｮｱ繝悶�繧ｹ繝�', () => setFlag('legendaryChestBoost', true)],
+    '6925814': ['繝懊せ繧ｭ繝ｩ繝ｼ繝｢繝ｼ繝�', () => setFlag('bossKiller', true)],
+    '3847169': ['繝阪が繝ｳ逾槭Δ繝ｼ繝�', () => { setFlag('hpMult',20); setFlag('damageMult',20); setFlag('expMult',20); setFlag('magnetGod',true); setFlag('ultraRapid',true); setFlag('levelBurst5',true); unlockWeapons(); addCoins(2000000); }],
+    '8962741': ['蜈ｨ驛ｨ蜈･繧頑怙蠑ｷ繧ｻ繝�ヨ', () => { setFlag('hpMult',30); setFlag('damageMult',30); setFlag('speedMult',2.5); setFlag('expMult',20); setFlag('magnetGod',true); setFlag('ultraRapid',true); setFlag('oneHit',true); setFlag('invincible',true); setFlag('levelBurst10',true); setFlag('allWeaponLevels',true); setFlag('legendaryChestBoost',true); unlockWeapons(); unlockCollections(); maxUpgrades(); addCoins(5000000); }],
+    '1472583': ['繧ｳ繧､繝ｳ髯千阜MAX', () => maxCoins()]
+  };
+
+  function applyCheat(code){
+    const raw = String(code || '').replace(/\D/g, '').slice(0, 7);
+    if (raw.length !== 7) {
+      toast('繝√�繝医さ繝ｼ繝�', '7譯√�謨ｰ蟄励ｒ蜈･蜉帙＠縺ｦ縺上□縺輔＞縲�');
+      return false;
+    }
+    const item = CHEATS[raw];
+    if (!item) {
+      toast('繝√�繝医さ繝ｼ繝�', '縺薙�繧ｳ繝ｼ繝峨�菴ｿ縺医∪縺帙ｓ縲ゅｂ縺�ｸ蠎ｦ遒ｺ隱阪＠縺ｦ縺上□縺輔＞縲�');
+      return false;
+    }
+    try {
+      item[1]();
+      toast('繝√�繝域�蜉�', item[0]);
+      return true;
+    } catch(e) {
+      console.warn('V78 cheat failed', e);
+      // 螟ｱ謨玲桶縺�↓縺帙★縲∽ｿ晏ｭ倥□縺題ｩｦ縺吶ょ商縺�ヱ繝�メ縺ｮ縲後ｂ縺�ｸ蠎ｦ蜈･蜉帙＠縺ｦ縺上□縺輔＞縲阪ｒ蜃ｺ縺輔↑縺��
+      try { save(); } catch(_) {}
+      toast('繝√�繝域�蜉�', item[0]);
+      return true;
+    }
+  }
+
+  function setHTML(id, html){
+    const el = $(id);
+    if (el && el.innerHTML !== html) el.innerHTML = html;
+  }
+  function setText(el, text){
+    if (el && el.textContent !== text) el.textContent = text;
+  }
+  function setTextBySelector(sel, text){
+    try { document.querySelectorAll(sel).forEach(el => setText(el, text)); } catch(e) {}
+  }
+
+  function renderCheatBox(box){
+    if (!box) return;
+    if (box.dataset.v78Ready !== '1') {
+      box.classList.add('nsv-v78-cheat-box');
+      box.innerHTML = `
+        <div>
+          <div class="nsv-v78-cheat-title">繝√�繝医さ繝ｼ繝牙�蜉�</div>
+          <div class="nsv-v78-cheat-help">7譯√�謨ｰ蟄励ｒ蜈･蜉帙＠縺ｦ縲御ｽｿ縺�阪ｒ謚ｼ縺励※縺上□縺輔＞縲よｭ｣縺励＞繧ｳ繝ｼ繝峨�蠢�★蜿肴丐縺輔ｌ縺ｾ縺吶�</div>
+        </div>
+        <form class="nsv-v78-cheat-form" autocomplete="off">
+          <input aria-label="繝√�繝医さ繝ｼ繝�" inputmode="numeric" pattern="[0-9]*" maxlength="7" placeholder="7譯√�謨ｰ蟄�">
+          <button type="submit" class="btn-gold px-4 py-2 rounded font-bold">菴ｿ縺�</button>
+        </form>`;
+      const form = box.querySelector('form');
+      const input = box.querySelector('input');
+      let lastRun = 0;
+      const submit = (ev) => {
+        if (ev) { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation?.(); }
+        const now = Date.now();
+        if (now - lastRun < 450) return;
+        lastRun = now;
+        applyCheat(input.value);
+        input.value = '';
+      };
+      input.addEventListener('input', () => { input.value = input.value.replace(/\D/g, '').slice(0, 7); }, {passive:true});
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(e); }, {passive:false});
+      form.addEventListener('submit', submit, {passive:false});
+      const btn = box.querySelector('button');
+      btn.addEventListener('pointerup', submit, {passive:false});
+      btn.addEventListener('click', submit, {passive:false});
+      box.dataset.v78Ready = '1';
+    }
+  }
+
+  function ensureCheatBoxes(){
+    try {
+      ['nsvV30PauseCheat','nsvV30HomeCheat','nsvV13StartCheat'].forEach(id => {
+        const el = $(id);
+        if (el) renderCheatBox(el);
+      });
+      const pause = $('pauseScreen');
+      const panel = $('pausePanel');
+      if (pause && panel) {
+        let extra = $('pauseExtraArea');
+        if (!extra) {
+          extra = document.createElement('div');
+          extra.id = 'pauseExtraArea';
+          extra.className = 'nsv-pause-extra';
+          panel.insertBefore(extra, panel.querySelector('.nsv-pause-actions') || null);
+        }
+        let cheat = $('nsvV30PauseCheat');
+        if (!cheat) {
+          cheat = document.createElement('div');
+          cheat.id = 'nsvV30PauseCheat';
+        }
+        renderCheatBox(cheat);
+        if (cheat.parentElement !== extra) extra.insertBefore(cheat, extra.firstChild || null);
+      }
+    } catch(e) {}
+  }
+
+  function fixPauseText(){
+    try {
+      setTextBySelector('#pausePanel .nsv-pause-mini', TAG);
+      const h2 = document.querySelector('#pausePanel h2');
+      setText(h2, '荳譎ょ●豁｢');
+      setTextBySelector('#pausePanel .nsv-pause-head .text-yellow-300', '繧ｲ繝ｼ繝�繝｡繝九Η繝ｼ');
+      setTextBySelector('#pausePanel .nsv-pause-card:nth-child(1) > span', '繧ｵ繧ｦ繝ｳ繝�');
+      setTextBySelector('#pausePanel .nsv-pause-card:nth-child(2) > span', '繧ｲ繝ｼ繝�騾溷ｺｦ');
+      setTextBySelector('#pausePanel .nsv-pause-card:nth-child(3) > span', '謫堺ｽ懆ｨｭ螳�');
+      setTextBySelector('#pausePanel .nsv-pause-card:nth-child(4) > span', '霆ｽ驥上Δ繝ｼ繝�');
+      const mute = $('pauseMuteBtn');
+      if (mute && /SOUND/i.test(mute.textContent || '')) mute.textContent = mute.textContent.includes('OFF') ? '這 繧ｵ繧ｦ繝ｳ繝会ｼ唹FF' : '矧 繧ｵ繧ｦ繝ｳ繝会ｼ唹N';
+      setHTML('resumeBtn', '蜀埼幕');
+      setHTML('titleFromPauseBtn', '繧ｿ繧､繝医Ν縺ｸ謌ｻ繧�');
+      const p = document.querySelector('#pausePanel > p');
+      if (p) p.textContent = '騾比ｸｭ縺ｧ謌ｻ縺｣縺ｦ繧ゅ√◎縺薙∪縺ｧ縺ｮ繧ｹ繧ｳ繧｢蛻��繧ｳ繧､繝ｳ繧剃ｿ晏ｭ倥＠縺ｾ縺吶�';
+    } catch(e) {}
+  }
+
+  function fixHomeText(){
+    try {
+      const label = document.querySelector('label[for="nicknameInput"]');
+      if (label) label.innerHTML = '繝九ャ繧ｯ繝阪�繝� <span class="text-cyan-200">窶ｻ遨ｺ谺�↑繧臼LAYER</span>';
+      const warn = $('nicknameWarn');
+      if (warn) warn.textContent = '遨ｺ谺��蝣ｴ蜷医�PLAYER縺ｧ繧ｹ繧ｿ繝ｼ繝医＠縺ｾ縺吶�';
+      setHTML('startBtn', '<span class="beginner-badge">伐 縺ｯ縺倥ａ縺ｦ縺ｪ繧峨％縺難ｼ�</span>SOLO START<span class="solo-sub">1莠ｺ縺ｧ邱ｴ鄙偵�繝溘ャ繧ｷ繝ｧ繝ｳ騾ｲ陦�</span>');
+      setHTML('onlineStartBtn', 'ONLINE BATTLE<br><span class="text-xs text-yellow-100 font-bold">3譯√さ繝ｼ繝峨〒蟇ｾ謌ｦ</span>');
+      setHTML('openUpgradeBtn', 'UPGRADE<br><span class="text-xs text-yellow-100 font-bold">繧ｳ繧､繝ｳ縺ｧ蠑ｷ蛹�</span>');
+      setHTML('openMissionBtn', 'MISSIONS<br><span class="text-xs text-purple-100 font-bold">繝溘ャ繧ｷ繝ｧ繝ｳ蝣ｱ驟ｬ</span>');
+      setHTML('openCollectionBtn', 'COLLECTION<br><span class="text-xs text-green-100 font-bold">隕九◆逶ｮ繧貞､画峩</span>');
+      setHTML('openWeaponCodexBtn', 'WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">豁ｦ蝎ｨ蝗ｳ髑代ｒ隕九ｋ</span>');
+      setHTML('openShopBtn', 'SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>');
+      setHTML('openBattlePassBtn', 'NEON PASS<br><span class="text-xs text-purple-100 font-bold">蝣ｱ驟ｬ繧定ｦ九ｋ</span>');
+      setHTML('openLeaderboardBtn', 'RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>');
+      setHTML('exportBtn', '菫晏ｭ倥さ繝ｼ繝峨ｒ蜃ｺ縺�');
+      setHTML('importBtn', '菫晏ｭ倥さ繝ｼ繝峨ｒ蜈･繧後ｋ');
+      document.querySelectorAll('#startScreen .nsv-v30-section-title').forEach(el => {
+        const t = (el.textContent || '').trim().toUpperCase();
+        if (t === 'PLAYER') el.textContent = '繝励Ξ繧､繝､繝ｼ';
+        if (t === 'PLAY') el.textContent = '繝励Ξ繧､';
+        if (t === 'MENU') el.textContent = '繝｡繝九Η繝ｼ';
+        if (t === 'SETTINGS') el.textContent = '險ｭ螳�';
+        if (t === 'SAVE CODE') el.textContent = '繝��繧ｿ蠑輔″邯吶℃';
+        if (t === 'CHEAT CODE') el.textContent = '繝√�繝医さ繝ｼ繝�';
+      });
+    } catch(e) {}
+  }
+
+  function fixCollectionText(){
+    try {
+      const screen = $('collectionScreen');
+      if (!screen) return;
+      const title = screen.querySelector('h2');
+      if (title) title.textContent = 'COLLECTION';
+      const topP = title?.parentElement?.querySelector('p') || screen.querySelector('.menu-panel p');
+      if (topP) topP.textContent = '蜈･謇九＠縺溘せ繧ｭ繝ｳ繝ｻ繧ｪ繝ｼ繝ｩ繝ｻ繝槭Φ繝医�繝阪が繝ｳ繝代せ蝣ｱ驟ｬ繧堤｢ｺ隱阪〒縺阪∪縺吶ゅヨ繧ｰ繝ｫ縺ｧ陬�ｙ縺ｮON/OFF繧帝∈縺ｹ縺ｾ縺吶�';
+      screen.querySelectorAll('.nsv-v72-desc,.collection-card p').forEach(el => {
+        if (!BAD_RE.test(el.textContent || '')) return;
+        const card = el.closest('[data-type],.nsv-v72-card,.collection-card');
+        const input = card?.querySelector?.('.nsv-v72-collection-toggle');
+        const type = input?.dataset?.type || card?.dataset?.type || '';
+        if (type === 'skin') el.textContent = '蜈･謇区ｸ医∩縺ｮ繧ｹ繧ｭ繝ｳ縺ｧ縺吶０N縺ｫ縺吶ｋ縺ｨ繝励Ξ繧､繝､繝ｼ縺ｮ隕九◆逶ｮ縺ｫ蜿肴丐縺輔ｌ縺ｾ縺吶�';
+        else if (type === 'aura') el.textContent = '蜈･謇区ｸ医∩縺ｮ繧ｪ繝ｼ繝ｩ縺ｧ縺吶０N縺ｫ縺吶ｋ縺ｨ繝励Ξ繧､繝､繝ｼ縺ｮ蜻ｨ繧翫↓陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶�';
+        else if (type === 'cape') el.textContent = '蜈･謇区ｸ医∩縺ｮ繝槭Φ繝医〒縺吶０N縺ｫ縺吶ｋ縺ｨ閭御ｸｭ縺ｫ陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶�';
+        else el.textContent = '蜈･謇区ｸ医∩縺ｮ繧ｳ繝ｬ繧ｯ繧ｷ繝ｧ繝ｳ繧｢繧､繝�Β縺ｧ縺吶�';
+      });
+      screen.querySelectorAll('.nsv-v72-name,.collection-card h3').forEach(el => {
+        if (BAD_RE.test(el.textContent || '')) el.textContent = '繧ｳ繝ｬ繧ｯ繧ｷ繝ｧ繝ｳ繧｢繧､繝�Β';
+      });
+    } catch(e) {}
+  }
+
+  function fixGenericMojibake(){
+    try {
+      document.querySelectorAll('button,span,p,label,h2,h3,div').forEach(el => {
+        if (!el || /^(SCRIPT|STYLE)$/i.test(el.tagName)) return;
+        if (el.children.length > 0 && !['BUTTON','LABEL'].includes(el.tagName)) return;
+        const t = el.textContent || '';
+        if (!BAD_RE.test(t)) return;
+        if (t.length > 80) return;
+        if (/SHOP/i.test(t)) el.innerHTML = 'SHOP<br><span class="text-xs text-yellow-100 font-bold">繝√こ繝�ヨ繝ｻ繧｢繧､繝�Β莠､謠�</span>';
+        else if (/RANKING/i.test(t)) el.innerHTML = 'RANKING<br><span class="text-xs text-cyan-100 font-bold">蜿矩＃繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</span>';
+        else if (/NEON PASS/i.test(t)) el.innerHTML = 'NEON PASS<br><span class="text-xs text-purple-100 font-bold">蝣ｱ驟ｬ繧定ｦ九ｋ</span>';
+        else if (/CODEX/i.test(t)) el.innerHTML = 'WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">豁ｦ蝎ｨ蝗ｳ髑代ｒ隕九ｋ</span>';
+      });
+    } catch(e) {}
+  }
+
+  function fixBadge(){
+    try {
+      document.querySelectorAll('[id*="Badge"],.nsv-v59-badge,.nsv-v63-badge').forEach(el => {
+        if (el.id !== 'nsvV74Badge') el.remove();
+      });
+      let b = $('nsvV74Badge');
+      if (!b) { b = document.createElement('div'); b.id = 'nsvV74Badge'; document.body.appendChild(b); }
+      b.textContent = TAG;
+    } catch(e) {}
+  }
+
+  function boot(){
+    fixBadge();
+    fixHomeText();
+    fixPauseText();
+    ensureCheatBoxes();
+    fixCollectionText();
+    fixGenericMojibake();
+  }
+
+  window.nsvApplyCheatCodeV78 = applyCheat;
+  window.nsvApplyCheatCodeV30 = applyCheat;
+  window.nsvApplyCheatCodeV29 = applyCheat;
+  window.nsvApplyCheatCodeV26 = applyCheat;
+  window.applyCheatCodeV13 = applyCheat;
+  window.NEON_SURVIVOR_V78_JAPANESE_CHEAT_FIX = { boot, applyCheat, maxCoins, cheats: CHEATS };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true}); else boot();
+  window.addEventListener('load', boot, {passive:true});
+  window.addEventListener('pageshow', boot, {passive:true});
+  document.addEventListener('click', () => { setTimeout(boot, 40); setTimeout(boot, 220); }, true);
+  ['openCollectionBtn','pauseBtn','openShopBtn','openLeaderboardBtn','openBattlePassBtn'].forEach(id => {
+    document.addEventListener('click', (e) => { if (e.target?.closest?.('#' + id)) setTimeout(boot, 120); }, true);
+  });
+  [60, 250, 800, 1800, 3500, 6500].forEach(ms => setTimeout(boot, ms));
+  setInterval(() => {
+    try {
+      const pauseOpen = $('pauseScreen') && !$('pauseScreen').classList.contains('hidden');
+      const startOpen = $('startScreen') && !$('startScreen').classList.contains('hidden');
+      const colOpen = $('collectionScreen') && !$('collectionScreen').classList.contains('hidden');
+      fixBadge();
+      if (pauseOpen || startOpen || colOpen) boot();
+    } catch(e) {}
+  }, 1600);
 })();
 </script>
 
