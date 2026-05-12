@@ -1120,6 +1120,210 @@
             { id:'ALL', label:'すべて' }
         ];
 
+        // ===== V30 STABLE: readable Japanese data patch =====
+        (() => {
+            if (window.__NSV_V30_DATA_PATCH__) return;
+            window.__NSV_V30_DATA_PATCH__ = true;
+
+            const cleanUpgrade = [
+                { id:'hp', name:'初期HPアップ', desc:'開始時の最大HPが20増えます。', icon:'♥' },
+                { id:'damage', name:'初期攻撃アップ', desc:'開始時の弾ダメージが5増えます。', icon:'⚔' },
+                { id:'speed', name:'移動速度アップ', desc:'開始時の移動速度が少し上がります。', icon:'≫' },
+                { id:'exp', name:'経験値アップ', desc:'経験値の取得量が20%増えます。', icon:'◆' },
+                { id:'armor', name:'ネオン装甲', desc:'受けるダメージを少し減らします。', icon:'盾' },
+                { id:'magnet', name:'ジェム磁力強化', desc:'経験値ジェムを遠くから吸い寄せます。', icon:'磁' },
+                { id:'rapid', name:'連射強化', desc:'通常弾の発射間隔が短くなります。', icon:'速' },
+                { id:'pierce', name:'貫通チップ', desc:'通常弾の貫通力が上がります。', icon:'貫' }
+            ];
+            if (Array.isArray(upgradeDef)) {
+                upgradeDef.splice(0, upgradeDef.length, ...cleanUpgrade.map(u => Object.assign(u, { category: UPGRADE_CATEGORY_MAP[u.id] || 'special' })));
+            }
+            try { Object.assign(UPGRADE_CATEGORY_LABELS, { attack:'攻撃', defense:'防御', move:'移動', exp:'経験値', coin:'コイン', special:'特殊' }); } catch(e) {}
+
+            const skinClean = [
+                { id:'classic', name:'クラシックネオン', icon:'●', color:'#0ff', desc:'最初から使える基本スキン' },
+                { id:'ruby', name:'ルビーブレイカー', icon:'◆', color:'#fb7185', desc:'敵をたくさん倒すと解放' },
+                { id:'gold', name:'ゴールドサバイバー', icon:'★', color:'#facc15', desc:'コインを集めると解放' },
+                { id:'void', name:'ヴォイドランナー', icon:'◆', color:'#a855f7', desc:'長く生き残ると解放' },
+                { id:'emerald', name:'エメラルドガーディアン', icon:'◆', color:'#22c55e', desc:'ボス討伐で解放' },
+                { id:'angel', name:'白銀エンジェルコア', icon:'☆', color:'#e2e8f0', desc:'白銀の光に包まれる上位スキン' },
+                { id:'obsidian', name:'黒曜シャドウコア', icon:'◆', color:'#7c3aed', desc:'黒い外殻と紫の光をまとう隠しスキン' },
+                { id:'solar', name:'太陽神ヘリオス', icon:'☀', color:'#f97316', desc:'太陽のように明るく光るスキン' },
+                { id:'sapphire', name:'サファイアストライカー', icon:'◆', color:'#38bdf8', desc:'青い光が走るスピード系スキン' },
+                { id:'phantomSkin', name:'ファントム忍者', icon:'◇', color:'#a78bfa', desc:'残像をまとった隠密スキン' },
+                { id:'infernoSkin', name:'インフェルノブレイザー', icon:'炎', color:'#fb923c', desc:'炎の目が光る攻撃型スキン' },
+                { id:'galaxyKnight', name:'ギャラクシーナイト', icon:'銀', color:'#60a5fa', desc:'銀河の鎧をまとった騎士スキン' },
+                { id:'monkeySlayer', name:'大猿討伐者', icon:'猿', color:'#facc15', desc:'大猿王に挑んだ証' },
+                { id:'blackholeCore', name:'ブラックホールコア', icon:'黒', color:'#111827', desc:'黒い中心核が怪しく光るレアスキン' }
+            ];
+            if (Array.isArray(SKIN_DEFS)) SKIN_DEFS.splice(0, SKIN_DEFS.length, ...skinClean);
+
+            const auraClean = [
+                { id:'none', name:'オーラなし', icon:'○', color:'#ffffff', desc:'軽量で見やすい標準状態' },
+                { id:'cyanFlame', name:'蒼炎オーラ', icon:'炎', color:'#06b6d4', desc:'青い炎が足元で燃えます' },
+                { id:'goldSpark', name:'黄金スパーク', icon:'★', color:'#facc15', desc:'金色の星が周囲を舞います' },
+                { id:'voidMist', name:'虚空ミスト', icon:'霧', color:'#8b5cf6', desc:'紫の銀河霧をまとえます' },
+                { id:'toxicPulse', name:'猛毒パルス', icon:'毒', color:'#84cc16', desc:'緑の波紋が広がります' },
+                { id:'royalHalo', name:'ロイヤルハロー', icon:'冠', color:'#facc15', desc:'頭上に金の王冠が浮かぶオーラ' },
+                { id:'solarFlare', name:'太陽フレア', icon:'☀', color:'#fb923c', desc:'熱い光の輪がゆらめきます' },
+                { id:'stormKing', name:'雷帝オーラ', icon:'雷', color:'#67e8f9', desc:'細い雷が体の周りを走ります' },
+                { id:'crownBurst', name:'クラウンバースト', icon:'冠', color:'#fbbf24', desc:'金の王冠と光の破片が輝きます' },
+                { id:'galaxyTrail', name:'銀河トレイル', icon:'星', color:'#38bdf8', desc:'移動した後に星の軌跡が残ります' },
+                { id:'infernoRing', name:'インフェルノリング', icon:'炎', color:'#f97316', desc:'赤い炎の輪が足元で回転します' },
+                { id:'phantomAfterimage', name:'幻影残像オーラ', icon:'影', color:'#c084fc', desc:'紫の残像がふわっと現れます' },
+                { id:'blackholeAura', name:'事象の地平線', icon:'黒', color:'#a855f7', desc:'黒い渦と紫の光をまとえるレアオーラ' },
+                { id:'thunderCrown', name:'雷冠オーラ', icon:'雷', color:'#67e8f9', desc:'小さな雷の冠が頭上に走ります' }
+            ];
+            if (Array.isArray(AURA_DEFS)) AURA_DEFS.splice(0, AURA_DEFS.length, ...auraClean);
+
+            const capeClean = [
+                { id:'none', name:'マントなし', icon:'－', color:'#ffffff', desc:'軽量な標準状態' },
+                { id:'crimson', name:'紅の英雄マント', icon:'赤', color:'#ef4444', desc:'赤いマントが後ろでなびきます' },
+                { id:'royal', name:'王者の黄金マント', icon:'金', color:'#facc15', desc:'金色の縁取りがある強者のマント' },
+                { id:'voidCape', name:'虚空の星雲マント', icon:'紫', color:'#8b5cf6', desc:'宇宙霧のように揺れるマント' },
+                { id:'stormCape', name:'雷帝の蒼雷マント', icon:'雷', color:'#67e8f9', desc:'青い雷をまとったマント' },
+                { id:'phantom', name:'幻影クローク', icon:'影', color:'#c084fc', desc:'残像が残る紫のマント' },
+                { id:'galaxy', name:'銀河航海マント', icon:'星', color:'#38bdf8', desc:'星雲の粒子が流れるマント' },
+                { id:'inferno', name:'業火マント', icon:'炎', color:'#fb923c', desc:'炎の縁取りが揺れる攻撃的なマント' },
+                { id:'monarch', name:'黒金の帝王マント', icon:'王', color:'#f59e0b', desc:'黒と金で最強感のある上位マント' }
+            ];
+            if (typeof CAPE_DEFS !== 'undefined' && Array.isArray(CAPE_DEFS)) CAPE_DEFS.splice(0, CAPE_DEFS.length, ...capeClean);
+
+            const bonusLabels = {
+                classic:'能力なし：一番軽くて見やすい', ruby:'攻撃力 +3%', gold:'コイン獲得 +5%', void:'経験値 +5%', emerald:'受けるダメージを少し軽減', angel:'HP +8% / 自動回復 +1', obsidian:'攻撃力 +5% / 移動速度 +3%', solar:'攻撃力 +6% / コイン +3%', sapphire:'移動速度 +5%', phantomSkin:'連射速度 +5%', infernoSkin:'攻撃力 +7% / HP -3%', galaxyKnight:'HP +5% / 経験値 +5%', monkeySlayer:'攻撃力 +6%', blackholeCore:'吸引範囲 +80 / 経験値 +8%'
+            };
+            try { Object.keys(bonusLabels).forEach(k => { if (SKIN_BONUS_DEFS[k]) SKIN_BONUS_DEFS[k].label = bonusLabels[k]; }); } catch(e) {}
+
+            const weaponBase = [
+                { id:'base_normal', type:'BASIC', name:'通常弾', icon:'弾', desc:'一番基本の自動攻撃。攻撃力・連射・貫通の強化が乗ります。', attackType:'単体・遠距離', strong:'序盤、狙った敵', weak:'敵が多すぎる場面', unlock:'最初から', aliases:['通常弾'] },
+                { id:'base_orbit', type:'BASIC', name:'回転ブレード', icon:'刃', desc:'周囲を回る刃で近くの敵を削ります。', attackType:'近距離・周囲', strong:'囲まれた時', weak:'遠い敵', unlock:'レベルアップ', aliases:['回転ブレード'] },
+                { id:'base_thunder', type:'BASIC', name:'雷フィールド', icon:'雷', desc:'一定間隔で周囲へ雷ダメージを与えます。', attackType:'範囲・自動', strong:'ザコ敵の群れ', weak:'単体ボス', unlock:'レベルアップ', aliases:['雷フィールド'] },
+                { id:'base_void', type:'BASIC', name:'虚空テンペスト', icon:'渦', desc:'巨大な竜巻で敵を巻き込み、ジェムも集めやすくなります。', attackType:'吸引・範囲', strong:'ジェム回収、敵の群れ', weak:'離れたボス', unlock:'レベルアップ', aliases:['虚空テンペスト'] },
+                { id:'vader', type:'ULTIMATE', name:'深淵の重力斬', icon:'重', desc:'敵を吸い寄せて巨大な斬撃でまとめて攻撃します。', attackType:'吸引・斬撃', strong:'敵をまとめる場面', weak:'高速敵', unlock:'ミッション達成後、レベルアップで出現', aliases:['深淵の重力斬','vader'] },
+                { id:'thor', type:'ULTIMATE', name:'雷神のストームブレイカー', icon:'槌', desc:'雷をまとった斧を投げて広範囲を攻撃します。', attackType:'投げ・範囲', strong:'中盤以降の群れ', weak:'狙いがずれる場面', unlock:'ミッション達成後、レベルアップで出現', aliases:['ストームブレイカー','thor'] },
+                { id:'kamehameha', type:'ULTIMATE', name:'龍星・崩命破', icon:'光', desc:'狙った方向に強力なビームを放ちます。', attackType:'ビーム・直線', strong:'ボス、一直線の敵', weak:'横から来る敵', unlock:'ミッション達成後、レベルアップで出現', aliases:['龍星・崩命破','kamehameha'] },
+                { id:'onlineSniper', type:'ONLINE', name:'スナイパー', icon:'狙', desc:'オンライン向けの高威力・貫通弾です。', attackType:'遠距離・高火力', strong:'ボス戦、オンライン', weak:'敵が多すぎる時', unlock:'オンライン武器', aliases:['スナイパー'] },
+                { id:'onlineBounceBomb', type:'ONLINE', name:'跳弾ボム', icon:'爆', desc:'跳ねながら爆発する範囲攻撃です。', attackType:'反射・範囲', strong:'密集した敵', weak:'単体狙い', unlock:'オンライン武器', aliases:['跳弾ボム'] },
+                { id:'onlinePoison', type:'ONLINE', name:'毒エリア', icon:'毒', desc:'範囲内に継続ダメージを与えます。', attackType:'継続ダメージ', strong:'範囲内に留まる敵', weak:'高速敵', unlock:'オンライン武器', aliases:['毒エリア'] },
+                { id:'onlineGravity', type:'ONLINE', name:'重力パルサー', icon:'重', desc:'敵や相手を吸い寄せる妨害武器です。', attackType:'吸引・妨害', strong:'相手の動きを崩す', weak:'火力だけ欲しい場面', unlock:'オンライン武器', aliases:['重力パルサー'] }
+            ];
+            if (Array.isArray(WEAPON_CODEX_DEFS)) WEAPON_CODEX_DEFS.splice(0, WEAPON_CODEX_DEFS.length, ...weaponBase);
+
+            const legendaryClean = {
+                neonLance:['伝説武器：ネオンランス','通常弾が強力な貫通弾になります。ソロ専用。','KILL系ミッションで解放'],
+                phoenixCore:['伝説武器：フェニックスコア','1回だけ復活し、周囲に大爆発を起こします。ソロ専用。','BOSS系ミッションで解放'],
+                starfallCrown:['伝説武器：星落としの王冠','一定間隔で星の爆発を起こします。ソロ専用。','RUN系ミッションで解放'],
+                voidCollector:['伝説武器：虚空コレクター','経験値回収と成長速度が大きく上がります。ソロ専用。','BOSS/FINALミッションで解放'],
+                railCannon:['神話武器：レールキャノン','通常弾が高速貫通レール弾になります。火力が高い。','敵を大量討伐すると解放'],
+                blackholeEmperor:['神話武器：ブラックホールエンペラー','強力な重力核で敵を吸い込みながら削ります。','長時間生存と高レベル到達で解放'],
+                thunderAegis:['神話武器：サンダーイージス','防御力を上げ、周囲へ雷の反撃を出します。','ボスを大量に倒すと解放'],
+                solarDrill:['神話武器：ソーラードリル','敵のいる場所に太陽レーザーを落とす高火力武器。','高スコアで解放'],
+                chronoLotus:['神話武器：クロノロータス','時間波で敵に大ダメージを与えます。','ミッションを大量達成すると解放'],
+                phantomStep:['解放武器：ファントムステップ','残像を残しながら神速移動する回避武器。','ミッション「幻影歩法の試練」で解放'],
+                hollowMurasaki:['解放武器：虚式「茈」','巨大な紫の攻撃で敵を消し飛ばします。','高難度ミッション「虚式解放試練」で解放'],
+                kamehameha:['解放武器：龍星・崩命破','極太ビームで敵をまとめて攻撃します。','高難度ミッション「崩命破の継承」で解放'],
+                vader:['解放武器：深淵の重力斬','敵を吸い寄せて巨大な斬撃で倒します。','ミッション「暗黒卿の試練」で解放'],
+                thor:['解放武器：雷神のストームブレイカー','雷をまとった斧を投げる高火力武器。','ミッション「轟雷ハンマー」で解放'],
+                muryoku:['解放武器：無量空処','敵を止めて大ダメージを与える領域武器。','高難度ミッション「領域到達」で解放'],
+                funnel:['解放武器：星砕きの流星群','敵を自動追尾して連続爆破します。','ミッション「流星群観測」で解放'],
+                ironBlaster:['解放武器：創世の光芒','高速ブラスターと極太ビームで戦う未来武器。','ミッション「機神起動」で解放'],
+                disneyMagic:['解放武器：星夢の輪舞曲','敵を味方にする特殊武器。','ミッション「星夢のステージ」で解放'],
+                infinitySnap:['解放武器：終焉の指鳴らし','多数の敵を一気に削る最強級武器。','高難度ミッション「終焉の合図」で解放'],
+                infiniteBlade:['解放武器：無限剣陣','光の剣を大量に展開する弾幕武器。','ミッション「無限剣の契約」で解放'],
+                shieldThrow:['解放武器：絶対防壁・反響','盾を投げて敵の間を跳ね返らせます。','ミッション「不壊の守り」で解放'],
+                keraunos:['解放武器：天帝裁界・霹靂','画面全体へ強烈な雷を落とします。','高難度ミッション「天帝の雷」で解放']
+            };
+            if (Array.isArray(LEGENDARY_WEAPON_DEFS)) LEGENDARY_WEAPON_DEFS.forEach(w => {
+                const c = legendaryClean[w.id];
+                if (c) { w.name = c[0]; w.desc = c[1]; w.hint = c[2]; w.icon = w.name.includes('神話') ? '神' : '伝'; }
+            });
+
+            const moreClean = {
+                ironBlaster:['創世の光芒','高速ブラスターと極太ビームで攻撃します。','連射・ビーム','中盤以降の敵の群れ','出現率が低い','ミッション達成後、レベルアップで出現'],
+                funnel:['星砕きの流星群','敵を自動追尾して連続爆破します。','追尾・爆破','動き回る敵','単体火力は状況次第','ミッション達成後、レベルアップで出現'],
+                disneyMagic:['星夢の輪舞曲','敵を味方にして大きく強化する特殊武器。','特殊・味方化','敵が多い場面','出現率が低い','ミッション達成後、レベルアップで出現'],
+                muryoku:['無量空処','領域で敵を止めて大ダメージを与えます。','停止・範囲','ピンチの時、ボス戦','発動待ちが長い','ミッション達成後、レベルアップで出現'],
+                shieldThrow:['絶対防壁・反響','盾を投げて敵の間を跳ね返らせます。','反射・防御寄り','敵が横に並ぶ場面','狙いが分散する場面','ミッション達成後、レベルアップで出現'],
+                hollowMurasaki:['虚式「茈」','巨大な紫の攻撃で敵を消し飛ばします。','超火力・範囲','ボス、密集した敵','出現率が低い','ミッション達成後、レベルアップで出現'],
+                infinitySnap:['終焉の指鳴らし','強力な衝撃で大量の敵を一気に削ります。','全体衝撃','敵が多すぎる時','発動タイミングに左右される','ミッション達成後、レベルアップで出現'],
+                infiniteBlade:['無限剣陣','光の剣を大量に展開します。','弾幕・範囲','広い範囲の敵','単体特化ではない','ミッション達成後、レベルアップで出現'],
+                keraunos:['天帝裁界・霹靂','画面全体に強力な雷を落とします。','全体雷撃','大量の敵','出現率が低い','ミッション達成後、レベルアップで出現'],
+                onlinePhantomDagger:['ファントムダガー','誘導弾で相手を追い込むオンライン武器。','追尾弾','逃げる相手','盾持ち相手','オンラインのレベルアップ'],
+                onlineBanana:['バナナスリップ砲','バナナをばらまき相手にダメージを与えます。','設置・妨害','相手の移動を崩す','まっすぐ火力は低め','オンラインのレベルアップ'],
+                onlineAstral:['アストラル・ジャッジメント','星の槍を落として範囲を攻撃します。','範囲・落下攻撃','相手のいる場所を狙う','避けられることがある','オンラインのレベルアップ'],
+                onlineHarisen:['ネビュラ・ハリセンノヴァ','巨大な衝撃波を落とすオンライン武器。','範囲・衝撃波','密集・対人妨害','発動位置に左右される','オンラインのレベルアップ'],
+                onlineSushi:['コズミック・スシレイン','寿司メテオを降らせる派手な武器。','範囲・落下攻撃','広い場所の制圧','狭い撃ちは苦手','オンラインのレベルアップ'],
+                evoRicochetSniper:['跳弾スナイパー','狙撃と反射弾が合体した進化武器。','貫通・反射','直線上と反射が刺さる場面','進化条件が必要','スナイパー Lv3 + バウンスボム Lv3'],
+                evoToxicAegis:['猛毒アイギス','盾と毒が合体した守り型の進化武器。','防御・毒範囲','近づく敵','遠距離だけの相手','蒼盾アイギス Lv2 + トキシックトラップ Lv3'],
+                evoGravitonDagger:['重力追尾：グラビトン・ダガー','追尾と重力場が合体した進化武器。','追尾・拘束','動き回る相手','進化条件が必要','ファントムダガー Lv3 + グラビティ・パルサー Lv3'],
+                evoSingularityBomb:['特異点ボム・メテオ','反射弾と重力場が合体した進化武器。','反射・重力','密集地帯','進化条件が必要','バウンスボム Lv3 + グラビティ・パルサー Lv3'],
+                phantomStep:['ファントムステップ','残像を残しながら神速移動する回避武器。発動中は短時間ダメージを受けにくい。','移動・回避・接触斬り','囲まれた時、ボス接近、オンラインのロック外し','クールダウン中は効果がない','ミッション「幻影歩法の試練」達成で解放']
+            };
+            if (typeof WEAPON_CODEX_MORE_DEFS !== 'undefined' && Array.isArray(WEAPON_CODEX_MORE_DEFS)) WEAPON_CODEX_MORE_DEFS.forEach(w => {
+                const c = moreClean[w.id];
+                if (c) { w.name=c[0]; w.desc=c[1]; w.attackType=c[2]; w.strong=c[3]; w.weak=c[4]; w.unlock=c[5]; w.icon=w.type==='ONLINE'?'対':w.type==='EVOLUTION'?'進':'究'; w.aliases=[w.name, w.id]; }
+            });
+
+            const catLabels = { START:'初級', KILL:'討伐', RUN:'1プレイ討伐', TIME:'生存', BOSS:'ボス', LEVEL:'レベル', SCORE:'スコア', COIN:'コイン', GEM:'ジェム', PLAY:'プレイ回数', ONLINE:'オンライン', HARD:'高難度', LEGEND:'伝説', COLLECT:'コレクション', SKIN:'スキン', AURA:'オーラ', CAPE:'マント', BLACKHOLE:'ブラックホール', FINAL:'最終' };
+            const fmt = (n, unit='') => `${Math.floor(Number(n)||0).toLocaleString()}${unit}`;
+            function missionAuto(m) {
+                const n = Number(m.target || 0);
+                const metric = m.metric || '';
+                let title = `${catLabels[m.cat] || m.cat || 'ミッション'} ${fmt(n)}`;
+                let desc = '条件を達成する';
+                if (metric === 'totalRuns') { title = `出撃 ${fmt(n,'回')}`; desc = `合計${fmt(n,'回')}プレイする`; }
+                else if (metric === 'totalSoloRuns') { title = `ソロ出撃 ${fmt(n,'回')}`; desc = `ソロを合計${fmt(n,'回')}プレイする`; }
+                else if (metric === 'totalKills') { title = `討伐 ${fmt(n,'体')}`; desc = `敵を合計${fmt(n,'体')}倒す`; }
+                else if (metric === 'totalGems') { title = `ジェム ${fmt(n,'個')}`; desc = `ジェムを合計${fmt(n,'個')}集める`; }
+                else if (metric === 'totalLevelUps') { title = `レベルアップ ${fmt(n,'回')}`; desc = `合計${fmt(n,'回')}レベルアップする`; }
+                else if (metric === 'bestTime') { const min = n >= 60 ? Math.round(n/60) : n; title = n >= 60 ? `${fmt(min,'分')}生存` : `${fmt(n,'秒')}生存`; desc = `1回のプレイで${fmt(n,'秒')}生き残る`; }
+                else if (metric === 'bestRunKills') { title = `1プレイで${fmt(n,'体')}討伐`; desc = `1回のプレイで敵を${fmt(n,'体')}倒す`; }
+                else if (metric === 'totalBossLikeKills') { title = `ボス討伐 ${fmt(n,'体')}`; desc = `ボス系の敵を合計${fmt(n,'体')}倒す`; }
+                else if (metric === 'totalMonkeyKills') { title = `MONKEY KING討伐 ${fmt(n,'体')}`; desc = `MONKEY KINGを合計${fmt(n,'体')}倒す`; }
+                else if (metric === 'bestLevel') { title = `最高レベル ${fmt(n)}`; desc = `最高レベル${fmt(n)}に到達する`; }
+                else if (metric === 'bestScore') { title = `スコア ${fmt(n)}`; desc = `自己ベスト${fmt(n,'点')}を達成する`; }
+                else if (metric === 'totalCoinsEarned') { title = `コイン ${fmt(n,'枚')}`; desc = `合計${fmt(n,'コイン')}獲得する`; }
+                else if (metric === 'totalOnlineRuns') { title = `オンライン参戦 ${fmt(n,'回')}`; desc = `オンラインを${fmt(n,'回')}プレイする`; }
+                else if (metric === 'totalOnlineHits') { title = `オンライン命中 ${fmt(n,'回')}`; desc = `オンラインで攻撃を合計${fmt(n,'回')}当てる`; }
+                else if (metric === 'bestRunLevel') { title = `1プレイでレベル${fmt(n)}`; desc = `1回のプレイでレベル${fmt(n)}に到達する`; }
+                else if (metric === 'bestRunBossKills') { title = `1プレイでボス${fmt(n,'体')}`; desc = `1回のプレイでボス系を${fmt(n,'体')}倒す`; }
+                else if (metric === 'bestRunGems') { title = `1プレイでジェム${fmt(n,'個')}`; desc = `1回のプレイでジェムを${fmt(n,'個')}集める`; }
+                else if (metric === 'totalDamageTaken') { title = `危険を越えて ${fmt(n)}`; desc = `合計${fmt(n)}ダメージを受ける`; }
+                else if (metric === 'unlockedWeaponCount') { title = `武器解放 ${fmt(n,'種類')}`; desc = `伝説・神話武器を${fmt(n,'種類')}解放する`; }
+                else if (metric === 'unlockedSkinCount') { title = `スキン解放 ${fmt(n,'種類')}`; desc = `スキンを${fmt(n,'種類')}解放する`; }
+                else if (metric === 'unlockedAuraCount') { title = `オーラ解放 ${fmt(n,'種類')}`; desc = `オーラを${fmt(n,'種類')}解放する`; }
+                else if (metric === 'completedMissionCount') { title = `ミッション達成 ${fmt(n,'個')}`; desc = `ミッションを${fmt(n,'個')}達成する`; }
+                return { title, desc };
+            }
+            if (Array.isArray(MISSION_DEFS)) MISSION_DEFS.forEach((m, i) => { const t = missionAuto(m); m.title = t.title; m.desc = t.desc; });
+            const dailyText = {
+                dailyKills: n => [`今日の討伐 ${fmt(n,'体')}`, `今日中に敵を${fmt(n,'体')}倒す`],
+                dailyGems: n => [`今日のジェム回収 ${fmt(n,'個')}`, `今日中にジェムを${fmt(n,'個')}集める`],
+                dailyPlayTime: n => [`今日の生存チャレンジ ${fmt(Math.round(n/60),'分')}`, `今日中に合計${fmt(n,'秒')}生き残る`],
+                dailyBestLevel: n => [`今日のレベルチャレンジ`, `今日中に最高レベル${fmt(n)}へ到達する`],
+                dailyBossKills: n => [`今日のボス討伐`, `今日中にボス系を${fmt(n,'体')}倒す`],
+                dailyRuns: n => [`今日の出撃`, `今日中に${fmt(n,'回')}プレイする`],
+                dailyBestScore: n => [`今日のスコアアタック`, `今日中にスコア${fmt(n)}を達成する`],
+                dailyOnlineHits: n => [`今日のオンライン練習`, `今日中にオンライン攻撃を${fmt(n,'回')}当てる`],
+                dailyMissionCompletions: n => [`今日のミッション回収`, `今日中に通常ミッションを${fmt(n,'個')}達成する`]
+            };
+            if (Array.isArray(DAILY_MISSION_POOL)) DAILY_MISSION_POOL.forEach(m => { const f = dailyText[m.metric]; if (f) { const a=f(Number(m.target||0)); m.title=a[0]; m.desc=a[1]; } });
+            if (Array.isArray(MISSION_TAB_DEFS)) {
+                MISSION_TAB_DEFS.splice(0, MISSION_TAB_DEFS.length,
+                    { id:'RECOMMENDED', label:'今日のおすすめ' },
+                    { id:'START', label:'初級', cats:['START','PLAY'] },
+                    { id:'KILL', label:'討伐', cats:['KILL','RUN'] },
+                    { id:'TIME', label:'生存', cats:['TIME'] },
+                    { id:'BOSS', label:'ボス', cats:['BOSS'] },
+                    { id:'ONLINE', label:'オンライン', cats:['ONLINE'] },
+                    { id:'HARD', label:'高難度', cats:['HARD','LEGEND','FINAL','BLACKHOLE'] },
+                    { id:'CHEST', label:'宝箱', cats:['CHEST'] },
+                    { id:'ALL', label:'すべて' }
+                );
+            }
+        })();
+
+
         function getTodayKey() {
             const d = new Date();
             const y = d.getFullYear();
@@ -1341,8 +1545,8 @@
             if (reward.weapon) parts.push((LEGENDARY_WEAPON_DEFS.find(w => w.id === reward.weapon)?.name || reward.weapon));
             if (reward.skin) parts.push(`スキン:${SKIN_DEFS.find(x => x.id === reward.skin)?.name || reward.skin}`);
             if (reward.aura) parts.push(`オーラ:${AURA_DEFS.find(x => x.id === reward.aura)?.name || reward.aura}`);
-            if (reward.cape) parts.push(`マン?:${CAPE_DEFS.find(x => x.id === reward.cape)?.name || reward.cape}`);
-            return parts.join(' / ') || '報酬なしし';
+            if (reward.cape) parts.push(`マント:${CAPE_DEFS.find(x => x.id === reward.cape)?.name || reward.cape}`);
+            return parts.join(' / ') || '報酬なし';
         }
 
         function showMissionToast(title, body = '') {
@@ -1478,7 +1682,7 @@
                     </div>
                     <div class="mini-progress mt-3"><div style="width:${pct}%"></div></div>
                     <div class="flex justify-between items-center gap-2 mt-3">
-                        <p class="text-xs text-yellow-200">蝣ｱ驟ｬ: ${rewardText(m.reward)}</p>
+                        <p class="text-xs text-yellow-200">報酬: ${rewardText(m.reward)}</p>
                         <button class="${isDaily ? 'claim-daily' : 'claim-one'} px-3 py-1 rounded font-bold text-sm ${complete && !claimed ? 'btn-gold' : 'bg-gray-700 text-gray-400 cursor-not-allowed'}" ${complete && !claimed ? '' : 'disabled'}>${claimed ? 'CLAIMED' : 'CLAIM'}</button>
                     </div>`;
                 const btn = card.querySelector(isDaily ? '.claim-daily' : '.claim-one');
@@ -1498,7 +1702,7 @@
             let normal = [...MISSION_DEFS];
 
             if (tab.id === 'RECOMMENDED') {
-                addHeader('DAILY MISSIONS', `今日?け?6つ??${getTodayKey()}`);
+                addHeader('DAILY MISSIONS', `今日限定の6つ${getTodayKey()}`);
                 allDaily.forEach(m => makeCard(m, true));
                 normal = normal.filter(m => !userData.missions.claimed[m.id]).sort((a,b) => {
                     const ac = userData.missions.completed[a.id] ? 0 : 1;
@@ -1506,13 +1710,13 @@
                     if (ac !== bc) return ac - bc;
                     return (getMissionProgress(b) / b.target) - (getMissionProgress(a) / a.target);
                 }).slice(0, 12);
-                addHeader('NEXT MISSIONS', '今やると?りやすいおすすめ');
+                addHeader('NEXT MISSIONS', '今やると進めやすいおすすめ');
                 normal.forEach(m => makeCard(m, false));
                 return;
             }
 
             if (tab.id === 'ALL') {
-                addHeader('DAILY MISSIONS', `今日?け?6つ??${getTodayKey()}`);
+                addHeader('DAILY MISSIONS', `今日限定の6つ${getTodayKey()}`);
                 allDaily.forEach(m => makeCard(m, true));
             } else if (Array.isArray(tab.cats)) {
                 normal = normal.filter(m => tab.cats.includes(m.cat));
@@ -1630,12 +1834,12 @@
             const enabled = isWeaponSpawnEnabled20260504(w.id);
             const toggleHtml = `
                 <div class="mt-3 border-t border-slate-700 pt-3">
-                    ${locked ? `<p class="text-xs text-gray-500">ミッション未達?なので、ま?出現しません?</p>` : `
+                    ${locked ? `<p class="text-xs text-gray-500">ミッション未達成なので、まだ出現しません。</p>` : `
                     <label class="flex items-center justify-between gap-3 cursor-pointer">
                         <span class="text-xs font-bold ${enabled?'text-green-300':'text-red-300'}">蜃ｺ迴ｾ${enabled?'ON':'OFF'}</span>
                         <input type="checkbox" class="weapon-spawn-toggle w-5 h-5" data-id="${w.id}" ${enabled?'checked':''}>
                     </label>
-                    <p class="text-[11px] text-gray-300 mt-2 leading-relaxed">${enabled ? 'ON?この武器がレベルア??候補に出ます?' : 'OFF?この武器は候補に出ません。重?器を外す時にも使えます?'}</p>`}
+                    <p class="text-[11px] text-gray-300 mt-2 leading-relaxed">${enabled ? 'ON：この武器がレベルアップ候補に出ます。' : 'OFF：この武器は候補に出ません。重い武器を外す時にも使えます。'}</p>`}
                 </div>`;
             return `<div class="collection-card ${used || unlockedMissionWeapon ? 'unlocked':''}">
                 <div class="flex items-start justify-between gap-2">
@@ -1646,10 +1850,10 @@
                 <p class="text-xs text-purple-200 font-bold mt-1">${w.type || 'WEAPON'}</p>
                 <p class="text-sm text-gray-300 mt-1">${w.desc || ''}</p>
                 <div class="text-xs text-gray-300 mt-3 space-y-1">
-                    <p>攻?イプ?${w.attackType || '特?'}</p>
-                    <p>強??面??${w.strong || '迥ｶ豕∵ｬ｡隨ｬ'}</p>
-                    <p>弱??面??${w.weak || '菴ｿ縺婿谺｡隨ｬ'}</p>
-                    <p>入手?進化条件??${w.unlock || 'ゲーム中に入?'}</p>
+                    <p>攻撃タイプ：${w.attackType || '特?'}</p>
+                    <p>強い場面：${w.strong || '迥ｶ豕∵ｬ｡隨ｬ'}</p>
+                    <p>弱い場面：${w.weak || '菴ｿ縺婿谺｡隨ｬ'}</p>
+                    <p>入手・進化条件：${w.unlock || 'ゲーム中に入?'}</p>
                 </div>
                 ${toggleHtml}
             </div>`;
@@ -1662,7 +1866,7 @@
             if (!container) return;
             const all = getAllWeaponCodexDefs();
             const usedCount = all.filter(w => isWeaponCodexUsed(w.id)).length;
-            if (summary) summary.textContent = `隗｣謾ｾ貂医∩${usedCount} / ${all.length}`;
+            if (summary) summary.textContent = `解放済み${usedCount} / ${all.length}`;
             const order = ['BASIC','ULTIMATE','ONLINE','LEGENDARY','MYTHIC','EVOLUTION'];
             const label = { BASIC:'BASIC WEAPONS', ULTIMATE:'ULTIMATE WEAPONS', ONLINE:'ONLINE WEAPONS', LEGENDARY:'LEGENDARY WEAPONS', MYTHIC:'MYTHIC WEAPONS', EVOLUTION:'EVOLUTION WEAPONS' };
             container.innerHTML = order.map(type => {
@@ -1682,14 +1886,14 @@
             if (!container) return;
             const weaponHtml = LEGENDARY_WEAPON_DEFS.map(w => {
                 const on = !!userData.unlocks.legendaryWeapons[w.id];
-                return `<div class="collection-card ${on?'unlocked':''}"><div class="text-3xl">${w.icon}</div><h3 class="font-bold text-white mt-1">${w.name}</h3><p class="text-sm text-gray-300">${w.desc}</p><p class="text-xs text-cyan-200 mt-2">解放条件: ${w.hint || 'ミッション報酬'}</p><p class="mt-2 text-sm ${on?'text-green-300':'text-gray-500'}">${on?'隗｣謾ｾ貂医∩':'未解放'}</p></div>`;
+                return `<div class="collection-card ${on?'unlocked':''}"><div class="text-3xl">${w.icon}</div><h3 class="font-bold text-white mt-1">${w.name}</h3><p class="text-sm text-gray-300">${w.desc}</p><p class="text-xs text-cyan-200 mt-2">解放条件: ${w.hint || 'ミッション報酬'}</p><p class="mt-2 text-sm ${on?'text-green-300':'text-gray-500'}">${on?'解放済み':'未解放'}</p></div>`;
             }).join('');
             const allCodex = getAllWeaponCodexDefs();
             const codexHtml = allCodex.map(makeWeaponCodexCard).join('');
             const skinHtml = SKIN_DEFS.map(sk => {
                 const on = !!userData.unlocks.skins[sk.id];
                 const eq = userData.equippedSkin === sk.id;
-                return `<div class="collection-card ${on?'unlocked':''}"><div class="text-3xl">${sk.icon}</div><h3 class="font-bold text-white mt-1" style="color:${on?sk.color:'#9ca3af'}">${sk.name}</h3><p class="text-sm text-gray-300">${sk.desc}</p><p class="text-xs text-cyan-200 mt-2">能?: ${getSkinAbilityText(sk.id)}</p><button class="equip-skin mt-2 px-3 py-1 rounded text-sm font-bold ${on?'btn-neon':'bg-gray-700 text-gray-500 cursor-not-allowed'}" data-id="${sk.id}" ${on?'':'disabled'}>${eq?'EQUIPPED':'EQUIP'}</button></div>`;
+                return `<div class="collection-card ${on?'unlocked':''}"><div class="text-3xl">${sk.icon}</div><h3 class="font-bold text-white mt-1" style="color:${on?sk.color:'#9ca3af'}">${sk.name}</h3><p class="text-sm text-gray-300">${sk.desc}</p><p class="text-xs text-cyan-200 mt-2">能力: ${getSkinAbilityText(sk.id)}</p><button class="equip-skin mt-2 px-3 py-1 rounded text-sm font-bold ${on?'btn-neon':'bg-gray-700 text-gray-500 cursor-not-allowed'}" data-id="${sk.id}" ${on?'':'disabled'}>${eq?'EQUIPPED':'EQUIP'}</button></div>`;
             }).join('');
             const auraHtml = AURA_DEFS.map(a => {
                 const on = !!userData.unlocks.auras[a.id];
@@ -1704,7 +1908,7 @@
             const usedCount = allCodex.filter(w => isWeaponCodexUsed(w.id)).length;
             container.innerHTML = `
                 <section><h3 class="text-2xl font-bold text-yellow-300 mb-2">LEGENDARY / MYTHIC WEAPONS</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${weaponHtml}</div></section>
-                <section><h3 class="text-2xl font-bold text-purple-300 mb-2">WEAPON INDEX</h3><p class="text-xs text-gray-300 mb-2">ゲーム中に出る武器と進化武器の図鑑です。使用済み??${usedCount}/${allCodex.length}</p><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${codexHtml}</div></section>
+                <section><h3 class="text-2xl font-bold text-purple-300 mb-2">WEAPON INDEX</h3><p class="text-xs text-gray-300 mb-2">ゲーム中に出る武器と進化武器の図鑑です。使用済み：${usedCount}/${allCodex.length}</p><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${codexHtml}</div></section>
                 <section><h3 class="text-2xl font-bold text-cyan-300 mb-2">SKINS</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${skinHtml}</div></section>
                 <section><h3 class="text-2xl font-bold text-green-300 mb-2">AURAS</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${auraHtml}</div></section>
                 <section><h3 class="text-2xl font-bold text-red-300 mb-2">CAPES</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${capeHtml}</div></section>`;
@@ -7835,7 +8039,7 @@
                     if (reward.weapon) parts.push((LEGENDARY_WEAPON_DEFS.find(w => w.id === reward.weapon)?.name || reward.weapon));
                     if (reward.skin) parts.push(`スキン:${SKIN_DEFS.find(x => x.id === reward.skin)?.name || reward.skin}`);
                     if (reward.aura) parts.push(`オーラ:${AURA_DEFS.find(x => x.id === reward.aura)?.name || reward.aura}`);
-                    return parts.join(' / ') || '報酬なしし';
+                    return parts.join(' / ') || '報酬なし';
                 };
                 grantReward = function(reward = {}, silent = false) {
                     ensureProgressionData();
@@ -7857,14 +8061,14 @@
                     const weaponHtml = LEGENDARY_WEAPON_DEFS.map(w => {
                         const on = !!userData.unlocks.legendaryWeapons[w.id];
                         const onlineNote = w.id === 'phoenixCore' ? '<p class="text-xs text-pink-200 mt-1">オンラインモードでも使用可能</p>' : '';
-                        return `<div class="collection-card ${on?'unlocked':''}"><div class="text-3xl">${w.icon}</div><h3 class="font-bold text-white mt-1">${w.name}</h3><p class="text-sm text-gray-300">${w.desc.replace('ソロ専用?','')}</p>${onlineNote}<p class="text-xs text-cyan-200 mt-2">解放条件: ${w.hint || 'ミッション報酬'}</p><p class="mt-2 text-sm ${on?'text-green-300':'text-gray-500'}">${on?'隗｣謾ｾ貂医∩':'未解放'}</p></div>`;
+                        return `<div class="collection-card ${on?'unlocked':''}"><div class="text-3xl">${w.icon}</div><h3 class="font-bold text-white mt-1">${w.name}</h3><p class="text-sm text-gray-300">${w.desc.replace('ソロ専用?','')}</p>${onlineNote}<p class="text-xs text-cyan-200 mt-2">解放条件: ${w.hint || 'ミッション報酬'}</p><p class="mt-2 text-sm ${on?'text-green-300':'text-gray-500'}">${on?'解放済み':'未解放'}</p></div>`;
                     }).join('');
                     const allCodex = getAllWeaponCodexDefs();
                     const codexHtml = allCodex.map(makeWeaponCodexCard).join('');
                     const skinHtml = SKIN_DEFS.map(sk => {
                         const on = !!userData.unlocks.skins[sk.id];
                         const eq = userData.equippedSkin === sk.id;
-                        return `<div class="collection-card ${on?'unlocked':''}"><div class="text-3xl">${sk.icon}</div><h3 class="font-bold text-white mt-1" style="color:${on?sk.color:'#9ca3af'}">${sk.name}</h3><p class="text-sm text-gray-300">${sk.desc}</p><p class="text-xs text-cyan-200 mt-2">能?: ${getSkinAbilityText(sk.id)}</p><button class="equip-skin mt-2 px-3 py-1 rounded text-sm font-bold ${on?'btn-neon':'bg-gray-700 text-gray-500 cursor-not-allowed'}" data-id="${sk.id}" ${on?'':'disabled'}>${eq?'EQUIPPED':'EQUIP'}</button></div>`;
+                        return `<div class="collection-card ${on?'unlocked':''}"><div class="text-3xl">${sk.icon}</div><h3 class="font-bold text-white mt-1" style="color:${on?sk.color:'#9ca3af'}">${sk.name}</h3><p class="text-sm text-gray-300">${sk.desc}</p><p class="text-xs text-cyan-200 mt-2">能力: ${getSkinAbilityText(sk.id)}</p><button class="equip-skin mt-2 px-3 py-1 rounded text-sm font-bold ${on?'btn-neon':'bg-gray-700 text-gray-500 cursor-not-allowed'}" data-id="${sk.id}" ${on?'':'disabled'}>${eq?'EQUIPPED':'EQUIP'}</button></div>`;
                     }).join('');
                     const auraHtml = AURA_DEFS.map(a => {
                         const on = !!userData.unlocks.auras[a.id];
@@ -7874,7 +8078,7 @@
                     const usedCount = allCodex.filter(w => isWeaponCodexUsed(w.id)).length;
                     container.innerHTML = `
                         <section><h3 class="text-2xl font-bold text-yellow-300 mb-2">LEGENDARY / MYTHIC WEAPONS</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${weaponHtml}</div></section>
-                        <section><h3 class="text-2xl font-bold text-purple-300 mb-2">WEAPON INDEX</h3><p class="text-xs text-gray-300 mb-2">ゲーム中に出る武器と進化武器の図鑑です。使用済み??${usedCount}/${allCodex.length}</p><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${codexHtml}</div></section>
+                        <section><h3 class="text-2xl font-bold text-purple-300 mb-2">WEAPON INDEX</h3><p class="text-xs text-gray-300 mb-2">ゲーム中に出る武器と進化武器の図鑑です。使用済み：${usedCount}/${allCodex.length}</p><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${codexHtml}</div></section>
                         <section><h3 class="text-2xl font-bold text-cyan-300 mb-2">SKINS</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${skinHtml}</div></section>
                         <section><h3 class="text-2xl font-bold text-green-300 mb-2">AURAS</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${auraHtml}</div></section>`;
                     container.querySelectorAll('.equip-skin').forEach(btn => btn.addEventListener('click', () => { userData.equippedSkin = btn.dataset.id; saveData(); renderCollectionScreen(); }));
@@ -8200,7 +8404,7 @@
                                 <div class="text-3xl">${sk.icon}</div>
                                 <h3 class="font-bold text-white mt-1" style="color:${on?sk.color:'#9ca3af'}">${sk.name}</h3>
                                 <p class="text-sm text-gray-300">${sk.desc}</p>
-                                <p class="text-xs text-cyan-200 mt-2">能?: ${getSkinAbilityText(sk.id)}</p>
+                                <p class="text-xs text-cyan-200 mt-2">能力: ${getSkinAbilityText(sk.id)}</p>
                                 <button class="equip-skin mt-2 px-3 py-1 rounded text-sm font-bold ${on?'btn-neon':'bg-gray-700 text-gray-500 cursor-not-allowed'}" data-id="${sk.id}" ${on?'':'disabled'}>${eq?'EQUIPPED':'EQUIP'}</button>
                             </div>`;
                         }).join('');
@@ -9517,7 +9721,7 @@
                 </div>
                 <div class="mini-progress mt-3"><div style="width:${pct}%"></div></div>
                 <div class="flex justify-between items-center gap-2 mt-3">
-                    <p class="text-xs text-yellow-200">蝣ｱ驟ｬ: ${rewardText(m.reward)}</p>
+                    <p class="text-xs text-yellow-200">報酬: ${rewardText(m.reward)}</p>
                     <button class="claim-one px-3 py-1 rounded font-bold text-sm ${complete && !claimed ? 'btn-gold' : 'bg-gray-700 text-gray-400 cursor-not-allowed'}" ${complete && !claimed ? '' : 'disabled'}>${claimed ? 'CLAIMED' : 'CLAIM'}</button>
                 </div>`;
             const btn = card.querySelector('.claim-one');
@@ -10566,14 +10770,14 @@
     }
 
     function rewardText20260504(reward) {
-        if (!reward) return '報酬なしし';
+        if (!reward) return '報酬なし';
         const parts = [];
         if (reward.coins) parts.push(`ｪ ${reward.coins}`);
         if (reward.title) parts.push(`称号「${reward.title}」`);
         if (reward.skin) parts.push(`スキン ${reward.skin}`);
         if (reward.aura) parts.push(`オーラ ${reward.aura}`);
         if (reward.weapon) parts.push(`武器 ${reward.weapon}`);
-        return parts.join(' / ') || '報酬なしし';
+        return parts.join(' / ') || '報酬なし';
     }
 
     function grantPassReward20260504(reward) {
@@ -11232,7 +11436,7 @@
 
 
     /* =========================================================
-       V24 STABLE: READABLE NEON PASS SCREEN
+       V30 STABLE: READABLE NEON PASS SCREEN
        - ネオンパス画面を進行状況?報酬・受け取り状態が見やすい形に整?
        - ??ゲーム?は維持。表示とボタンの?りやすさを改?
     ========================================================= */
@@ -11506,7 +11710,7 @@
             <h3 class="font-bold text-white mt-1" style="color:${on ? color : '#9ca3af'}">${item.name}</h3>
             <p class="text-xs text-cyan-200 mt-1">入手??ミ?ョン / 騾壼ｸｸ隗｣謾ｾ</p>
             <p class="text-sm text-gray-300 mt-1">${item.desc || ''}</p>
-            ${kind === 'skin' ? `<p class="text-xs text-cyan-200 mt-2">能?: ${getSkinAbilityText(item.id)}</p>` : ''}
+            ${kind === 'skin' ? `<p class="text-xs text-cyan-200 mt-2">能力: ${getSkinAbilityText(item.id)}</p>` : ''}
             <button class="equip-mission-cos mt-2 px-3 py-1 rounded text-sm font-bold ${equipClass}" data-kind="${dataKind}" data-id="${item.id}" ${on?'':'disabled'}>${eq?'EQUIPPED':'EQUIP'}</button>
         </div>`;
     }
@@ -11598,7 +11802,7 @@
 
 
 /* =========================================================
-   V13 STABLE FINAL PATCH
+   V30 STABLE FINAL PATCH
    ========================================================= */
 (() => {
   'use strict';
@@ -11607,7 +11811,7 @@
   window[V13_PATCH_ID] = true;
 
   const ADMIN_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
-  const V13_VERSION_TEXT = 'V13 STABLE';
+  const V13_VERSION_TEXT = 'V30 STABLE';
   const ULTIMATE_IDS_V13 = new Set([
     'hollowMurasaki','kamehameha','vader','thor','muryoku','funnel','ironBlaster','disneyMagic','infinitySnap','infiniteBlade','shieldThrow','keraunos','phantomStep',
     'neonLance','phoenixCore','starfallCrown','voidCollector','railCannon','blackholeEmperor','thunderAegis','solarDrill','chronoLotus'
@@ -12392,7 +12596,7 @@
             function updateDailyEventButtonV14(){
                 const btn = safeEl('openDailyEventBtnV13'); if (!btn) return;
                 const info = dailyEventInfoV14();
-                btn.innerHTML = `<span class="nsv-v14-event-mini"><b>DAILY EVENT</b><small>${info.name}</small><small>残り: ${info.remain}</small><small>蝣ｱ驟ｬ: ${info.reward}</small></span>`;
+                btn.innerHTML = `<span class="nsv-v14-event-mini"><b>DAILY EVENT</b><small>${info.name}</small><small>残り: ${info.remain}</small><small>報酬: ${info.reward}</small></span>`;
             }
             function alignHomeTogglesV14(){
                 try {
@@ -12506,7 +12710,7 @@
 
 
 /* =========================================================
-   V20 STABLE: SAFE BUTTON / OVERLAY PATCH
+   V30 STABLE: SAFE BUTTON / OVERLAY PATCH
    - 画面の透?重なりを消す
    - 主要?タンをmodule?直接ルー?ング
    - 後ろの古?常scriptのcapture蜃ｦ逅ｈ繧雁縺ｫ蜃ｦ逅☆繧
@@ -12517,7 +12721,7 @@
     if (window.__nsvV17SafeButtonPatch) return;
     window.__nsvV17SafeButtonPatch = true;
 
-    const V17_LABEL = 'V20 STABLE';
+    const V17_LABEL = 'V30 STABLE';
     const ADMIN_FORM_URL_V17 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
     const SCREEN_IDS_V17 = [
         'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen',
@@ -12863,7 +13067,7 @@
 
 
     /* =========================================================
-       V24 STABLE: RESULT / AUTO LIGHT LEVEL / BEGINNER MISSIONS
+       V30 STABLE: RESULT / AUTO LIGHT LEVEL / BEGINNER MISSIONS
        - リザルト画面に武器使用・獲得コイン・達?ミッションをまとめて表示
        - 軽量モードドを Lv1 / Lv2 / Lv3 の段階制で自動調整
        - 初???ョンを追?
@@ -12873,7 +13077,7 @@
         if (window.__nsvV22ResultLightBeginnerPatch) return;
         window.__nsvV22ResultLightBeginnerPatch = true;
 
-        const V22_LABEL = 'V24 STABLE';
+        const V22_LABEL = 'V30 STABLE';
         const V22_BEGINNER_MISSIONS = [
             { id:'b001', cat:'BEGINNER', title:'初??イ?', desc:'ソロかオンライン?1回?レイする', metric:'totalRuns', target:1, reward:{coins:180} },
             { id:'b002', cat:'BEGINNER', title:'3?存チャレンジ', desc:'1回?プレイで180秒生き残る', metric:'bestTime', target:180, reward:{coins:360} },
@@ -13199,7 +13403,7 @@
     })();
 
 /* =========================================================
-   V24 STABLE: HARD SCROLL GUARD + FRIEND CODE RANKING + DAILY EVENT
+   V30 STABLE: HARD SCROLL GUARD + FRIEND CODE RANKING + DAILY EVENT
    - プレビューな?
    - スクロール中の誤タ??? window capture で最優先ブロ?
    - ランキングにコピ?できるフレンドコード?貼り付け?追?
@@ -13207,7 +13411,7 @@
 ========================================================= */
 (function(){
   'use strict';
-  const V24_LABEL = 'V24 STABLE';
+  const V24_LABEL = 'V30 STABLE';
   const FRIEND_STORE_KEY = 'nsv_v24_friend_rows';
   const DAILY_EVENT_KEY = 'nsv_v24_active_daily_event';
 
@@ -13575,7 +13779,7 @@
       if (!btn) return;
       btn.disabled = false; btn.style.pointerEvents = 'auto'; btn.style.touchAction = 'manipulation';
       btn.classList.remove('locked');
-      btn.innerHTML = `<span class="nsv-v24-home-event"><span>TODAY EVENT</span><b>${esc(e.icon)} ${esc(e.name)}</b><small>残り ${esc(remainText())} / 蝣ｱ驟ｬ: ${esc(e.reward)}</small></span>`;
+      btn.innerHTML = `<span class="nsv-v24-home-event"><span>TODAY EVENT</span><b>${esc(e.icon)} ${esc(e.name)}</b><small>残り ${esc(remainText())} / 報酬: ${esc(e.reward)}</small></span>`;
     });
   }
   function ensureEventScreenV24(){
@@ -13920,7 +14124,7 @@
             if (window[PATCH_ID]) return;
             window[PATCH_ID] = true;
             const ADMIN_FORM_URL_V15 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
-            const V15_VERSION_TEXT = 'V20 STABLE';
+            const V15_VERSION_TEXT = 'V30 STABLE';
             const CORE_IDS = new Set([
                 'startBtn','onlineStartBtn','pauseBtn','resumeBtn','restartBtn','titleFromPauseBtn',
                 'openUpgradeBtn','closeUpgradeBtn','openMissionBtn','closeMissionsBtn','openCollectionBtn','closeCollectionBtn',
@@ -14318,7 +14522,7 @@
 
 <script>
 /* =========================================================
-   V20 STABLE: home placement + BACK button fallback
+   V30 STABLE: home placement + BACK button fallback
    - プレビューな?
    - FULL MENUを消して最初?ホ??配置に戻?
    - Back系ボタンを確実に1回タ??で戻?
@@ -14345,7 +14549,7 @@
       if (settings && joy && light) { settings.appendChild(joy); settings.appendChild(light); }
       document.querySelectorAll('button').forEach(b => { b.style.pointerEvents='auto'; b.style.touchAction='manipulation'; });
       const b13=$('nsvV13Badge'), b14=$('nsvV14Badge'), b15=$('nsvV15Badge');
-      [b13,b14,b15].forEach(b => { if (b) b.textContent='V20 STABLE'; });
+      [b13,b14,b15].forEach(b => { if (b) b.textContent='V30 STABLE'; });
     } catch(e) {}
   }
   function route(id){
@@ -14377,7 +14581,7 @@
 
 <script>
 /* =========================================================
-   V20 STABLE: FIXED HOME LAYOUT + BACK BUTTON HARD PATCH
+   V30 STABLE: FIXED HOME LAYOUT + BACK BUTTON HARD PATCH
    - ホ??のボタン移動を止める
    - SOLO / ONLINE を上段に固定し、他?タンの?1.5倍にする
    - Back ボタン? window capture で最優先???
@@ -14388,7 +14592,7 @@
   if (window.__nsvV18FixedHomeBackPatch) return;
   window.__nsvV18FixedHomeBackPatch = true;
 
-  const VERSION = 'V20 STABLE';
+  const VERSION = 'V30 STABLE';
   const HOME_BUTTON_IDS = new Set([
     'startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn',
     'openBossCodexBtn','openLeaderboardBtn','openDailyEventBtnV13','openBattlePassBtn','openShopBtn','adminContactBtn',
@@ -14611,7 +14815,7 @@
 
 <script>
 /* =========================================================
-   V20 STABLE: ORIENTATION ONLY LAYOUT LOCK
+   V30 STABLE: ORIENTATION ONLY LAYOUT LOCK
    - 画面の向きを変えた時以外、?ー?ボタン位置を動かさな?
    - スクロール揺れ?再?置タイマ?・透?レイヤー干渉を抑え?
    - プレビュー表示な?
@@ -14621,7 +14825,7 @@
   if (window.__nsvV20OrientationLockPatch) return;
   window.__nsvV20OrientationLockPatch = true;
 
-  const VERSION = 'V20 STABLE';
+  const VERSION = 'V30 STABLE';
   const PROTECTED_HOME_IDS = new Set([
     'startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn',
     'openBossCodexBtn','openLeaderboardBtn','openDailyEventBtnV13','openBattlePassBtn','openShopBtn','adminContactBtn',
@@ -14806,14 +15010,14 @@
 
 <script>
 /* =========================================================
-   V24 STABLE: FINAL LABEL
+   V30 STABLE: FINAL LABEL
 ========================================================= */
 (function(){
   'use strict';
   function setV21(){
     ['nsvV20Badge','nsvV18Badge','nsvV17Badge','nsvV15Badge','nsvV14Badge','nsvV13Badge'].forEach(function(id){
       var el = document.getElementById(id);
-      if (el) el.textContent = 'V24 STABLE';
+      if (el) el.textContent = 'V30 STABLE';
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setV21, { once:true });
@@ -14822,12 +15026,12 @@
 })();
 
 /* =========================================================
-   V24 STABLE - HOME SCROLL MIS-TAP GUARD + TOP3 RANKING
+   V30 STABLE - HOME SCROLL MIS-TAP GUARD + TOP3 RANKING
    プレビューな? / ホ??誤タ??防止 / ランキング3位固定表示
 ========================================================= */
 (function(){
   'use strict';
-  const V23_LABEL = 'V24 STABLE';
+  const V23_LABEL = 'V30 STABLE';
 
   function nsvV23Escape(v){
     try {
@@ -15118,7 +15322,7 @@
 
 
 /* =========================================================
-   V25 STABLE: HOME SETTINGS / DATA TRANSFER LAYOUT FIX
+   V30 STABLE: HOME SETTINGS / DATA TRANSFER LAYOUT FIX
    - ??タ引き継ぎを?ー?最下部へ固?
    - 設定?ら重?ベント?タンを除去
    - 管??ォー?を通常ボタン列へ移?
@@ -15127,7 +15331,7 @@
 ========================================================= */
 (function(){
   'use strict';
-  const V25_LABEL = 'V25 STABLE';
+  const V25_LABEL = 'V30 STABLE';
   const CLEAN_ROOT_ID = 'nsvCleanStartRoot20260504';
   const ADMIN_FORM_URL_V25 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
 
@@ -15387,7 +15591,7 @@
 
 
 /* =========================================================
-   V27 STABLE: HOME CLEANUP / TOGGLE SETTINGS / CHEAT POSITION / BIG RANKING
+   V30 STABLE: HOME CLEANUP / TOGGLE SETTINGS / CHEAT POSITION / BIG RANKING
    - ??タ引き継ぎ??下に残る不要表示を削除
    - SETTINGSをON/OFFトグル式に整?
    - チ?トコード???タ引き継ぎの真上へ移?
@@ -15396,7 +15600,7 @@
 ========================================================= */
 (function(){
   'use strict';
-  const V26_LABEL = 'V27 STABLE';
+  const V26_LABEL = 'V30 STABLE';
   const ROOT_ID = 'nsvCleanStartRoot20260504';
   const ADMIN_FORM_URL_V26 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
   const FRIEND_KEY_V26 = 'neon_survivor_friend_rows_v26';
@@ -15586,7 +15790,7 @@
     left.innerHTML = '<div class="nsv-v26-cheat-title">チ?トコー?</div><div class="nsv-v26-cheat-desc">7桁?数字を入れてOK縲0000000で継続効果をキャンセルできます?</div>';
     const actions = document.createElement('div');
     actions.className = 'nsv-v26-cheat-actions';
-    actions.innerHTML = '<input id="nsvV26CheatInput" inputmode="numeric" pattern="[0-9]*" maxlength="7" placeholder="7桁コー?"><button id="nsvV26CheatBtn" class="btn-gold px-4 py-2 rounded font-bold">OK</button>';
+    actions.innerHTML = '<input id="nsvV26CheatInput" inputmode="numeric" pattern="[0-9]*" maxlength="7" placeholder="7桁コード"><button id="nsvV26CheatBtn" class="btn-gold px-4 py-2 rounded font-bold">OK</button>';
     const input = actions.querySelector('input');
     const run = () => { applyCheat(input.value); input.value = ''; };
     input.addEventListener('input', () => { input.value = input.value.replace(/\D/g,'').slice(0,7); });
@@ -15718,11 +15922,11 @@
 
 
 // ==========================================================
-// V27 STABLE add-on: no first tutorial, game-over scroll fix, pause cheat input
+// V30 STABLE add-on: no first tutorial, game-over scroll fix, pause cheat input
 // ==========================================================
 (() => {
   'use strict';
-  const V27_VERSION_TEXT = 'V27 STABLE';
+  const V27_VERSION_TEXT = 'V30 STABLE';
 
   function $(id){ return document.getElementById(id); }
   function safe(fn){ try { fn(); } catch(e) { console.warn('V27 patch skipped:', e); } }
@@ -15879,10 +16083,10 @@
       sec.innerHTML = `
         <div class="nsv-v27-pause-cheat-title">CHEAT CODE</div>
         <div class="nsv-v27-pause-cheat-row">
-          <input id="nsvV27PauseCheatInput" inputmode="numeric" pattern="[0-9]*" maxlength="7" placeholder="7桁コー?">
+          <input id="nsvV27PauseCheatInput" inputmode="numeric" pattern="[0-9]*" maxlength="7" placeholder="7桁コード">
           <button id="nsvV27PauseCheatBtn" class="btn-gold rounded font-bold">OK</button>
         </div>
-        <div class="nsv-v27-pause-cheat-help">一時停止中でもチートコードを入力できます?</div>
+        <div class="nsv-v27-pause-cheat-help">一時停止中でもチートコードを入力できます。</div>
       `;
 
       const weaponStatus = $('nsvV13PauseWeaponStatus');
@@ -15900,7 +16104,7 @@
         if (ev) { ev.preventDefault(); ev.stopPropagation(); if (ev.stopImmediatePropagation) ev.stopImmediatePropagation(); }
         const code = (input.value || '').replace(/\D/g,'').slice(0,7);
         if (typeof applyCheatCodeV13 === 'function') applyCheatCodeV13(code);
-        else alert('チ?ト??読み込めませんでした?');
+        else alert('チート機能を読み込めませんでした。');
         input.value = '';
       };
       btn.addEventListener('pointerup', run, { passive:false });
@@ -15925,7 +16129,7 @@
     if (btn) {
       btn.style.pointerEvents = 'auto';
       btn.disabled = false;
-      btn.setAttribute('aria-label', 'タイトルメニューへ戻?');
+      btn.setAttribute('aria-label', 'タイトルメニューへ戻る');
     }
   }
 
@@ -15980,127 +16184,137 @@
 
 
 
+
+
+
+
 <script>
 /* ==========================================================
-   FINAL SAFETY FIX - generated by ChatGPT, no preview build
-   目的: 文字化け表示の最終補正、押せないボタン対策、画面重なり対策
+   V30 STABLE FINAL UI / TEXT PATCH - no preview build
+   目的: スクリーンショットで見えた文字化け、?、□表示、重なりを最終補正
    ========================================================== */
-(function neonSurvivorFinalSafetyFix(){
+(() => {
   'use strict';
-  if (window.__NSV_FINAL_SAFETY_FIX__) return;
-  window.__NSV_FINAL_SAFETY_FIX__ = true;
-
-  const $ = (id) => document.getElementById(id);
-  const badChars = /[縺繧繝譁譛荳驥逕蟄謨蜷蠑遘髢雜譁ｹ蜉髦邨蛻荳隱螟莉蟆蛹鬮迯雋豁ｦ蝎螳霆譌謌隕邱莠蠢]/;
-  const replacements = [
-    [/ニックネ.*?ム?/g, 'ニックネーム'],
-    [/ジョイス.*?ック/g, 'ジョイスティック'],
-    [/軽量モ.*/g, '軽量モード'],
-    [/.*スタートしました.*/g, 'Season 1 / NEON GENESIS がスタートしました'],
-    [/.*名前.*スタート.*/g, '名前を入力するとスタートできます'],
-    [/.*コイン.*アップグレード.*コード.*/g, 'ハイスコア・コイン・アップグレード・ニックネームをコードで保存できます。'],
-    [/.*1人.*練習.*ミッション.*/g, '1人で練習・ミッションを進める'],
-    [/.*初めて.*/g, 'はじめてならここからから'],
-    [/.*武器図鑑.*/g, '武器図鑑を見る'],
-    [/.*スキル.*選.*/g, 'スキルを1つ選んでください'],
-    [/.*生存時間.*/g, '生存時間'],
-    [/.*今回.*スコア.*/g, '今回のスコア'],
-    [/.*自己ベスト.*/g, '自己ベスト'],
-    [/.*獲得.*コイン.*/g, '獲得コイン'],
-    [/.*途中.*戻.*保存.*/g, '途中で戻っても、ここまでのスコアとコインを保存します。。'],
-    [/.*ミッション.*達成.*/g, 'ミッションを達成して、コインや新しい装備を解放しよう。'],
-    [/.*解放.*確認.*/g, '解放した武器・スキン・オーラを確認できます。'],
-    [/.*オンライン.*役割.*/g, 'オンラインバトルで使う役割を1つ選んでください。'],
-    [/.*使.*武器.*確認.*/g, '使った武器や解放済みの武器を確認できます。']
+  if (window.__NSV_V30_FINAL_UI_PATCH__) return;
+  window.__NSV_V30_FINAL_UI_PATCH__ = true;
+  const $ = id => document.getElementById(id);
+  const BAD = /[縺繧繝譁譛荳驥逕蟄謨蜷蠑遘髢雜譁ｹ蜉髦邨蛻隱螟莉蟆蛹鬮迯雋豁ｦ蝎螳霆譌謌隕邱莠蠢�]/;
+  const REPL = [
+    [/クラシ\?ネオン/g,'クラシックネオン'],[/ルビ\?ブレイカー/g,'ルビーブレイカー'],[/ゴールドサバイバ\?/g,'ゴールドサバイバー'],[/ヴォイドランナ\?/g,'ヴォイドランナー'],[/エメラルドガー\?アン/g,'エメラルドガーディアン'],
+    [/ア\?\?/g,'アップ'],[/レベルア\?\?/g,'レベルアップ'],[/チケ\?/g,'チケット'],[/交\?/g,'交換'],[/購入できます\?/g,'購入できます。'],[/交換できます\?/g,'交換できます。'],
+    [/所\?コイン\?\?/g,'所持コイン：'],[/所持コイン\?\?/g,'所持コイン：'],[/所持チケ\?\?\?/g,'所持チケット：'],[/シーズン\?\?/g,'シーズン：'],[/残り\?\?/g,'残り：'],[/状態[:：]?/g,'状態：'],
+    [/雉ｼ蜈･貂医∩/g,'購入済み'],[/未購入/g,'未購入'],[/銀コイン[^を]*をチケット/g,'銀コインをチケット'],[/銀コイン.*?チケット/g,'銀コインをチケット'],
+    [/バトルスター交\?/g,'バトルスター交換'],[/シーズン報酬を交\?/g,'シーズン報酬を交換'],[/パスチケ\?交\?/g,'パスチケット交換'],[/チケット\?交換/g,'チケット交換'],
+    [/今日\?け\?6つ\?\?/g,'今日限定の6つ'],[/今やると\?りやすい/g,'今やると進めやすい'],[/蝣ｱ驟ｬ/g,'報酬'],[/解放条件: /g,'解放条件: '],
+    [/攻\?イプ\?/g,'攻撃タイプ：'],[/強\?\?面\?\?/g,'強い場面：'],[/弱\?\?面\?\?/g,'弱い場面：'],[/入手\?進化条件\?\?/g,'入手・進化条件：'],[/蜃ｺ迴ｾ/g,'出現'],
+    [/隗｣謾ｾ貂医∩/g,'解放済み'],[/使用済み\?\?/g,'使用済み：'],[/能\?:/g,'能力:'],[/マン\?:/g,'マント:'],[/報酬なしし/g,'報酬なし'],
+    [/謾ｻ謦[^\s]*/g,'攻撃'],[/髦ｲ蠕｡/g,'防御'],[/移\?/g,'移動'],[/特\?/g,'特殊'],[/進化条件\?\?/g,'進化条件：'],
+    [/7桁コー\?/g,'7桁コード'],[/チ\?ト.*?読み込めませんでした\?/g,'チート機能を読み込めませんでした。'],[/途中で戻っても、.*?保存します。?\s*\?/g,'途中で戻っても、ここまでのスコアとコインを保存します。'],
+    [/SOUND: ON/g,'SOUND: ON'],[/\uE05E[^\s]*/g,''],[/笘\s*NEW RECORD\s*笘/g,'★ NEW RECORD ★']
   ];
-
-  function cleanString(text){
-    if (!text) return text;
-    let out = String(text).replace(/[]/g, '').replace(/[\u0000-\u001f]/g, '');
-    for (const [from, to] of replacements) out = out.replace(from, to);
-    if (badChars.test(out)) {
-      if (out.length <= 4) out = out.replace(badChars, '');
-      else out = out.replace(/[縺繧繝譁譛荳驥逕蟄謨蜷蠑遘髢雜譁ｹ蜉髦邨蛻荳隱螟莉蟆蛹鬮迯雋豁ｦ蝎螳霆譌謌隕邱莠蠢]+/g, '');
-    }
-    return out.replace(/\s{2,}/g, ' ').trim();
+  function basicClean(txt){
+    let t = String(txt || '');
+    for (const [a,b] of REPL) t = t.replace(a,b);
+    t = t.replace(/敵\?(\d+)菴[^\s]*/g, '敵を$1体倒す')
+         .replace(/敵を合\?(\d+)菴[^\s]*/g, '敵を合計$1体倒す')
+         .replace(/ボス系\?(\d+)菴[^\s]*/g, 'ボス系を$1体倒す')
+         .replace(/合\?(\d+)回\?レイ/g, '合計$1回プレイ')
+         .replace(/(\d+)回\?レイ/g, '$1回プレイ')
+         .replace(/1回\?プレイ/g, '1回のプレイ')
+         .replace(/最高レベル(\d+)に到達す\?/g, '最高レベル$1に到達する')
+         .replace(/自己ベス\?(\d+)点を\?\?/g, '自己ベスト$1点を達成する')
+         .replace(/スコア(\d+)を\?\?/g, 'スコア$1を達成する')
+         .replace(/ジェム\?(\d+)個/g, 'ジェムを$1個')
+         .replace(/合\?(\d+)秒/g, '合計$1秒')
+         .replace(/攻\?(\d+)回当て\?/g, '攻撃を$1回当てる')
+         .replace(/\?域/g, '領域')
+         .replace(/\?\?/g, '：')
+         .replace(/\?([。、，,.])/g, '$1')
+         .replace(/\?$/g, '')
+         .replace(/[□�]+/g, '')
+         .replace(/\s{2,}/g,' ')
+         .trim();
+    if (BAD.test(t)) t = t.replace(/[縺繧繝譁譛荳驥逕蟄謨蜷蠑遘髢雜譁ｹ蜉髦邨蛻隱螟莉蟆蛹鬮迯雋豁ｦ蝎螳霆譌謌隕邱莠蠢]+/g,'').replace(/\s{2,}/g,' ').trim();
+    return t;
   }
-
-  function setText(id, text){ const el=$(id); if(el) el.textContent=text; }
-
-  function patchStaticText(){
-    setText('nicknameWarn', 'ニックネームを入力するとゲームを開始できます。');
-    const startBtn=$('startBtn');
-    if (startBtn) startBtn.innerHTML='<span class="beginner-badge">はじめてならここからから</span>SOLO START<span class="solo-sub">1人で練習・ミッションを進める</span>';
-    const codex=$('openWeaponCodexBtn');
-    if (codex) codex.innerHTML='WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">武器図鑑を見る</span>';
-    document.querySelectorAll('label, p, span, div, h1, h2, h3, button').forEach(el => {
-      if (el.children.length === 0 && badChars.test(el.textContent || '')) el.textContent = cleanString(el.textContent);
-    });
-    document.querySelectorAll('[id="joystickToggle"],[id="pauseJoystickToggle"]').forEach(input=>{
-      const row=input.closest('label') || input.parentElement;
-      if (row) {
-        const txt=row.querySelector('span');
-        if (txt) txt.textContent='使用';
+  function setHTML(id, html){ const el=$(id); if(el && el.innerHTML !== html) el.innerHTML = html; }
+  function patchStyle(){
+    if (!$('nsvV30Style')) {
+      const st=document.createElement('style'); st.id='nsvV30Style'; st.textContent=`
+        html,body{width:100%;min-height:100%;overflow:hidden;background:#050505} body{overscroll-behavior:none}
+        #startScreen{overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch;touch-action:pan-y!important;align-items:flex-start!important;padding-top:max(10px,env(safe-area-inset-top))!important;padding-bottom:90px!important}
+        #startScreen .menu-panel{max-height:none!important;margin:10px auto 70px!important}
+        #upgradeScreen,#missionsScreen,#collectionScreen,#weaponCodexScreen,#onlineRoleScreen,#battlePassScreen,#shopScreen,#pauseScreen,#gameOverScreen{overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch;touch-action:pan-y!important;align-items:flex-start!important;padding-top:18px!important;padding-bottom:90px!important}
+        #pauseScreen{justify-content:flex-start!important} #gameCanvas{position:fixed;inset:0;z-index:0}
+        button,[role=button],label,input,select,textarea,.cursor-pointer,.upgrade-card,.mission-card,.collection-card{pointer-events:auto!important;touch-action:manipulation!important}
+        #bossWarning,#generalCutin,#shatterEffect,#missionToast{pointer-events:none!important}
+        .nsv-v30-badge{position:fixed;left:10px;bottom:8px;z-index:1000;color:#67e8f9;background:rgba(0,0,0,.62);border:1px solid rgba(103,232,249,.55);border-radius:999px;padding:4px 10px;font:800 11px Orbitron,sans-serif;box-shadow:0 0 12px rgba(34,211,238,.35);pointer-events:none}
+        @media(max-width:720px){.menu-panel{width:min(96vw,920px)!important;padding:16px!important}.neon-title{font-size:2.9rem!important}.menu-secondary{min-height:64px!important}}
+      `; document.head.appendChild(st);
+    }
+    document.querySelectorAll('.nsv-v13-badge,.nsv-v14-badge,.nsv-v20-badge,.nsv-v24-badge,.nsv-v25-badge,.nsv-v27-badge,.nsv-final-badge').forEach((el,i)=>{ if(i>0 || !el.id) el.remove(); });
+    let b=$('nsvV30Badge'); if(!b){ b=document.createElement('div'); b.id='nsvV30Badge'; b.className='nsv-v30-badge'; document.body.appendChild(b); } b.textContent='V30 STABLE';
+  }
+  function patchStart(){
+    const warn=$('nicknameWarn'); if(warn) warn.textContent='ニックネームを入力するとゲームを開始できます。';
+    setHTML('startBtn','<span class="beginner-badge">はじめてならここから</span>SOLO START<span class="solo-sub">1人で練習・ミッションを進める</span>');
+    setHTML('openWeaponCodexBtn','WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">武器図鑑を見る</span>');
+    const map={openBossCodexBtn:'BOSS CODEX<br><span class="text-xs font-bold">ボス図鑑</span>',openBattlePassBtn:'NEON PASS<br><span class="text-xs text-purple-100 font-bold">シーズン報酬</span>',openShopBtn:'SHOP<br><span class="text-xs text-yellow-100 font-bold">チケット交換</span>'};
+    Object.entries(map).forEach(([id,html])=>{ const el=$(id); if(el) el.innerHTML=html; });
+  }
+  function patchMissionCards(){
+    const box=$('missionsListContainer'); if(!box) return;
+    box.querySelectorAll('.section-header .text-xs').forEach(el=>{ el.textContent=basicClean(el.textContent).replace('今日限定の6つ：','今日限定の6つ'); });
+    box.querySelectorAll('.mission-card').forEach(card=>{
+      const cat=(card.querySelector('.text-xs')?.textContent||'').trim();
+      const prog=(card.querySelector('.text-right')?.textContent||'').trim();
+      const target=Number((prog.split('/')[1]||'').replace(/[^0-9]/g,''));
+      const h=card.querySelector('h3'); const p=card.querySelector('p.text-sm'); const r=card.querySelector('p.text-xs.text-yellow-200');
+      if(h) h.textContent=basicClean(h.textContent);
+      if(p) p.textContent=basicClean(p.textContent);
+      if(cat==='DAILY' && target){
+        if(target===80||target===180||target===360){ if(h) h.textContent=`今日の討伐 ${target}体`; if(p) p.textContent=`今日中に敵を${target}体倒す`; }
+        else if(target===300||target===600){ if(h) h.textContent=`今日の生存チャレンジ ${Math.round(target/60)}分`; if(p) p.textContent=`今日中に合計${target}秒生き残る`; }
+        else if(target===8000){ if(h) h.textContent='今日のスコアアタック'; if(p) p.textContent='今日中にスコア8000を達成する'; }
+        else if(target<=5){ if(h) h.textContent='今日のボス・出撃チャレンジ'; if(p) p.textContent=`今日中に条件を${target}回達成する`; }
       }
+      if(r) r.textContent=basicClean(r.textContent).replace(/^報酬\s*:?/,'報酬:');
     });
   }
-
-  function patchLayout(){
-    let style=$('nsvFinalSafetyStyle');
-    if (!style) {
-      style=document.createElement('style');
-      style.id='nsvFinalSafetyStyle';
-      style.textContent=`
-        html, body { width:100%; min-height:100%; overflow:hidden; background:#050505; }
-        #startScreen { overflow-y:auto !important; overflow-x:hidden !important; -webkit-overflow-scrolling:touch; }
-        #startScreen .menu-panel { max-height:none !important; margin:12px auto; }
-        button, [role="button"], label, input, select, textarea, .cursor-pointer, .upgrade-card { pointer-events:auto !important; touch-action:manipulation !important; }
-        #bossWarning, #generalCutin, #shatterEffect, #missionToast { pointer-events:none !important; }
-        #pauseScreen, #gameOverScreen, #levelUpScreen, #upgradeScreen, #missionsScreen, #collectionScreen, #weaponCodexScreen, #onlineRoleScreen { overflow:auto !important; }
-        .nsv-final-badge{ position:fixed; left:10px; bottom:8px; z-index:45; color:#67e8f9; background:rgba(0,0,0,.55); border:1px solid rgba(103,232,249,.45); border-radius:999px; padding:4px 9px; font:700 11px 'Orbitron',sans-serif; pointer-events:none; }
-      `;
-      document.head.appendChild(style);
-    }
-    if (!$('nsvFinalBadge')) {
-      const badge=document.createElement('div');
-      badge.id='nsvFinalBadge';
-      badge.className='nsv-final-badge';
-      badge.textContent='V29 STABLE';
-      document.body.appendChild(badge);
-    }
+  function patchUpgradeCards(){
+    const names=['初期HPアップ','初期攻撃アップ','移動速度アップ','経験値アップ','ネオン装甲','ジェム磁力強化','連射強化','貫通チップ'];
+    const descs=['開始時の最大HPが20増えます。','開始時の弾ダメージが5増えます。','開始時の移動速度が少し上がります。','経験値の取得量が20%増えます。','受けるダメージを少し減らします。','経験値ジェムを遠くから吸い寄せます。','通常弾の発射間隔が短くなります。','通常弾の貫通力が上がります。'];
+    document.querySelectorAll('#upgradeListContainer .upgrade-card,#upgradeListContainer > div').forEach((card,i)=>{ const h=card.querySelector('h3,.text-xl,.font-bold'); const p=card.querySelector('p'); if(h && names[i]) h.textContent=names[i]; if(p && descs[i]) p.textContent=descs[i]; });
   }
-
-  function hardShow(id){
-    const screens=['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen','leaderboardScreen','eventModeScreen','shopScreen','battlePassScreen','tutorialOverlay'];
-    screens.forEach(s=>{ const el=$(s); if(el) el.classList.add('hidden'); });
-    const target=id && $(id);
-    if(target) target.classList.remove('hidden');
+  function patchCodexAndCollection(){
+    const summary=$('weaponCodexSummary'); if(summary) summary.textContent=basicClean(summary.textContent).replace(/^解放済み/,'使用済み: ');
+    document.querySelectorAll('#weaponCodexListContainer .collection-card,#collectionListContainer .collection-card').forEach(card=>{
+      card.querySelectorAll('h3,p,span,button').forEach(el=>{ if(el.children.length===0) el.textContent=basicClean(el.textContent); });
+      const icon=card.querySelector('.text-3xl'); if(icon && BAD.test(icon.textContent)) icon.textContent='◆';
+    });
   }
-
-  function safeClick(id, handler){
-    const el=$(id); if(!el || el.__nsvFinalBound) return;
-    el.__nsvFinalBound=true;
-    el.addEventListener('click', function(ev){
-      try { handler(ev); } catch(e) { console.warn('[NSV final click fallback]', id, e); }
-    }, {passive:false});
+  function patchShopPassPause(){
+    document.querySelectorAll('#shopScreen,#battlePassScreen,#pauseScreen,#gameOverScreen,#startScreen').forEach(root=>{
+      root.querySelectorAll('h2,h3,p,span,button,div,input').forEach(el=>{
+        if(el.tagName==='INPUT'){ if(el.placeholder) el.placeholder=basicClean(el.placeholder); return; }
+        if(el.children.length===0) {
+          const n=basicClean(el.textContent); if(n && n!==el.textContent) el.textContent=n;
+        }
+      });
+    });
+    const cheat=$('nsvV27PauseCheatInput'); if(cheat) cheat.placeholder='7桁コード';
+    const passHero=$('openBattlePassHeroBtn'); if(passHero) passHero.innerHTML='<span class="nsv-hero-menu-title">★ NEON PASS</span><span class="nsv-hero-menu-sub">バトルスターでシーズン報酬を交換</span>';
+    const shopHero=$('openShopHeroBtn'); if(shopHero) shopHero.innerHTML='<span class="nsv-hero-menu-title">SHOP</span><span class="nsv-hero-menu-sub">銀コインをパスチケットに交換</span>';
   }
-
-  function patchButtons(){
-    safeClick('closeUpgradeBtn', ()=>hardShow('startScreen'));
-    safeClick('closeMissionsBtn', ()=>hardShow('startScreen'));
-    safeClick('closeCollectionBtn', ()=>hardShow('startScreen'));
-    safeClick('closeWeaponCodexBtn', ()=>hardShow('startScreen'));
-    safeClick('closeOnlineRoleBtn', ()=>hardShow('startScreen'));
-    safeClick('restartBtn', ()=>hardShow('startScreen'));
-    safeClick('titleFromPauseBtn', ()=>hardShow('startScreen'));
-    safeClick('tutorialSkipBtn', ()=>{ const t=$('tutorialOverlay'); if(t) t.classList.add('hidden'); });
-    document.querySelectorAll('button').forEach(b=>b.disabled=false);
+  function patchAll(){
+    patchStyle(); patchStart(); patchUpgradeCards(); patchMissionCards(); patchCodexAndCollection(); patchShopPassPause();
+    ['startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn','closeUpgradeBtn','closeMissionsBtn','closeCollectionBtn','closeWeaponCodexBtn','closeOnlineRoleBtn','restartBtn','resumeBtn','titleFromPauseBtn'].forEach(id=>{ const b=$(id); if(b) b.disabled=false; });
   }
-
-  function boot(){ patchLayout(); patchStaticText(); patchButtons(); }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
-  setInterval(boot, 1200);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',patchAll,{once:true}); else patchAll();
+  let lock=false;
+  const mo=new MutationObserver(()=>{ if(lock) return; lock=true; setTimeout(()=>{ try{patchAll();}finally{lock=false;} },60); });
+  mo.observe(document.documentElement,{childList:true,subtree:true,characterData:false});
+  setInterval(patchAll,1500);
 })();
 </script>
 
