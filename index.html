@@ -239,7 +239,7 @@
                     <div class="text-yellow-300 font-bold text-xs tracking-[0.35em]">GAME MENU</div>
                     <h2 class="text-5xl md:text-6xl font-bold text-white tracking-widest neon-text" style="font-family: 'Orbitron', sans-serif;">PAUSED</h2>
                 </div>
-                <div class="nsv-pause-mini">V90 FIREBASE READY</div>
+                <div class="nsv-pause-mini">V96 ONLINE WEAPON REWORK</div>
             </div>
 
             <div class="nsv-pause-grid">
@@ -497,6 +497,22 @@ window.NEON_FIREBASE_CONFIG = {
             syncJoystickVisibility();
         };
 
+
+        if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                r = Math.min(r || 0, Math.abs(w) / 2, Math.abs(h) / 2);
+                this.moveTo(x + r, y);
+                this.lineTo(x + w - r, y);
+                this.quadraticCurveTo(x + w, y, x + w, y + r);
+                this.lineTo(x + w, y + h - r);
+                this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                this.lineTo(x + r, y + h);
+                this.quadraticCurveTo(x, y + h, x, y + h - r);
+                this.lineTo(x, y + r);
+                this.quadraticCurveTo(x, y, x + r, y);
+                return this;
+            };
+        }
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d', { alpha: false }); 
         
@@ -513,6 +529,7 @@ window.NEON_FIREBASE_CONFIG = {
         let bounceBombs = [], poisonClouds = [], blackholes = [], divineSwords = [];
         let sniperBullets = [], phantomDaggers = [], gravityPulsars = [];
         let mapBlackholes = [], bananaPeels = [], onlineLegendaryChests = [], astralJudgements = [], harisenNovas = [], overlordFlames = [], cosmicSushiStorms = [];
+        let railgunZeros = [], blackholeGrenades = [], neonChains = [], plasmaMissiles = [], overdriveBlades = [];
 
         let player = null;
         let isMuryokushoActive = false;
@@ -541,11 +558,11 @@ window.NEON_FIREBASE_CONFIG = {
             mapBlackHoleTotalPullMult: 2 / 3,
             blackholeEmperorRangeMult: 2 / 3,
             blackholeEmperorCenterDamageMult: 1.25,
-            sniperSpeedMult: 2,
+            sniperSpeedMult: 6,
             sniperHoming: 0.032,
             ricochetSniperHoming: 0.018,
-            onlineSniperDamageBase: 135,
-            onlineSniperDamageStep: 40,
+            onlineSniperDamageBase: 270,
+            onlineSniperDamageStep: 80,
             onlineRicochetDamageMult: 1.3
         };
         const scaledCoinReward = (coins) => Math.max(0, Math.floor(Number(coins || 0) * COIN_GAIN_RATE * getCoinBonusMultiplier()));
@@ -780,7 +797,14 @@ window.NEON_FIREBASE_CONFIG = {
                 unlock: e.recipe,
                 aliases: [e.name]
             }));
-            const all = [...base, ...WEAPON_CODEX_MORE_DEFS, ...legendary, ...evolutions];
+            const v96OnlineWeaponDefs = [
+                { id:'onlineRailgunZero', type:'ONLINE', name:'レールガン・ゼロ', icon:'🔴', desc:'1秒の赤い予告線の後に極太の一直線ビームを発射するオンライン専用武器。', attackType:'予告線・極太ビーム', strong:'狙い撃ち、一撃狙い、宝箱争い', weak:'予告線を見て避けられる', unlock:'オンライン対戦のレベルアップ', aliases:['レールガン・ゼロ','極光'] },
+                { id:'onlineBlackholeGrenade', type:'ONLINE', name:'ブラックホール・グレネード', icon:'⚫', desc:'投げた場所に5秒間ブラックホールを作り、相手を吸い寄せる。', attackType:'吸引・継続ダメージ', strong:'相手の動きを崩す、宝箱周辺', weak:'遠距離から避けられる', unlock:'オンライン対戦のレベルアップ', aliases:['ブラックホール・グレネード','重球'] },
+                { id:'onlineNeonChain', type:'ONLINE', name:'ネオンチェーン', icon:'⛓️', desc:'近くの相手を鎖で拘束し、5秒間継続ダメージを与える。', attackType:'拘束・継続ダメージ', strong:'逃げる相手を止める', weak:'射程が短め', unlock:'オンライン対戦のレベルアップ', aliases:['ネオンチェーン','拘束'] },
+                { id:'onlinePlasmaMissile', type:'ONLINE', name:'プラズマ・ミサイル', icon:'🚀', desc:'巨大ロケット弾が相手を強く追尾し、爆風で大ダメージを与える。', attackType:'追尾・爆発', strong:'初心者でも当てやすい', weak:'クールダウンが長い', unlock:'オンライン対戦のレベルアップ', aliases:['プラズマ・ミサイル','追尾'] },
+                { id:'onlineOverdriveBlade', type:'ONLINE', name:'オーバードライブ・ブレード', icon:'⚔️', desc:'高速突進斬りで大ダメージを与え、当てた分だけ回復する。', attackType:'近距離・突進斬り', strong:'近距離の決定力', weak:'外すと距離を詰めすぎる', unlock:'オンライン対戦のレベルアップ', aliases:['オーバードライブ・ブレード','突進'] }
+            ];
+            const all = [...base, ...WEAPON_CODEX_MORE_DEFS, ...legendary, ...evolutions, ...v96OnlineWeaponDefs].filter(w => !['ライトニングブラスター','クイックチャージ','ブーストステップ','バトルHP強化','マグネット回収','ネビュラ・ハリセンノヴァ','コズミック・スシレイン','バナナスリップ砲','トキシックトラップ','ファントムダガー','毒雲'].some(k => String(w.name||'').includes(k)));
             const seen = new Set();
             return all.filter(w => {
                 const id = w.id || normalizeCodexText(w.name);
@@ -2466,27 +2490,82 @@ window.NEON_FIREBASE_CONFIG = {
         }
 
         function drawOnlineArrows() {
-            if (!isOnlineMode || !player) return;
-            const targets = [];
-            remotePlayers.forEach(r => targets.push({x:r.x, y:r.y, nickname:r.nickname, shieldLevel:r.shieldLevel}));
-            const cx = width / 2, cy = height / 2;
-            for (const t of targets) {
-                const dx = t.x - player.x, dy = t.y - player.y;
-                const screenX = t.x - camera.x, screenY = t.y - camera.y;
-                const offscreen = screenX < 40 || screenX > width - 40 || screenY < 40 || screenY > height - 40;
-                if (!offscreen) continue;
+            if (!isOnlineMode || !player || !remotePlayers || remotePlayers.size === 0) return;
+            const cx = width / 2;
+            const cy = height / 2;
+            const margin = 54;
+            remotePlayers.forEach(r => {
+                if (!r || Number(r.hp || 0) <= 0) return;
+                const sx = Number(r.x || 0) - camera.x;
+                const sy = Number(r.y || 0) - camera.y;
+                const offscreen = sx < margin || sx > width - margin || sy < margin || sy > height - margin;
+                if (!offscreen) return;
+
+                const dx = Number(r.x || 0) - player.x;
+                const dy = Number(r.y || 0) - player.y;
                 const angle = Math.atan2(dy, dx);
-                const edgeX = cx + Math.cos(angle) * (Math.min(width, height) * 0.43);
-                const edgeY = cy + Math.sin(angle) * (Math.min(width, height) * 0.43);
+                const dist = Math.max(0, Math.floor(Math.hypot(dx, dy)));
+
+                const radius = Math.min(width, height) * 0.44;
+                const edgeX = Math.max(margin, Math.min(width - margin, cx + Math.cos(angle) * radius));
+                const edgeY = Math.max(margin, Math.min(height - margin, cy + Math.sin(angle) * radius));
+                const hpRatio = Math.max(0, Math.min(1, Number(r.hp || 0) / Math.max(1, Number(r.maxHp || 1))));
+                const name = String(r.nickname || 'PLAYER').slice(0, 12);
+
                 ctx.save();
-                ctx.translate(edgeX, edgeY); ctx.rotate(angle);
-                ctx.fillStyle = '#facc15'; ctx.shadowBlur = 14; ctx.shadowColor = '#facc15';
-                ctx.beginPath(); ctx.moveTo(18, 0); ctx.lineTo(-12, -10); ctx.lineTo(-6, 0); ctx.lineTo(-12, 10); ctx.closePath(); ctx.fill();
+                ctx.translate(edgeX, edgeY);
+                ctx.rotate(angle);
+                ctx.globalCompositeOperation = 'screen';
+                ctx.fillStyle = hpRatio < 0.35 ? '#f87171' : '#22d3ee';
+                ctx.shadowBlur = 22;
+                ctx.shadowColor = ctx.fillStyle;
+                ctx.beginPath();
+                ctx.moveTo(30, 0);
+                ctx.lineTo(-18, -16);
+                ctx.lineTo(-8, 0);
+                ctx.lineTo(-18, 16);
+                ctx.closePath();
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#fff';
+                ctx.stroke();
                 ctx.restore();
-                ctx.save(); ctx.font = 'bold 12px Noto Sans JP'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.shadowBlur = 8; ctx.shadowColor = '#000';
-                ctx.fillText((t.shieldLevel > 0 ? '\uD83D\uDEE1\uFE0F ' : '') + t.nickname, edgeX, edgeY - 18);
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = '900 13px Orbitron, Noto Sans JP, sans-serif';
+                const shield = Number(r.shieldLevel || 0) > 0 ? '🛡️ ' : '';
+                const label = `${shield}${name}`;
+                const distLabel = `${dist}m`;
+                const textW = Math.max(ctx.measureText(label).width, ctx.measureText(distLabel).width) + 18;
+                const boxY = edgeY - 34;
+                ctx.fillStyle = 'rgba(0,0,0,.72)';
+                ctx.strokeStyle = hpRatio < 0.35 ? 'rgba(248,113,113,.95)' : 'rgba(34,211,238,.95)';
+                ctx.lineWidth = 2;
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = '#000';
+                ctx.beginPath();
+                ctx.roundRect(edgeX - textW/2, boxY - 17, textW, 34, 10);
+                ctx.fill();
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#fff';
+                ctx.fillText(label, edgeX, boxY - 5);
+                ctx.font = '800 10px Orbitron, Noto Sans JP, sans-serif';
+                ctx.fillStyle = '#fde68a';
+                ctx.fillText(distLabel, edgeX, boxY + 9);
+
+                // HP bar under the arrow label.
+                const barW = Math.min(86, Math.max(48, textW - 10));
+                ctx.fillStyle = 'rgba(0,0,0,.75)';
+                ctx.fillRect(edgeX - barW/2, edgeY + 24, barW, 6);
+                ctx.fillStyle = hpRatio < 0.35 ? '#f87171' : '#22c55e';
+                ctx.fillRect(edgeX - barW/2, edgeY + 24, barW * hpRatio, 6);
+                ctx.strokeStyle = 'rgba(255,255,255,.65)';
+                ctx.strokeRect(edgeX - barW/2, edgeY + 24, barW, 6);
                 ctx.restore();
-            }
+            });
         }
 
         function isRemoteVisibleOnScreen(remote, margin = 80) {
@@ -2607,6 +2686,21 @@ window.NEON_FIREBASE_CONFIG = {
             if (player.onlineBounceBombLevel >= 3 && player.onlineGravityLevel >= 3 && !player.evoSingularityBomb) {
                 ultimateSkills.push({ name: '\u3010\u9032\u5316\u3011\u7279\u7570\u70B9\u30DC\u30E0\u30FB\u30E1\u30C6\u30AA', desc: '\u53CD\u5C04\u7206\u5F3E\u3068\u91CD\u529B\u5834\u304C\u878D\u5408\u3002\u7206\u767A\u6642\u306B\u5E83\u7BC4\u56F2\u3092\u5DFB\u304D\u8FBC\u3080\u7279\u5927\u306E\u91CD\u529B\u5834\u3092\u6B8B\u3059', color: '#f59e0b', icon: '\uD83D\uDCA3\uD83C\uDF0C', apply: () => { player.evoSingularityBomb = true; finalizeEvolutionMerge('evoSingularityBomb'); triggerWeaponEvolved('\u30D0\u30A6\u30F3\u30B9\u30DC\u30E0', '\u7279\u7570\u70B9\u30DC\u30E0\u30FB\u30E1\u30C6\u30AA', '#f59e0b'); }});
             }
+
+            // V96: remove old online choices and add new strong PvP weapons.
+            const nsvRemovedOnlineNamesV96 = ['ライトニングブラスター','クイックチャージ','ブーストステップ','バトルHP強化','マグネット回収','ネビュラ・ハリセンノヴァ','コズミック・スシレイン','バナナスリップ砲','トキシックトラップ','ファントムダガー','猛毒アイギス','グラビトン・ダガー'];
+            pool = pool.filter(item => !nsvRemovedOnlineNamesV96.some(k => String(item.name || '').includes(k)));
+            ultimateSkills = ultimateSkills.filter(item => !nsvRemovedOnlineNamesV96.some(k => String(item.name || '').includes(k)));
+            if ((player.onlineRailgunZeroLevel || 0) === 0) pool.push({ name:'【極光】レールガン・ゼロ', desc:'1秒の赤い予告線の後、向き固定の極太貫通ビームを放つ。命中で大ダメージ。', color:'#ef4444', icon:'🔴', apply:()=>{ player.onlineRailgunZeroLevel = 1; }});
+            else if (player.onlineRailgunZeroLevel < 3) pool.push({ name:'レールガン・ゼロ 強化', desc:'ビームの太さ・火力・発射頻度が強化される。', color:'#ef4444', icon:'🔴', apply:()=>{ player.onlineRailgunZeroLevel += 1; }});
+            if ((player.onlineBlackholeGrenadeLevel || 0) === 0) pool.push({ name:'【重球】ブラックホール・グレネード', desc:'着弾地点に5秒間、小型ブラックホール。相手を強く吸い込み中心ほど大ダメージ。', color:'#a855f7', icon:'⚫', apply:()=>{ player.onlineBlackholeGrenadeLevel = 1; }});
+            else if (player.onlineBlackholeGrenadeLevel < 3) pool.push({ name:'ブラックホール・グレネード 強化', desc:'吸引範囲・吸引力・継続ダメージが強化される。', color:'#a855f7', icon:'⚫', apply:()=>{ player.onlineBlackholeGrenadeLevel += 1; }});
+            if ((player.onlineNeonChainLevel || 0) === 0) pool.push({ name:'【拘束】ネオンチェーン', desc:'近くの敵プレイヤーに鎖を飛ばし、5秒間移動を妨害しながら継続ダメージ。', color:'#22d3ee', icon:'⛓️', apply:()=>{ player.onlineNeonChainLevel = 1; }});
+            else if (player.onlineNeonChainLevel < 3) pool.push({ name:'ネオンチェーン 強化', desc:'拘束ダメージ・射程・発動頻度が強化される。', color:'#22d3ee', icon:'⛓️', apply:()=>{ player.onlineNeonChainLevel += 1; }});
+            if ((player.onlinePlasmaMissileLevel || 0) === 0) pool.push({ name:'【追尾】プラズマ・ミサイル', desc:'巨大ロケット弾が最も近い相手を強く追尾し、派手な爆風で大ダメージ。', color:'#fb923c', icon:'🚀', apply:()=>{ player.onlinePlasmaMissileLevel = 1; }});
+            else if (player.onlinePlasmaMissileLevel < 3) pool.push({ name:'プラズマ・ミサイル 強化', desc:'追尾力・爆風・火力が強化される。', color:'#fb923c', icon:'🚀', apply:()=>{ player.onlinePlasmaMissileLevel += 1; }});
+            if ((player.onlineOverdriveBladeLevel || 0) === 0) pool.push({ name:'【突進】オーバードライブ・ブレード', desc:'進行方向へ高速突進斬り。命中した分だけ回復する近距離最強級武器。', color:'#facc15', icon:'⚔️', apply:()=>{ player.onlineOverdriveBladeLevel = 1; }});
+            else if (player.onlineOverdriveBladeLevel < 3) pool.push({ name:'オーバードライブ・ブレード 強化', desc:'突進距離・斬撃範囲・回復量が強化される。', color:'#facc15', icon:'⚔️', apply:()=>{ player.onlineOverdriveBladeLevel += 1; }});
 
             ultimateSkills = filterSpawnEnabledItems20260504(ultimateSkills);
             pool = filterSpawnEnabledItems20260504(pool);
@@ -3565,7 +3659,7 @@ window.NEON_FIREBASE_CONFIG = {
 
         class SniperBullet extends Bullet {
             constructor(x, y, angle, damage) {
-                super(x, y, angle, damage, 2.1875 * NSV_BALANCE_20260502.sniperSpeedMult, 8, 9999, '#f87171', '#ef4444'); // \u901F\u5EA6\u30922\u500D\u3001\u8CAB\u901A\u306F\u7DAD\u6301
+                super(x, y, angle, damage, 2.1875 * NSV_BALANCE_20260502.sniperSpeedMult, 16, 9999, '#f87171', '#ef4444'); // \u901F\u5EA6\u30922\u500D\u3001\u8CAB\u901A\u306F\u7DAD\u6301
                 this.angle = angle;
                 this.onlineAimId = null;
             }
@@ -3613,7 +3707,7 @@ window.NEON_FIREBASE_CONFIG = {
 
         class RicochetSniperBullet extends Bullet {
             constructor(x, y, angle, damage) {
-                super(x, y, angle, damage, 2.1875 * NSV_BALANCE_20260502.sniperSpeedMult, 12, 9999, '#fb7185', '#e11d48'); // \u901F\u5EA6\u30922\u500D\u3001\u8CAB\u901A\u306F\u7DAD\u6301
+                super(x, y, angle, damage, 2.1875 * NSV_BALANCE_20260502.sniperSpeedMult, 24, 9999, '#fb7185', '#e11d48'); // \u901F\u5EA6\u30922\u500D\u3001\u8CAB\u901A\u306F\u7DAD\u6301
                 this.bounces = 6;
                 this.lifeTimer = 0;
                 this.angle = angle;
@@ -5550,6 +5644,144 @@ window.NEON_FIREBASE_CONFIG = {
             }
         }
 
+
+        // ===== V96 ONLINE WEAPON REWORK: new strong online weapons =====
+        function nsvOnlineTargetList() {
+            try { return Array.from(remotePlayers?.values?.() || []).filter(r => r && Number(r.hp || 0) > 0); }
+            catch(e) { return []; }
+        }
+        function nsvNearestOnlineTarget(x, y, maxRange = Infinity) {
+            let best = null, bestD = maxRange;
+            for (const r of nsvOnlineTargetList()) {
+                const d = MathUtils.distance(x, y, r.x, r.y);
+                if (d < bestD) { bestD = d; best = r; }
+            }
+            return best;
+        }
+        function nsvDamageRemoteCircle(x, y, radius, damage, label = 'HIT', color = '#fff') {
+            if (!isOnlineMode) return;
+            for (const r of nsvOnlineTargetList()) {
+                const d = MathUtils.distance(x, y, r.x, r.y);
+                if (d <= radius + ONLINE_REMOTE_RADIUS) {
+                    const falloff = Math.max(0.35, 1 - d / Math.max(1, radius + ONLINE_REMOTE_RADIUS));
+                    sendOnlineHit(r.id, damage * falloff);
+                    floatingTexts.push(new FloatingText(r.x, r.y - 48, label, color, 14));
+                }
+            }
+        }
+        function nsvDamageRemoteLine(x, y, angle, length, width, damage, label = 'HIT', color = '#fff') {
+            if (!isOnlineMode) return;
+            const cos = Math.cos(angle), sin = Math.sin(angle);
+            for (const r of nsvOnlineTargetList()) {
+                const dx = r.x - x, dy = r.y - y;
+                const forward = dx * cos + dy * sin;
+                const side = Math.abs(-dx * sin + dy * cos);
+                if (forward > -ONLINE_REMOTE_RADIUS && forward < length + ONLINE_REMOTE_RADIUS && side < width * 0.5 + ONLINE_REMOTE_RADIUS) {
+                    sendOnlineHit(r.id, damage);
+                    floatingTexts.push(new FloatingText(r.x, r.y - 54, label, color, 15));
+                }
+            }
+        }
+        class RailgunZeroShot {
+            constructor(x, y, angle, level) {
+                this.x = x; this.y = y; this.angle = angle; this.level = level || 1;
+                this.timer = 0; this.charge = 60; this.fireFrames = 12;
+                this.length = 2600; this.width = 62 + this.level * 10;
+                this.damage = 360 + this.level * 130; this.hasHit = false; this.markedForDeletion = false;
+            }
+            update() {
+                this.timer++;
+                if (this.timer === this.charge) {
+                    nsvDamageRemoteLine(this.x, this.y, this.angle, this.length, this.width, this.damage, 'RAILGUN ZERO', '#ef4444');
+                    for (const e of enemies) {
+                        if (!e || e.markedForDeletion || e.isCharmed) continue;
+                        const dx = e.x - this.x, dy = e.y - this.y;
+                        const f = dx * Math.cos(this.angle) + dy * Math.sin(this.angle);
+                        const side = Math.abs(-dx * Math.sin(this.angle) + dy * Math.cos(this.angle));
+                        if (f > -e.radius && f < this.length + e.radius && side < this.width * 0.5 + e.radius) e.takeDamage(this.damage);
+                    }
+                    redFlash = Math.max(redFlash, .45); triggerShake(9); Sound.playSweep(1600, 120, .22, 'sawtooth', .09);
+                }
+                if (this.timer > this.charge + this.fireFrames) this.markedForDeletion = true;
+            }
+            draw(ctx) {
+                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
+                if (this.timer < this.charge) {
+                    const a = .28 + .25 * Math.sin(this.timer * .35);
+                    ctx.globalAlpha = a; ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 6; ctx.setLineDash([28, 18]);
+                    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(this.length,0); ctx.stroke(); ctx.setLineDash([]);
+                    ctx.globalAlpha = .75; ctx.fillStyle = '#ef4444'; ctx.fillRect(0, -2, this.length, 4);
+                } else {
+                    ctx.globalCompositeOperation = 'lighter';
+                    ctx.globalAlpha = .95; ctx.strokeStyle = '#fff'; ctx.lineWidth = this.width; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(this.length,0); ctx.stroke();
+                    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = this.width * 1.45; ctx.globalAlpha = .42; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(this.length,0); ctx.stroke();
+                    ctx.strokeStyle = '#fca5a5'; ctx.lineWidth = this.width * .35; ctx.globalAlpha = 1; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(this.length,0); ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+        class BlackholeGrenadeShot {
+            constructor(x, y, angle, level) {
+                this.x=x; this.y=y; this.vx=Math.cos(angle)*12; this.vy=Math.sin(angle)*12; this.level=level||1;
+                this.timer=0; this.phase='fly'; this.radius=18; this.pullRadius=420 + this.level*70; this.damage=20 + this.level*8; this.markedForDeletion=false;
+            }
+            update() {
+                this.timer++;
+                if (this.phase === 'fly') {
+                    this.x += this.vx; this.y += this.vy; this.vx *= .985; this.vy *= .985;
+                    if (this.timer > 48) { this.phase='hole'; this.timer=0; triggerShake(5); purpleFlash=Math.max(purpleFlash,.25); }
+                } else {
+                    const power = 0.085 + this.level * 0.012;
+                    for (const e of enemies) {
+                        if (!e || e.markedForDeletion || e.isCharmed) continue;
+                        const dx=this.x-e.x, dy=this.y-e.y, d=Math.max(1,Math.hypot(dx,dy));
+                        if (d < this.pullRadius) { e.x += dx/d * Math.min(18, (1-d/this.pullRadius)*38*power); e.y += dy/d * Math.min(18, (1-d/this.pullRadius)*38*power); if (this.timer%15===0) e.takeDamage(this.damage*(1-d/this.pullRadius+0.3)); }
+                    }
+                    for (const r of nsvOnlineTargetList()) {
+                        const dx=this.x-r.x, dy=this.y-r.y, d=Math.max(1,Math.hypot(dx,dy));
+                        if (d < this.pullRadius && this.timer%12===0) sendOnlineHit(r.id, this.damage * (1.7 - d/this.pullRadius));
+                    }
+                    if (this.timer > 300) this.markedForDeletion=true;
+                }
+            }
+            draw(ctx) {
+                ctx.save(); ctx.translate(this.x,this.y); ctx.globalCompositeOperation='lighter';
+                if (this.phase==='fly') { ctx.fillStyle='#111827'; ctx.strokeStyle='#a855f7'; ctx.lineWidth=5; ctx.beginPath(); ctx.arc(0,0,18,0,Math.PI*2); ctx.fill(); ctx.stroke(); }
+                else { const r=this.pullRadius*(.72+.08*Math.sin(this.timer*.2)); let g=ctx.createRadialGradient(0,0,8,0,0,r); g.addColorStop(0,'rgba(0,0,0,.95)'); g.addColorStop(.2,'rgba(168,85,247,.85)'); g.addColorStop(1,'rgba(34,211,238,0)'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill(); ctx.strokeStyle='#a855f7'; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(0,0,44+Math.sin(this.timer*.3)*10,0,Math.PI*2); ctx.stroke(); }
+                ctx.restore();
+            }
+        }
+        class NeonChainShot {
+            constructor(x, y, target, level) { this.x=x; this.y=y; this.tx=target?.x||x; this.ty=target?.y||y; this.targetId=target?.id; this.level=level||1; this.timer=0; this.duration=300; this.markedForDeletion=false; this.hit=false; }
+            update() {
+                this.timer++;
+                const target = this.targetId ? (remotePlayers?.get?.(this.targetId)) : nsvNearestOnlineTarget(this.tx,this.ty,700);
+                if (target) { this.tx = target.x; this.ty = target.y; }
+                if (!this.hit && this.timer < 18) { if (target && MathUtils.distance(this.x,this.y,target.x,target.y)<740) { this.hit=true; floatingTexts.push(new FloatingText(target.x,target.y-58,'CHAIN LOCK','#22d3ee',16)); } }
+                if (this.hit && target && this.timer % 60 === 0) { sendOnlineHit(target.id, 40 + this.level*15); }
+                if (this.timer > this.duration) this.markedForDeletion=true;
+            }
+            draw(ctx) {
+                ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.strokeStyle=this.hit?'#22d3ee':'rgba(34,211,238,.45)'; ctx.lineWidth=this.hit?7:4; ctx.setLineDash([16,10]); ctx.beginPath(); ctx.moveTo(this.x,this.y); ctx.lineTo(this.tx,this.ty); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle='#e0f2fe'; for(let i=0;i<7;i++){ const t=i/6; ctx.beginPath(); ctx.arc(this.x+(this.tx-this.x)*t,this.y+(this.ty-this.y)*t,5,0,Math.PI*2); ctx.fill(); } ctx.restore();
+            }
+        }
+        class PlasmaMissileShot {
+            constructor(x,y,target,level){ this.x=x; this.y=y; this.targetId=target?.id; this.level=level||1; this.angle=target?MathUtils.angle(x,y,target.x,target.y):0; this.speed=7; this.radius=30+this.level*5; this.damage=210+this.level*70; this.timer=0; this.markedForDeletion=false; }
+            update(){ this.timer++; const target=this.targetId?remotePlayers?.get?.(this.targetId):nsvNearestOnlineTarget(this.x,this.y,1600); if(target){ const a=MathUtils.angle(this.x,this.y,target.x,target.y); this.angle=clampAngleStepV67(this.angle,a,0.09+this.level*.02); }
+                this.speed=Math.min(18,this.speed+.12); const px=this.x, py=this.y; this.x+=Math.cos(this.angle)*this.speed; this.y+=Math.sin(this.angle)*this.speed;
+                if (target && segmentPointDistSqV67(px,py,this.x,this.y,target.x,target.y) < (this.radius+ONLINE_REMOTE_RADIUS)**2){ nsvDamageRemoteCircle(this.x,this.y,190+this.level*35,this.damage,'PLASMA EXPLOSION','#f97316'); this.explode(); }
+                if (this.timer>360) this.explode(); }
+            explode(){ if(this.markedForDeletion)return; this.markedForDeletion=true; effects.push(new Shockwave(this.x,this.y,'#f97316',12,220+this.level*45)); createParticles(this.x,this.y,isLightMode?12:42,'#fb923c',8); triggerShake(10); Sound.playSweep(90,680,.25,'sawtooth',.1); }
+            draw(ctx){ ctx.save(); ctx.translate(this.x,this.y); ctx.rotate(this.angle); ctx.globalCompositeOperation='lighter'; ctx.fillStyle='#fb923c'; ctx.strokeStyle='#fff7ed'; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(44,0); ctx.lineTo(-28,-20); ctx.lineTo(-14,0); ctx.lineTo(-28,20); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillStyle='rgba(239,68,68,.65)'; ctx.beginPath(); ctx.arc(-36,0,18+8*Math.sin(this.timer*.4),0,Math.PI*2); ctx.fill(); ctx.restore(); }
+        }
+        class OverdriveBladeSlash {
+            constructor(owner, level){ this.x=owner.x; this.y=owner.y; this.angle=owner.faceAngle; this.level=level||1; this.timer=0; this.duration=20; this.length=310+this.level*45; this.width=95+this.level*12; this.damage=160+this.level*55; this.markedForDeletion=false; this.healed=0; }
+            update(){ this.timer++; if(player && this.timer<=8){ player.x+=Math.cos(this.angle)*(26+this.level*4); player.y+=Math.sin(this.angle)*(26+this.level*4); this.x=player.x; this.y=player.y; }
+                if(this.timer===3||this.timer===7||this.timer===12){ nsvDamageRemoteLine(this.x-Math.cos(this.angle)*40,this.y-Math.sin(this.angle)*40,this.angle,this.length,this.width,this.damage,'BLADE HIT','#facc15'); if(player) player.hp=Math.min(player.maxHp, player.hp+22+this.level*10); }
+                if(this.timer>this.duration) this.markedForDeletion=true; }
+            draw(ctx){ ctx.save(); ctx.translate(this.x,this.y); ctx.rotate(this.angle); ctx.globalCompositeOperation='lighter'; const a=Math.max(.15,1-this.timer/this.duration); ctx.globalAlpha=a; ctx.fillStyle='rgba(250,204,21,.34)'; ctx.beginPath(); ctx.moveTo(30,-this.width); ctx.lineTo(this.length,0); ctx.lineTo(30,this.width); ctx.closePath(); ctx.fill(); ctx.strokeStyle='#fef08a'; ctx.lineWidth=8; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(this.length,0); ctx.stroke(); ctx.restore(); }
+        }
+
         class Player {
             constructor(x, y) {
                 this.x = x; this.y = y; this.faceAngle = 0; this.radius = 15; this.color = '#0ff'; 
@@ -5619,6 +5851,11 @@ window.NEON_FIREBASE_CONFIG = {
                 this.onlineHarisenLevel = 0; this.onlineHarisenTimer = 0;
                 this.onlineSushiLevel = 0; this.onlineSushiTimer = 0;
                 this.onlineChestMurasaki = false; this.onlineChestKamehameha = false;
+                this.onlineRailgunZeroLevel = 0; this.onlineRailgunZeroTimer = 0;
+                this.onlineBlackholeGrenadeLevel = 0; this.onlineBlackholeGrenadeTimer = 0;
+                this.onlineNeonChainLevel = 0; this.onlineNeonChainTimer = 0;
+                this.onlinePlasmaMissileLevel = 0; this.onlinePlasmaMissileTimer = 0;
+                this.onlineOverdriveBladeLevel = 0; this.onlineOverdriveBladeTimer = 0;
 
                 this.phantomStepLevel = 0; this.phantomStepTimer = 0; this.phantomStepActiveTimer = 0;
 
@@ -5818,6 +6055,7 @@ window.NEON_FIREBASE_CONFIG = {
                 }
 
                 if (isOnlineMode) {
+                    this.onlinePoisonLevel = 0; this.onlinePhantomLevel = 0; this.onlineBananaLevel = 0; this.onlineHarisenLevel = 0; this.onlineSushiLevel = 0;
 
                     if (this.onlineSniperLevel > 0) {
                         this.onlineSniperTimer++;
@@ -5881,6 +6119,31 @@ window.NEON_FIREBASE_CONFIG = {
                         if (this.onlineSushiTimer >= sushiCd) {
                             this.fireOnlineSushiRain(); this.onlineSushiTimer = 0;
                         }
+                    }
+                    if (this.onlineRailgunZeroLevel > 0) {
+                        this.onlineRailgunZeroTimer++;
+                        const cd = Math.max(460, 760 - this.onlineRailgunZeroLevel * 70);
+                        if (this.onlineRailgunZeroTimer >= cd) { this.fireOnlineRailgunZero(); this.onlineRailgunZeroTimer = 0; }
+                    }
+                    if (this.onlineBlackholeGrenadeLevel > 0) {
+                        this.onlineBlackholeGrenadeTimer++;
+                        const cd = Math.max(420, 640 - this.onlineBlackholeGrenadeLevel * 60);
+                        if (this.onlineBlackholeGrenadeTimer >= cd) { this.fireOnlineBlackholeGrenade(); this.onlineBlackholeGrenadeTimer = 0; }
+                    }
+                    if (this.onlineNeonChainLevel > 0) {
+                        this.onlineNeonChainTimer++;
+                        const cd = Math.max(360, 560 - this.onlineNeonChainLevel * 55);
+                        if (this.onlineNeonChainTimer >= cd) { this.fireOnlineNeonChain(); this.onlineNeonChainTimer = 0; }
+                    }
+                    if (this.onlinePlasmaMissileLevel > 0) {
+                        this.onlinePlasmaMissileTimer++;
+                        const cd = Math.max(420, 640 - this.onlinePlasmaMissileLevel * 55);
+                        if (this.onlinePlasmaMissileTimer >= cd) { this.fireOnlinePlasmaMissile(); this.onlinePlasmaMissileTimer = 0; }
+                    }
+                    if (this.onlineOverdriveBladeLevel > 0) {
+                        this.onlineOverdriveBladeTimer++;
+                        const cd = Math.max(300, 520 - this.onlineOverdriveBladeLevel * 55);
+                        if (this.onlineOverdriveBladeTimer >= cd) { this.fireOnlineOverdriveBlade(); this.onlineOverdriveBladeTimer = 0; }
                     }
                     if (this.onlineChestMurasaki) {
                         this.hollowMurasakiLevel = Math.max(this.hollowMurasakiLevel || 0, 1);
@@ -6066,6 +6329,35 @@ window.NEON_FIREBASE_CONFIG = {
                 floatingTexts.push(new FloatingText(this.x, this.y - 70, '\u9280\u6CB3\u5BFF\u53F8\u3001\u51FA\u524D\u5B8C\u4E86\uFF01', '#f472b6', 16));
             }
 
+            fireOnlineRailgunZero() {
+                const target = getPriorityOnlineTarget(this.x, this.y, Infinity) || nsvNearestOnlineTarget(this.x, this.y, Infinity);
+                const angle = target ? MathUtils.angle(this.x, this.y, target.x, target.y) : this.faceAngle;
+                if (railgunZeros.length < 4) railgunZeros.push(new RailgunZeroShot(this.x, this.y, angle, this.onlineRailgunZeroLevel));
+                floatingTexts.push(new FloatingText(this.x, this.y - 75, 'RAILGUN ZERO CHARGE', '#ef4444', 18));
+                Sound.playTone(460, 'sawtooth', .13, .06);
+            }
+            fireOnlineBlackholeGrenade() {
+                const target = getPriorityOnlineTarget(this.x, this.y, Infinity) || nsvNearestOnlineTarget(this.x, this.y, Infinity);
+                const angle = target ? MathUtils.angle(this.x, this.y, target.x, target.y) : this.faceAngle;
+                if (blackholeGrenades.length < 4) blackholeGrenades.push(new BlackholeGrenadeShot(this.x, this.y, angle, this.onlineBlackholeGrenadeLevel));
+                floatingTexts.push(new FloatingText(this.x, this.y - 70, 'BLACKHOLE GRENADE', '#a855f7', 16));
+            }
+            fireOnlineNeonChain() {
+                const target = getPriorityOnlineTarget(this.x, this.y, 760) || nsvNearestOnlineTarget(this.x, this.y, 760);
+                if (!target) return;
+                if (neonChains.length < 5) neonChains.push(new NeonChainShot(this.x, this.y, target, this.onlineNeonChainLevel));
+                Sound.playTone(920, 'triangle', .12, .05);
+            }
+            fireOnlinePlasmaMissile() {
+                const target = getPriorityOnlineTarget(this.x, this.y, Infinity) || nsvNearestOnlineTarget(this.x, this.y, Infinity);
+                if (plasmaMissiles.length < 5) plasmaMissiles.push(new PlasmaMissileShot(this.x, this.y, target, this.onlinePlasmaMissileLevel));
+                floatingTexts.push(new FloatingText(this.x, this.y - 70, 'PLASMA MISSILE', '#fb923c', 16));
+            }
+            fireOnlineOverdriveBlade() {
+                if (overdriveBlades.length < 3) overdriveBlades.push(new OverdriveBladeSlash(this, this.onlineOverdriveBladeLevel));
+                floatingTexts.push(new FloatingText(this.x, this.y - 72, 'OVERDRIVE BLADE', '#facc15', 17));
+                Sound.playSweep(740, 1400, .16, 'triangle', .07);
+            }
             startHollowMurasakiCharge() { if (isOnlineMode && !this.onlineChestMurasaki) return; if (hollowMurasakiCharges.length < 10) hollowMurasakiCharges.push(new HollowMurasakiCharge(this.x, this.y, this.faceAngle, 999999999, this.hollowMurasakiLevel)); }
             startKamehameha() { if (isOnlineMode && !this.onlineChestKamehameha) return; if (kamehamehas.length < 10) kamehamehas.push(new Kamehameha(this.x, this.y, this.faceAngle, 999999999, this.kamehamehaLevel, this.evoGravityBeam)); }
             startInfiniteBlade() { if (isOnlineMode) return; if (infiniteBladeCharges.length < 10) infiniteBladeCharges.push(new InfiniteBladeCharge(this.x, this.y, this.faceAngle, 999999999, this.infiniteBladeLevel)); }
@@ -7151,7 +7443,8 @@ window.NEON_FIREBASE_CONFIG = {
                     {a:unibeams, l:30}, {a:keraunosStorms, l:30}, {a:vaderSkills, l:50},
                     {a:stormbreakers, l:50}, {a:disneyMagics, l:50}, {a:muryokushos, l:10},
                     {a:bounceBombs, l:50}, {a:poisonClouds, l:50}, {a:blackholes, l:10}, {a:divineSwords, l:10},
-                    {a:phantomDaggers, l:70}, {a:gravityPulsars, l:20}, {a:mapBlackholes, l:1}, {a:bananaPeels, l:45}, {a:onlineLegendaryChests, l:2}, {a:astralJudgements, l:8}, {a:harisenNovas, l:8}, {a:overlordFlames, l:35}, {a:cosmicSushiStorms, l:6}
+                    {a:phantomDaggers, l:70}, {a:gravityPulsars, l:20}, {a:mapBlackholes, l:1}, {a:bananaPeels, l:45}, {a:onlineLegendaryChests, l:2}, {a:astralJudgements, l:8}, {a:harisenNovas, l:8}, {a:overlordFlames, l:35}, {a:cosmicSushiStorms, l:6},
+                    {a:railgunZeros, l:4}, {a:blackholeGrenades, l:4}, {a:neonChains, l:5}, {a:plasmaMissiles, l:5}, {a:overdriveBlades, l:3}
                 ];
                 
                 if (isLightMode) {
@@ -7470,7 +7763,7 @@ window.NEON_FIREBASE_CONFIG = {
             for (let y = startY; y <= camera.y + h + gridSize; y += gridSize) { ctx.moveTo(safe(camera.x - gridSize), safe(y)); ctx.lineTo(safe(camera.x + w + gridSize), safe(y)); }
             ctx.stroke();
 
-            const drawGroups = [ gems, effects, voidTempests, orbitalStrikes, kamehamehas, hollowMurasakis, infinitySnaps, infiniteBladeSwords, unibeams, keraunosStorms, vaderSkills, stormbreakers, disneyMagics, muryokushos, shields, ironBlasters, enemyBullets, sniperBullets, bullets, bounceBombs, poisonClouds, phantomDaggers, gravityPulsars, bananaPeels, onlineLegendaryChests, astralJudgements, harisenNovas, cosmicSushiStorms, overlordFlames, mapBlackholes, blackholes, divineSwords, enemies, hollowMurasakiCharges, infiniteBladeCharges, keraunosCharges ];
+            const drawGroups = [ gems, effects, voidTempests, orbitalStrikes, kamehamehas, hollowMurasakis, infinitySnaps, infiniteBladeSwords, unibeams, keraunosStorms, vaderSkills, stormbreakers, disneyMagics, muryokushos, shields, ironBlasters, enemyBullets, sniperBullets, bullets, bounceBombs, poisonClouds, phantomDaggers, gravityPulsars, bananaPeels, onlineLegendaryChests, astralJudgements, harisenNovas, cosmicSushiStorms, overlordFlames, railgunZeros, blackholeGrenades, neonChains, plasmaMissiles, overdriveBlades, mapBlackholes, blackholes, divineSwords, enemies, hollowMurasakiCharges, infiniteBladeCharges, keraunosCharges ];
             
             for (let group of drawGroups) {
                 for (let obj of group) {
@@ -7668,7 +7961,7 @@ window.NEON_FIREBASE_CONFIG = {
                     orbitalStrikeLevel: 0, ironmanSuitLevel: 0, disneyMagicLevel: 0,
                     funnelLevel: 0, thorLevel: 0, vaderLevel: 0, shieldLevel: 0,
                     evoBlackhole: false, evoDivineSword: false, evoGravityBeam: false, evoThunderBlade: false,
-                    evoRicochetSniper: false, evoToxicAegis: false, evoGravitonDagger: false, evoSingularityBomb: false, onlineBananaLevel: 0, onlineBananaTimer: 0, onlineAstralLevel: 0, onlineAstralTimer: 0, onlineHarisenLevel: 0, onlineHarisenTimer: 0, onlineSushiLevel: 0, onlineSushiTimer: 0, onlineChestMurasaki: false, onlineChestKamehameha: false, phantomStepLevel: 0, phantomStepTimer: 0, phantomStepActiveTimer: 0
+                    evoRicochetSniper: false, evoToxicAegis: false, evoGravitonDagger: false, evoSingularityBomb: false, onlineBananaLevel: 0, onlineBananaTimer: 0, onlineAstralLevel: 0, onlineAstralTimer: 0, onlineHarisenLevel: 0, onlineHarisenTimer: 0, onlineSushiLevel: 0, onlineSushiTimer: 0, onlineChestMurasaki: false, onlineChestKamehameha: false, onlineRailgunZeroLevel: 0, onlineRailgunZeroTimer: 0, onlineBlackholeGrenadeLevel: 0, onlineBlackholeGrenadeTimer: 0, onlineNeonChainLevel: 0, onlineNeonChainTimer: 0, onlinePlasmaMissileLevel: 0, onlinePlasmaMissileTimer: 0, onlineOverdriveBladeLevel: 0, onlineOverdriveBladeTimer: 0, phantomStepLevel: 0, phantomStepTimer: 0, phantomStepActiveTimer: 0
                 });
             } else {
                 player.evoRicochetSniper = false; player.evoToxicAegis = false;
@@ -7682,6 +7975,7 @@ window.NEON_FIREBASE_CONFIG = {
             
             bounceBombs = []; poisonClouds = []; blackholes = []; divineSwords = []; sniperBullets = [];
             phantomDaggers = []; gravityPulsars = []; bananaPeels = []; mapBlackholes = []; onlineLegendaryChests = []; astralJudgements = []; harisenNovas = []; overlordFlames = []; cosmicSushiStorms = [];
+            railgunZeros = []; blackholeGrenades = []; neonChains = []; plasmaMissiles = []; overdriveBlades = [];
             
             bgStars = [];
             const bhAngle = Math.random() * Math.PI * 2;
@@ -7831,7 +8125,7 @@ window.NEON_FIREBASE_CONFIG = {
 
 
         /* ===== V88 STABLE CLEAN ROUTER / no legacy patch loops ===== */
-        const GAME_VERSION = 'V88 STABLE';
+        const GAME_VERSION = 'V96 ONLINE WEAPON REWORK';
         window.GAME_VERSION = GAME_VERSION;
 
         function ensureStableScreen(id, title, bodyHtml) {
@@ -8713,7 +9007,7 @@ window.NEON_FIREBASE_CONFIG = {
 
 
         /* ===== V91.5 MENU + ONLINE ROOM FIX / Firebase config untouched ===== */
-        const NSV_PATCH_VERSION_915 = 'V92.1 MENU SCROLL TOGGLE FIX';
+        const NSV_PATCH_VERSION_915 = 'V96 ONLINE WEAPON REWORK';
 
         function nsv915InstallStyle() {
             if (document.getElementById('nsv915MenuOnlineFixStyle')) return;
@@ -9205,6 +9499,1001 @@ window.NEON_FIREBASE_CONFIG = {
                 document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = PATCH_VERSION);
             } catch(e) {}
         })();
+
+
+        /* ===== V92.3 LEVELUP HUD + 30SEC ONLINE ROOM FIX ===== */
+        (function(){
+            const PATCH_VERSION = 'V92.3 LEVELUP ONLINE FIX';
+            const ONLINE_JOIN_WINDOW_MS = 30000;
+            const ONLINE_ACTIVE_WINDOW_MS = 60000;
+            let nsv923OnlineJoinedAt = 0;
+
+            function nsv923IsPlaying(){
+                try { return gameState === 'playing'; } catch(e) { return false; }
+            }
+            function nsv923ForcePlayHud(){
+                try {
+                    const hud = document.getElementById('uiLayer');
+                    const pause = document.getElementById('pauseBtn');
+                    const joy = document.getElementById('joystickZone');
+                    const hp = document.getElementById('hpBar');
+                    const exp = document.getElementById('expBar');
+                    const level = document.getElementById('levelDisplay');
+                    const levelUp = document.getElementById('levelUpScreen');
+                    if (levelUp) {
+                        levelUp.classList.add('hidden');
+                        levelUp.style.setProperty('display','none','important');
+                        levelUp.style.setProperty('pointer-events','none','important');
+                    }
+                    if (hud && nsv923IsPlaying()) {
+                        hud.classList.remove('hidden');
+                        hud.style.setProperty('display','flex','important');
+                        hud.style.setProperty('pointer-events','none','important');
+                        hud.style.setProperty('z-index','40','important');
+                    }
+                    if (pause && nsv923IsPlaying()) {
+                        pause.classList.remove('hidden');
+                        pause.style.setProperty('display','flex','important');
+                        pause.style.setProperty('pointer-events','auto','important');
+                        pause.style.setProperty('z-index','120','important');
+                    }
+                    if (player) {
+                        if (hp) hp.style.width = Math.max(0, Math.min(100, (player.hp / Math.max(1, player.maxHp)) * 100)) + '%';
+                        if (exp) exp.style.width = Math.max(0, Math.min(100, (player.exp / Math.max(1, player.expToLevel)) * 100)) + '%';
+                        if (level) level.innerText = String(player.level || 1);
+                    }
+                    if (joy) {
+                        const shouldShow = !!isJoystickEnabled && nsv923IsPlaying();
+                        joy.classList.toggle('hidden', !shouldShow);
+                        if (shouldShow) {
+                            joy.style.setProperty('display','flex','important');
+                            joy.style.setProperty('pointer-events','auto','important');
+                            joy.style.setProperty('z-index','100','important');
+                        } else {
+                            joy.style.setProperty('display','none','important');
+                        }
+                    }
+                    try { if (typeof syncJoystickVisibility === 'function') syncJoystickVisibility(); } catch(e) {}
+                    if (hud && nsv923IsPlaying()) {
+                        hud.classList.remove('hidden');
+                        hud.style.setProperty('display','flex','important');
+                    }
+                    if (pause && nsv923IsPlaying()) {
+                        pause.style.setProperty('display','flex','important');
+                    }
+                } catch(e) { console.warn('V92.3 HUD restore skipped', e); }
+            }
+            window.nsvRestorePlayHud = nsv923ForcePlayHud;
+
+            try {
+                const prevShowScreen = showScreen;
+                showScreen = function nsv923ShowScreenSafe(screenId){
+                    const ret = prevShowScreen.apply(this, arguments);
+                    if (!screenId && nsv923IsPlaying()) setTimeout(nsv923ForcePlayHud, 0);
+                    return ret;
+                };
+                window.showScreen = showScreen;
+            } catch(e) {}
+
+            try {
+                const prevCloseLevelUp = closeLevelUpScreen;
+                closeLevelUpScreen = function nsv923CloseLevelUpScreenSafe(){
+                    let ret;
+                    try { ret = prevCloseLevelUp.apply(this, arguments); }
+                    catch(err) {
+                        try { document.getElementById('levelUpScreen')?.classList.add('hidden'); } catch(_) {}
+                    }
+                    try {
+                        gameState = 'playing';
+                        isTimeStopped = false;
+                        lastTime = performance.now();
+                        nsv923ForcePlayHud();
+                        setTimeout(nsv923ForcePlayHud, 0);
+                        setTimeout(nsv923ForcePlayHud, 80);
+                        if (!animationId) animationId = requestAnimationFrame(gameLoop);
+                    } catch(e) {}
+                    return ret;
+                };
+                window.closeLevelUpScreen = closeLevelUpScreen;
+            } catch(e) {}
+
+            document.addEventListener('click', function(e){
+                if (e.target?.closest?.('#levelUpScreen .upgrade-card,#upgradesContainer .upgrade-card')) {
+                    setTimeout(function(){
+                        try { if (gameState === 'playing') nsv923ForcePlayHud(); } catch(_) {}
+                    }, 60);
+                }
+            }, true);
+
+            function nsv923RoomCode(){
+                try { return nsv915NormalizeRoomCode(window.NSV_ONLINE_ROOM_CODE || nsv915OnlineRoomCode || localStorage.getItem('neon_survivor_online_room_code') || ''); }
+                catch(e) { return String(window.NSV_ONLINE_ROOM_CODE || localStorage.getItem('neon_survivor_online_room_code') || '').replace(/\D/g,'').slice(0,3); }
+            }
+            function nsv923EnsureJoinTime(){
+                if (!nsv923OnlineJoinedAt) nsv923OnlineJoinedAt = Date.now();
+                window.NSV_ONLINE_JOINED_AT = nsv923OnlineJoinedAt;
+                return nsv923OnlineJoinedAt;
+            }
+
+            try {
+                const prevAskRoom = nsv915AskOnlineRoomCode;
+                nsv915AskOnlineRoomCode = function nsv923AskRoomCode30Sec(){
+                    const code = prevAskRoom.apply(this, arguments);
+                    if (code) {
+                        nsv923OnlineJoinedAt = Date.now();
+                        window.NSV_ONLINE_JOINED_AT = nsv923OnlineJoinedAt;
+                        try { localStorage.setItem('neon_survivor_online_joined_at', String(nsv923OnlineJoinedAt)); } catch(_) {}
+                    }
+                    return code;
+                };
+                window.nsv915AskOnlineRoomCode = nsv915AskOnlineRoomCode;
+            } catch(e) {}
+
+            try {
+                startOnlinePresence = function nsv923StartOnlinePresenceRoom30Sec(){
+                    const room = nsv923RoomCode();
+                    if (!room || !db || !fbCollection || !fbOnSnapshot || !fbDoc || !fbSetDoc) return;
+                    const myJoinedAt = nsv923EnsureJoinTime();
+                    try {
+                        onlineRoomCollection = fbCollection(db, 'artifacts', appId, 'public', 'data', 'neon_survivor_online_players');
+                        if (onlineUnsubscribe) onlineUnsubscribe();
+                        onlineUnsubscribe = fbOnSnapshot(onlineRoomCollection, (snap) => {
+                            const now = Date.now();
+                            const next = new Map();
+                            snap.forEach(docSnap => {
+                                if (docSnap.id === onlinePlayerId) return;
+                                const d = docSnap.data() || {};
+                                if (String(d.roomCode || '') !== room) return;
+                                const updatedAt = Number(d.updatedAt || 0);
+                                if (!updatedAt || now - updatedAt > ONLINE_ACTIVE_WINDOW_MS) return;
+                                const otherJoinedAt = Number(d.roomJoinedAt || d.joinedAt || 0);
+                                if (otherJoinedAt && Math.abs(otherJoinedAt - myJoinedAt) > ONLINE_JOIN_WINDOW_MS) return;
+                                next.set(docSnap.id, {
+                                    id: docSnap.id,
+                                    nickname: normalizeNickname(d.nickname || 'PLAYER'),
+                                    x: Number(d.x || 0), y: Number(d.y || 0),
+                                    hp: Number(d.hp || 1), maxHp: Number(d.maxHp || 1),
+                                    level: Number(d.level || 1),
+                                    shieldLevel: Number(d.shieldLevel || 0),
+                                    score: Number(d.score || 0),
+                                    role: String(d.role || ''),
+                                    roleName: String(d.roleName || ''),
+                                    lastHitFlash: 0
+                                });
+                            });
+                            remotePlayers = next;
+                            updateOnlineHud();
+                        });
+                    } catch(e) { console.warn('V92.3 online room presence unavailable', e); }
+                };
+                window.startOnlinePresence = startOnlinePresence;
+            } catch(e) {}
+
+            try {
+                syncOnlinePresence = function nsv923SyncOnlinePresenceRoom30Sec(){
+                    if (!isOnlineMode || !player || !db || !fbDoc || !fbSetDoc) return;
+                    const room = nsv923RoomCode();
+                    if (!room) return;
+                    if (frameCount - onlineLastSyncFrame < 20) return;
+                    onlineLastSyncFrame = frameCount;
+                    const joinedAt = nsv923EnsureJoinTime();
+                    try {
+                        const ref = fbDoc(db, 'artifacts', appId, 'public', 'data', 'neon_survivor_online_players', onlinePlayerId);
+                        fbSetDoc(ref, {
+                            roomCode: room,
+                            roomJoinedAt: joinedAt,
+                            nickname: getNickname() || 'PLAYER',
+                            x: player.x, y: player.y,
+                            hp: player.hp, maxHp: player.maxHp,
+                            level: player.level,
+                            shieldLevel: player.onlineShieldLevel || 0,
+                            score: Math.floor(score || 0),
+                            role: player.onlineRole || '',
+                            roleName: player.onlineRoleName || '',
+                            updatedAt: Date.now()
+                        }, { merge: true }).catch(() => {});
+                    } catch(e) {}
+                };
+                window.syncOnlinePresence = syncOnlinePresence;
+            } catch(e) {}
+
+            try {
+                const prevInitGame = initGame;
+                initGame = function nsv923InitGameOnlineSpawn(mode = 'solo'){
+                    if (mode === 'online') {
+                        let room = nsv923RoomCode();
+                        if (!room) {
+                            try { room = nsv915AskOnlineRoomCode(); } catch(e) { room = ''; }
+                            if (!room) return;
+                        }
+                        nsv923EnsureJoinTime();
+                    }
+                    const ret = prevInitGame.apply(this, arguments);
+                    if (mode === 'online' && player) {
+                        try {
+                            const spawn = (typeof randomMapPosition === 'function') ? randomMapPosition() : { x: Math.random() * mapSize - mapSize / 2, y: Math.random() * mapSize - mapSize / 2 };
+                            player.x = spawn.x; player.y = spawn.y;
+                            camera.x = player.x - width / 2; camera.y = player.y - height / 2;
+                            nsv923ForcePlayHud();
+                            setTimeout(nsv923ForcePlayHud, 80);
+                        } catch(e) {}
+                    }
+                    return ret;
+                };
+                window.initGame = initGame;
+            } catch(e) {}
+
+            try {
+                const st = document.createElement('style');
+                st.id = 'nsvV923HudOnlineFixStyle';
+                st.textContent = `
+                    #uiLayer:not(.hidden){display:flex!important;z-index:40!important;pointer-events:none!important;}
+                    #uiLayer:not(.hidden) #pauseBtn{display:flex!important;pointer-events:auto!important;z-index:120!important;}
+                    #joystickZone:not(.hidden){display:flex!important;pointer-events:auto!important;z-index:100!important;}
+                    #levelUpScreen.hidden{display:none!important;pointer-events:none!important;}
+                `;
+                document.head.appendChild(st);
+            } catch(e) {}
+
+            try {
+                document.querySelectorAll('[data-version-badge],#nsvStableBadge').forEach(x => x.remove());
+                const badge = document.createElement('div');
+                badge.id = 'nsvStableBadge';
+                badge.textContent = PATCH_VERSION;
+                badge.style.cssText = 'position:fixed;left:10px;bottom:8px;z-index:9999;pointer-events:none;color:#67e8f9;background:rgba(2,6,23,.78);border:1px solid rgba(103,232,249,.55);border-radius:999px;padding:4px 9px;font:900 11px Orbitron,Noto Sans JP,sans-serif;letter-spacing:.08em;box-shadow:0 0 12px rgba(34,211,238,.28);';
+                document.body.appendChild(badge);
+                document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = PATCH_VERSION);
+            } catch(e) {}
+        })();
+
+
+/* ===== V93 GAMEPLAY FUN PATCH: rush/boss/personality/mission/pvp ===== */
+(function(){
+    const PATCH_VERSION = 'V93 RUSH BOSS PVP';
+
+    function nsv93SafeEl(id){ return document.getElementById(id); }
+    function nsv93Clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+    // 1) 3分ごとに30秒の敵ラッシュタイム
+    let nsv93RushLastAnnounce = -1;
+    function nsv93RushIsActive(){
+        if (gameState !== 'playing' || !player || isTimeStopped) return false;
+        if ((gameTime || 0) < 180) return false;
+        return ((Math.floor(gameTime) % 180) < 30);
+    }
+    function nsv93EnsureRushHud(){
+        let hud = nsv93SafeEl('nsv93RushHud');
+        if (!hud) {
+            hud = document.createElement('div');
+            hud.id = 'nsv93RushHud';
+            hud.className = 'hidden';
+            hud.style.cssText = 'position:fixed;left:50%;top:72px;transform:translateX(-50%);z-index:130;pointer-events:none;background:rgba(127,29,29,.86);border:2px solid #f87171;color:#fff;border-radius:999px;padding:9px 18px;font:900 14px Noto Sans JP,Orbitron,sans-serif;letter-spacing:.08em;box-shadow:0 0 22px rgba(248,113,113,.55);text-align:center;';
+            document.body.appendChild(hud);
+        }
+        return hud;
+    }
+    function nsv93SpawnRushEnemy(){
+        if (!player || typeof Enemy !== 'function') return;
+        const a = Math.random() * Math.PI * 2;
+        const d = Math.max(width, height) * 0.72 + MathUtils.random(80, 260);
+        const typePool = gameTime > 420 ? [0,1,2,5,6,9,10,11] : [0,1,2,5,6];
+        const type = typePool[MathUtils.randomInt(0, typePool.length - 1)];
+        const e = new Enemy(player.x + Math.cos(a) * d, player.y + Math.sin(a) * d, type);
+        e.nsv93RushEnemy = true;
+        e.speed *= 1.18;
+        e.hp *= 0.9;
+        enemies.push(e);
+    }
+    function nsv93RushUpdate(){
+        const hud = nsv93EnsureRushHud();
+        const active = nsv93RushIsActive();
+        if (!active) { hud.classList.add('hidden'); return; }
+        const remain = 30 - (Math.floor(gameTime) % 180);
+        hud.textContent = `⚠ ENEMY RUSH TIME 残り${remain}s`;
+        hud.classList.remove('hidden');
+        const rushIndex = Math.floor(gameTime / 180);
+        if (rushIndex !== nsv93RushLastAnnounce) {
+            nsv93RushLastAnnounce = rushIndex;
+            try { showCustomCutin('ENEMY RUSH', '30秒間 大量発生！', '#ef4444'); } catch(e) {}
+            try { Sound.bossSpawn(); } catch(e) {}
+        }
+        if (frameCount % (isLightMode ? 18 : 10) === 0 && enemies.length < (typeof nsvEnemyCapV66 === 'function' ? nsvEnemyCapV66() + 120 : 620)) {
+            const add = isLightMode ? 2 : 4;
+            for (let i = 0; i < add; i++) nsv93SpawnRushEnemy();
+        }
+    }
+
+    // 2) ボスごとの個性強化
+    const NSV93_BOSS_TYPES = [
+        { id:'charge', name:'突進型ボス', color:'#fb923c' },
+        { id:'bullet', name:'弾幕型ボス', color:'#67e8f9' },
+        { id:'clone', name:'分身型ボス', color:'#e879f9' },
+        { id:'shield', name:'無敵型ボス', color:'#fde047' },
+        { id:'zone', name:'危険地帯型ボス', color:'#ef4444' }
+    ];
+    function nsv93AssignBossType(boss){
+        if (!boss || boss.nsv93BossType) return;
+        const idx = Math.abs(Math.floor((boss.x + boss.y + gameTime * 17) % NSV93_BOSS_TYPES.length));
+        const t = NSV93_BOSS_TYPES[idx];
+        boss.nsv93BossType = t.id;
+        boss.nsv93BossName = t.name;
+        boss.nsv93BossColor = t.color;
+        boss.bossPattern = t.name;
+        boss.nsv93SkillTimer = MathUtils.randomInt(40, 120);
+        try { showCustomCutin('BOSS APPROACH', t.name, t.color); } catch(e) {}
+        try { floatingTexts.push(new FloatingText(boss.x, boss.y - boss.radius - 70, t.name, t.color, 28)); } catch(e) {}
+    }
+    const nsv93OldEnemyTakeDamage = Enemy.prototype.takeDamage;
+    Enemy.prototype.takeDamage = function(amount, source = null){
+        if ((this.isBoss || this.isMidBoss || this.isMonkey) && this.nsv93ShieldTimer > 0 && amount < 999999) {
+            if ((frameCount || 0) % 12 === 0) floatingTexts.push(new FloatingText(this.x, this.y - this.radius - 22, '無敵中', '#fde047', 15));
+            createParticles(this.x, this.y, 2, '#fde047', 2);
+            return;
+        }
+        return nsv93OldEnemyTakeDamage.call(this, amount, source);
+    };
+    function nsv93BossUpdate(){
+        if (gameState !== 'playing' || !player) return;
+        for (const boss of enemies) {
+            if (!boss || boss.markedForDeletion || !(boss.isBoss || boss.isMidBoss || boss.isMonkey)) continue;
+            nsv93AssignBossType(boss);
+            boss.nsv93SkillTimer = (boss.nsv93SkillTimer || 0) + 1;
+            if (boss.nsv93ShieldTimer > 0) boss.nsv93ShieldTimer--;
+            const a = MathUtils.angle(boss.x, boss.y, player.x, player.y);
+            const d = MathUtils.distance(boss.x, boss.y, player.x, player.y);
+            if (boss.nsv93BossType === 'charge' && boss.nsv93SkillTimer > 160) {
+                boss.nsv93SkillTimer = 0;
+                boss.x += Math.cos(a) * 220;
+                boss.y += Math.sin(a) * 220;
+                effects.push(new Shockwave(boss.x, boss.y, '#fb923c', 10, 240));
+                if (d < 300) player.takeDamage(Math.max(12, boss.damage * 0.22));
+                floatingTexts.push(new FloatingText(boss.x, boss.y - boss.radius - 45, '突進！', '#fb923c', 18));
+            }
+            if (boss.nsv93BossType === 'bullet' && boss.nsv93SkillTimer > 150) {
+                boss.nsv93SkillTimer = 0;
+                const count = boss.isMonkey ? 18 : 12;
+                for (let i = 0; i < count && enemyBullets.length < 520; i++) {
+                    enemyBullets.push(new Bullet(boss.x, boss.y, (Math.PI * 2 / count) * i + gameTime * 0.08, boss.damage * 0.32, 4.4, 5, 1, '#67e8f9', '#06b6d4', true));
+                }
+                floatingTexts.push(new FloatingText(boss.x, boss.y - boss.radius - 45, '弾幕！', '#67e8f9', 18));
+            }
+            if (boss.nsv93BossType === 'clone' && boss.nsv93SkillTimer > 230) {
+                boss.nsv93SkillTimer = 0;
+                for (let i = 0; i < 3 && enemies.length < 760; i++) {
+                    const c = new Enemy(boss.x + MathUtils.random(-150,150), boss.y + MathUtils.random(-150,150), Math.random() < .5 ? 1 : 6);
+                    c.color = '#e879f9'; c.hp *= 1.4; c.speed *= 1.25; c.nsv93Clone = true;
+                    enemies.push(c);
+                }
+                floatingTexts.push(new FloatingText(boss.x, boss.y - boss.radius - 45, '分身！', '#e879f9', 18));
+            }
+            if (boss.nsv93BossType === 'shield' && boss.nsv93SkillTimer > 280) {
+                boss.nsv93SkillTimer = 0;
+                boss.nsv93ShieldTimer = 95;
+                effects.push(new Shockwave(boss.x, boss.y, '#fde047', 9, boss.radius * 5));
+                floatingTexts.push(new FloatingText(boss.x, boss.y - boss.radius - 45, '無敵バリア！', '#fde047', 18));
+            }
+            if (boss.nsv93BossType === 'zone' && boss.nsv93SkillTimer > 190) {
+                boss.nsv93SkillTimer = 0;
+                for (let i = 0; i < 3; i++) {
+                    const zx = player.x + MathUtils.random(-260,260);
+                    const zy = player.y + MathUtils.random(-260,260);
+                    effects.push(new Shockwave(zx, zy, '#ef4444', 12, 230));
+                    if (MathUtils.distance(player.x, player.y, zx, zy) < 150) player.takeDamage(Math.max(10, boss.damage * 0.18));
+                }
+                floatingTexts.push(new FloatingText(boss.x, boss.y - boss.radius - 45, '危険地帯！', '#ef4444', 18));
+            }
+        }
+    }
+
+    // 3) ミッションに「報酬が欲しくなる」目的を追加
+    function nsv93AddMission(def){
+        if (!MISSION_DEFS.some(m => m.id === def.id)) MISSION_DEFS.push(def);
+    }
+    nsv93AddMission({ id:'nsv93_survive_3min_reward', cat:'TIME', title:'3分生き残れ！', desc:'1回のプレイで3分生き残る', metric:'bestTime', target:180, reward:{coins:500} });
+    nsv93AddMission({ id:'nsv93_first_boss_skin', cat:'BOSS', title:'初ボス撃破チャレンジ', desc:'ボス系の敵を1体倒して限定スキンを手に入れる', metric:'totalBossLikeKills', target:1, reward:{coins:650, skin:'emerald'} });
+    nsv93AddMission({ id:'nsv93_treasure_aura', cat:'ONLINE', title:'宝箱ハンター', desc:'オンライン宝箱を5個開けて限定オーラを手に入れる', metric:'totalTreasureOpened', target:5, reward:{coins:1200, aura:'goldSpark'} });
+    nsv93AddMission({ id:'nsv93_online_trail', cat:'ONLINE', title:'オンライン初参戦ボーナス', desc:'オンライン対戦に1回参加する', metric:'totalOnlineRuns', target:1, reward:{coins:600, cape:'stormCape'} });
+    nsv93AddMission({ id:'nsv93_online_hits_reward', cat:'ONLINE', title:'対人バトル練習', desc:'オンラインで攻撃を10回当てる', metric:'totalOnlineHits', target:10, reward:{coins:900, aura:'cyanFlame'} });
+
+    // 4) オンライン対戦のPvP感を強化
+    try {
+        const oldSendOnlineHit = sendOnlineHit;
+        sendOnlineHit = function nsv93SendOnlineHitStrong(targetId, amount){
+            const boosted = isOnlineMode ? Math.max(10, Number(amount || 0) * 1.22) : amount;
+            return oldSendOnlineHit.call(this, targetId, boosted);
+        };
+        window.sendOnlineHit = sendOnlineHit;
+    } catch(e) {}
+
+    // 5) オンライン宝箱を必ず3個用意し、虚式紫 or かめはめ波を出す
+    function nsv93EnsureOnlineChests(){
+        if (!isOnlineMode || gameState !== 'playing' || !player || typeof OnlineLegendaryChest !== 'function') return;
+        onlineLegendaryChests = onlineLegendaryChests.filter(c => c && !c.markedForDeletion);
+        while (onlineLegendaryChests.length < 3) {
+            const a = Math.random() * Math.PI * 2;
+            const d = MathUtils.random(1200, 5200);
+            const type = (onlineLegendaryChests.length % 2 === 0) ? 'murasaki' : 'kamehameha';
+            onlineLegendaryChests.push(new OnlineLegendaryChest(player.x + Math.cos(a) * d, player.y + Math.sin(a) * d, type));
+        }
+    }
+    try {
+        const oldChestOpen = OnlineLegendaryChest.prototype.open;
+        OnlineLegendaryChest.prototype.open = function nsv93ChestOpen(){
+            ensureProgressionData();
+            userData.stats.totalTreasureOpened = (userData.stats.totalTreasureOpened || 0) + 1;
+            if (runStats) runStats.treasureOpened = (runStats.treasureOpened || 0) + 1;
+            const ret = oldChestOpen.call(this);
+            checkMissionCompletions(false);
+            saveData();
+            return ret;
+        };
+    } catch(e) {}
+
+    // 6) updateLogicに安全に追加処理を統合
+    const oldUpdateLogic = updateLogic;
+    updateLogic = function nsv93UpdateLogic(){
+        oldUpdateLogic.call(this);
+        try { nsv93RushUpdate(); } catch(e) {}
+        try { nsv93BossUpdate(); } catch(e) {}
+        try { if ((frameCount || 0) % 60 === 0) nsv93EnsureOnlineChests(); } catch(e) {}
+    };
+    window.updateLogic = updateLogic;
+
+    // 7) initGame後にもオンライン宝箱を初期配置
+    try {
+        const oldInitGame = initGame;
+        initGame = function nsv93InitGame(mode = 'solo'){
+            const ret = oldInitGame.apply(this, arguments);
+            try { if (mode === 'online') nsv93EnsureOnlineChests(); } catch(e) {}
+            return ret;
+        };
+        window.initGame = initGame;
+    } catch(e) {}
+
+    // 8) 表示とバッチ整理
+    try {
+        const style = document.createElement('style');
+        style.id = 'nsv93RushBossPvpStyle';
+        style.textContent = `
+            #nsvStableBadge{display:none!important;}
+            #nsv93VersionBadge{position:fixed;left:10px;bottom:8px;z-index:9999;pointer-events:none;color:#fef08a;background:rgba(2,6,23,.78);border:1px solid rgba(250,204,21,.65);border-radius:999px;padding:4px 9px;font:900 11px Orbitron,Noto Sans JP,sans-serif;letter-spacing:.08em;box-shadow:0 0 12px rgba(250,204,21,.28);}
+        `;
+        document.head.appendChild(style);
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-version-badge],#nsvStableBadge,#nsv93VersionBadge').forEach(x => x.remove());
+            const badge = document.createElement('div');
+            badge.id = 'nsv93VersionBadge';
+            badge.textContent = PATCH_VERSION;
+            document.body.appendChild(badge);
+            document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = PATCH_VERSION);
+        });
+    } catch(e) {}
+})();
+
+
+/* ===== V96 ONLINE WEAPON REWORK DAMAGE PATCH =====
+   目的: 「攻撃し合える感」ではなく、オンライン中に攻撃が相手へ確実にHPダメージとして届くようにする。
+   Firebase設定ブロックは変更しない。既存武器・既存バランスを大きく作り替えず、PvP命中処理だけ補強する。
+*/
+(function(){
+    'use strict';
+    const PATCH_VERSION = 'V96 ONLINE WEAPON REWORK';
+    const PVP_HIT_RADIUS_BONUS = 26;
+    const PVP_SEGMENT_RADIUS_BONUS = 34;
+    const PVP_HIT_COOLDOWN_FRAMES = 14;
+    const pvpCooldown = new Map();
+
+    function nowFrame(){ return Number(frameCount || 0); }
+    function isValidRemote(r){
+        return !!(isOnlineMode && player && r && r.id && r.id !== onlinePlayerId && Number(r.hp || 0) > 0 && Number.isFinite(Number(r.x)) && Number.isFinite(Number(r.y)));
+    }
+    function sourceKey(source){
+        if (!source) return 'unknown';
+        if (!source.nsv94PvpId) source.nsv94PvpId = 'pvp_' + Math.random().toString(36).slice(2) + '_' + Date.now().toString(36);
+        return source.nsv94PvpId;
+    }
+    function canHit(remoteId, source, cd = PVP_HIT_COOLDOWN_FRAMES){
+        const key = remoteId + ':' + sourceKey(source);
+        const last = pvpCooldown.get(key) || -999999;
+        if (nowFrame() - last < cd) return false;
+        pvpCooldown.set(key, nowFrame());
+        if (pvpCooldown.size > 1600) {
+            let i = 0;
+            for (const k of pvpCooldown.keys()) { pvpCooldown.delete(k); if (++i > 500) break; }
+        }
+        return true;
+    }
+    function distSq2(ax, ay, bx, by){
+        const dx = ax - bx, dy = ay - by;
+        return dx * dx + dy * dy;
+    }
+    function segmentDistSq(ax, ay, bx, by, px, py){
+        const vx = bx - ax, vy = by - ay;
+        const len = vx * vx + vy * vy;
+        if (len <= 0.0001) return distSq2(ax, ay, px, py);
+        let t = ((px - ax) * vx + (py - ay) * vy) / len;
+        t = Math.max(0, Math.min(1, t));
+        return distSq2(ax + vx * t, ay + vy * t, px, py);
+    }
+    function pvpDamageAmount(raw){
+        const n = Number(raw || 0);
+        if (!Number.isFinite(n)) return 10;
+        // PvPでは「当たった実感」を出すため、最低ダメージと上限を上げる。
+        return Math.max(8, Math.min(95, Math.round(n * 0.42)));
+    }
+    function applyRemoteHit(remote, rawDamage, source, label = 'PVP HIT', color = '#facc15', cooldown = PVP_HIT_COOLDOWN_FRAMES){
+        if (!isValidRemote(remote)) return false;
+        if (!canHit(remote.id, source, cooldown)) return false;
+        let sent = 0;
+        try { sent = sendOnlineHit(remote.id, rawDamage); } catch(e) { sent = 0; }
+        // sendOnlineHitが0になる環境でも、自分の画面では命中表示を出す。Firebase接続時は相手側にもhitsとして届く。
+        const shown = sent > 0 ? sent : pvpDamageAmount(rawDamage);
+        try {
+            remote.hp = Math.max(0, Number(remote.hp || 0) - shown);
+            remote.lastHitFlash = 10;
+            recordOnlineHit(shown);
+            floatingTexts.push(new FloatingText(remote.x, remote.y - 42, `${label} -${Math.floor(shown)}`, color, 15));
+            createParticles(remote.x, remote.y, isLightMode ? 5 : 11, color, 3);
+            if (remote.hp <= 0) {
+                score += 300;
+                const sd = document.getElementById('scoreDisplay');
+                if (sd) sd.innerText = Math.floor(score);
+                floatingTexts.push(new FloatingText(remote.x, remote.y - 66, `KNOCK DOWN ${remote.nickname || ''}`, '#fde047', 18));
+            }
+        } catch(e) {}
+        return true;
+    }
+
+    // 既存のsendOnlineHitを「本当に削れるPvP用」に強化。Firebase設定自体は一切変更しない。
+    try {
+        const baseSendOnlineHit = sendOnlineHit;
+        sendOnlineHit = function nsv94SendOnlineHit(targetId, baseDamage){
+            if (!isOnlineMode || !targetId || !db || !fbDoc || !fbSetDoc) return 0;
+            const damage = pvpDamageAmount(baseDamage);
+            if (damage <= 0) return 0;
+            const hitId = `${onlinePlayerId}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;
+            try {
+                const ref = fbDoc(db, 'artifacts', appId, 'public', 'data', 'neon_survivor_online_players', targetId);
+                fbSetDoc(ref, {
+                    hits: {
+                        [hitId]: {
+                            from: onlinePlayerId,
+                            fromName: getNickname() || 'PLAYER',
+                            damage,
+                            at: Date.now(),
+                            roomCode: window.NSV_ONLINE_ROOM_CODE || nsv915OnlineRoomCode || localStorage.getItem('neon_survivor_online_room_code') || ''
+                        }
+                    }
+                }, { merge: true }).catch(() => {});
+                return damage;
+            } catch(e) {
+                try { return baseSendOnlineHit.call(this, targetId, baseDamage); } catch(_) { return 0; }
+            }
+        };
+        window.sendOnlineHit = sendOnlineHit;
+    } catch(e) {}
+
+    function scanPointOrSegment(source, rawDamage, radius, label, color, cd){
+        if (!isOnlineMode || !player || !remotePlayers || remotePlayers.size === 0 || !source || source.markedForDeletion) return;
+        const x = Number(source.x), y = Number(source.y);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+        const px = Number(source.prevX ?? source.lastX ?? x);
+        const py = Number(source.prevY ?? source.lastY ?? y);
+        const hitR = Math.max(8, Number(radius || source.radius || 10)) + ONLINE_REMOTE_RADIUS + PVP_HIT_RADIUS_BONUS;
+        remotePlayers.forEach(r => {
+            if (!isValidRemote(r)) return;
+            const ds = segmentDistSq(px, py, x, y, Number(r.x), Number(r.y));
+            if (ds <= (hitR + PVP_SEGMENT_RADIUS_BONUS) * (hitR + PVP_SEGMENT_RADIUS_BONUS)) {
+                applyRemoteHit(r, rawDamage, source, label, color, cd);
+            }
+        });
+    }
+    function scanCircle(source, rawDamage, radius, label, color, cd){
+        if (!isOnlineMode || !player || !remotePlayers || remotePlayers.size === 0 || !source || source.markedForDeletion) return;
+        const x = Number(source.x), y = Number(source.y), r0 = Number(radius || source.radius || source.maxRadius || 80);
+        if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(r0)) return;
+        const hitR = Math.max(20, r0) + ONLINE_REMOTE_RADIUS;
+        remotePlayers.forEach(r => {
+            if (!isValidRemote(r)) return;
+            if (distSq2(x, y, Number(r.x), Number(r.y)) <= hitR * hitR) {
+                applyRemoteHit(r, rawDamage, source, label, color, cd);
+            }
+        });
+    }
+    function scanBeam(km){
+        if (!isOnlineMode || !player || !km || km.markedForDeletion || !remotePlayers || remotePlayers.size === 0) return;
+        const angle = Number(km.angle ?? player.faceAngle ?? 0);
+        const ox = Number(km.x ?? player.x), oy = Number(km.y ?? player.y);
+        const len = Number(km.length || 1800);
+        const half = Math.max(50, Number(km.width || 100) * 0.55);
+        const cos = Math.cos(angle), sin = Math.sin(angle);
+        remotePlayers.forEach(r => {
+            if (!isValidRemote(r)) return;
+            const dx = Number(r.x) - ox, dy = Number(r.y) - oy;
+            const forward = dx * cos + dy * sin;
+            const side = Math.abs(-dx * sin + dy * cos);
+            if (forward > -ONLINE_REMOTE_RADIUS && forward < len + ONLINE_REMOTE_RADIUS && side < half + ONLINE_REMOTE_RADIUS) {
+                applyRemoteHit(r, 999, km, 'BEAM HIT', '#93c5fd', 18);
+            }
+        });
+    }
+
+    function nsv94TruePvpUpdate(){
+        if (!isOnlineMode || gameState !== 'playing' || !player || !remotePlayers || remotePlayers.size === 0) return;
+        try {
+            for (const b of bullets || []) scanPointOrSegment(b, b.damage || player.damage || 20, (b.radius || 6) + (b.hitRadiusBonus || 0), 'BULLET', '#facc15', 12);
+            for (const b of sniperBullets || []) scanPointOrSegment(b, b.damage || 120, (b.radius || 8) + 18, 'SNIPER', '#fb7185', 10);
+            for (const b of phantomDaggers || []) scanPointOrSegment(b, b.damage || 70, (b.radius || 11) + 18, 'DAGGER', '#c084fc', 13);
+            for (const b of bounceBombs || []) scanCircle(b, b.damage || 65, (b.radius || 16) * 4.2, 'BOMB', '#fbbf24', 22);
+            for (const b of bananaPeels || []) scanPointOrSegment(b, b.damage || 40, (b.radius || 20) + 12, 'BANANA', '#fde047', 18);
+            for (const c of poisonClouds || []) scanCircle(c, c.damage || 35, c.radius || 90, 'POISON', '#a3e635', 30);
+            for (const g of gravityPulsars || []) scanCircle(g, g.damage || 45, g.radius || 150, 'GRAVITY', '#38bdf8', 24);
+            for (const bh of blackholes || []) scanCircle(bh, bh.damage || 70, (bh.radius || 110) * 1.25, 'BLACKHOLE', '#a78bfa', 24);
+            for (const vt of voidTempests || []) scanCircle(vt, 65 + (player.voidTempestLevel || 1) * 18, vt.radius || 230, 'VOID', '#8b5cf6', 24);
+            for (const hm of hollowMurasakis || []) scanCircle(hm, 999, (hm.baseRadius || hm.radius || 260) * (hm.scale || 1), '虚式紫', '#c084fc', 28);
+            for (const km of kamehamehas || []) scanBeam(km);
+            for (const a of astralJudgements || []) scanCircle(a, a.damage || 110, a.radius || 190, 'ASTRAL', '#818cf8', 26);
+            for (const h of harisenNovas || []) scanCircle(h, h.damage || 140, h.radius || 220, 'HARISEN', '#22d3ee', 26);
+            for (const s of cosmicSushiStorms || []) scanCircle(s, s.damage || 130, s.radius || 220, 'SUSHI', '#f472b6', 26);
+        } catch(e) {}
+    }
+
+    try {
+        const prevUpdateLogicV94 = updateLogic;
+        updateLogic = function nsv94UpdateLogicTruePvp(){
+            prevUpdateLogicV94.call(this);
+            nsv94TruePvpUpdate();
+        };
+        window.updateLogic = updateLogic;
+    } catch(e) {}
+
+    try {
+        const style = document.createElement('style');
+        style.id = 'nsv94TruePvpStyle';
+        style.textContent = `
+            #nsv93VersionBadge{display:none!important;}
+            #nsv94VersionBadge{position:fixed;left:10px;bottom:8px;z-index:9999;pointer-events:none;color:#bbf7d0;background:rgba(2,6,23,.82);border:1px solid rgba(34,197,94,.7);border-radius:999px;padding:4px 9px;font:900 11px Orbitron,Noto Sans JP,sans-serif;letter-spacing:.08em;box-shadow:0 0 12px rgba(34,197,94,.28);}
+        `;
+        document.head.appendChild(style);
+        const installBadge = () => {
+            document.querySelectorAll('[data-version-badge],#nsvStableBadge,#nsv93VersionBadge,#nsv94VersionBadge').forEach(x => x.remove());
+            const badge = document.createElement('div');
+            badge.id = 'nsv94VersionBadge';
+            badge.textContent = PATCH_VERSION;
+            document.body.appendChild(badge);
+            document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = PATCH_VERSION);
+        };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installBadge);
+        else installBadge();
+    } catch(e) {}
+})();
+
+
+
+/* ===== V97 FINAL CONTROL / TOGGLE / HUD / SNIPER STABLE PATCH =====
+   Scope: UI操作安定化・トグル位置修正・HUD復帰・スナイパー速度/誘導調整のみ。
+   Firebase設定ブロックは変更しない。
+*/
+(() => {
+  'use strict';
+  const PATCH_VERSION = 'V97 FINAL CONTROL STABLE';
+  const MENU_IDS = [
+    'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen',
+    'leaderboardScreen','eventModeScreen','onlineRoleScreen','shopScreen',
+    'levelUpScreen','gameOverScreen','pauseScreen','tutorialOverlay'
+  ];
+  const PLAY_IDS_TO_HIDE_ON_MENU = ['uiLayer','joystickZone','bossWarning'];
+
+  // 1) スナイパー調整：V96で強化済みの速度を2/3にし、少し誘導を強くする。
+  try {
+    if (typeof NSV_BALANCE_20260502 === 'object' && NSV_BALANCE_20260502) {
+      NSV_BALANCE_20260502.sniperSpeedMult = 4;       // V96の6から2/3へ
+      NSV_BALANCE_20260502.sniperHoming = Math.max(Number(NSV_BALANCE_20260502.sniperHoming || 0), 0.055);
+      NSV_BALANCE_20260502.ricochetSniperHoming = Math.max(Number(NSV_BALANCE_20260502.ricochetSniperHoming || 0), 0.035);
+    }
+  } catch (_) {}
+
+  function $(id){ return document.getElementById(id); }
+  function hasNickname(){
+    const input = $('nicknameInput');
+    const name = (input?.value || '').trim();
+    const warn = $('nicknameWarn');
+    if (!name) {
+      if (warn) { warn.textContent = 'ニックネームを入力してください。'; warn.classList.remove('hidden'); }
+      if (input) { input.focus(); input.style.borderColor = '#f87171'; input.style.boxShadow = '0 0 18px rgba(248,113,113,.55)'; }
+      return false;
+    }
+    if (warn) warn.classList.add('hidden');
+    if (input) { input.style.removeProperty('border-color'); input.style.removeProperty('box-shadow'); }
+    return true;
+  }
+  function syncNickname(){
+    try {
+      const input = $('nicknameInput');
+      const name = (input?.value || '').trim();
+      if (!name) return false;
+      if (typeof userData === 'object' && userData) userData.nickname = name;
+      try { localStorage.setItem('neon_survivor_nickname', name); } catch (_) {}
+      try { if (typeof saveData === 'function') saveData(); } catch (_) {}
+      return true;
+    } catch (_) { return true; }
+  }
+  function gameplayHudVisible(){
+    try { return gameState === 'playing' || gameState === 'paused'; } catch (_) { return false; }
+  }
+  function restoreGameplayHud(){
+    const playing = (() => { try { return gameState === 'playing'; } catch(_) { return false; } })();
+    const paused = (() => { try { return gameState === 'paused'; } catch(_) { return false; } })();
+    const hud = $('uiLayer');
+    if (hud && (playing || paused)) {
+      hud.classList.remove('hidden');
+      hud.style.display = 'flex';
+      hud.style.pointerEvents = 'none';
+      hud.style.zIndex = '40';
+      const pauseBtn = $('pauseBtn');
+      if (pauseBtn) { pauseBtn.style.pointerEvents = 'auto'; pauseBtn.classList.remove('hidden'); pauseBtn.style.display = 'inline-flex'; }
+      ['scoreDisplay','timeDisplay','levelDisplay','hpBar','expBar'].forEach(id => $(id)?.classList.remove('hidden'));
+    }
+    const joy = $('joystickZone');
+    if (joy) {
+      let enabled = true;
+      try { enabled = !!isJoystickEnabled; } catch(_) { enabled = $('joystickToggle')?.checked !== false; }
+      if (playing && enabled) {
+        joy.classList.remove('hidden');
+        joy.style.display = 'flex';
+        joy.style.pointerEvents = 'auto';
+        joy.style.zIndex = '100';
+      } else {
+        joy.classList.add('hidden');
+        joy.style.removeProperty('display');
+      }
+    }
+  }
+  function hideGameplayHudOnMenu(){
+    PLAY_IDS_TO_HIDE_ON_MENU.forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      el.classList.add('hidden');
+      el.style.removeProperty('display');
+      if (id !== 'uiLayer') el.style.pointerEvents = 'none';
+    });
+  }
+  function stableShowScreen(screenId){
+    const requested = screenId && $(screenId) ? screenId : (screenId ? 'startScreen' : null);
+    MENU_IDS.forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      const show = id === requested;
+      el.classList.toggle('hidden', !show);
+      el.style.pointerEvents = show ? 'auto' : 'none';
+      if (show) {
+        el.style.display = 'flex';
+        el.style.zIndex = (id === 'pauseScreen' || id === 'tutorialOverlay') ? '90' : (id === 'startScreen' ? '80' : '85');
+      } else {
+        el.style.removeProperty('display');
+      }
+    });
+    if (requested) hideGameplayHudOnMenu();
+    else restoreGameplayHud();
+  }
+  try { showScreen = stableShowScreen; window.showScreen = stableShowScreen; } catch (_) { window.showScreen = stableShowScreen; }
+
+  // 2) トグルの白丸位置を「transform」ではなくleftで固定して、既存CSSの衝突を無効化する。
+  function normalizeOneToggle(input){
+    if (!input) return;
+    const wrap = input.parentElement;
+    if (!wrap) return;
+    wrap.classList.add('nsv-toggle-final');
+    const track = Array.from(wrap.children).find(el => el !== input && el.classList && el.classList.contains('block'));
+    const dot = wrap.querySelector('.dot');
+    if (track) {
+      track.classList.remove('w-14','h-8','bg-gray-600','transition-colors','duration-300');
+      track.style.cssText = 'position:absolute!important;left:0!important;top:0!important;width:56px!important;height:32px!important;border-radius:9999px!important;background:' + (input.checked ? '#06b6d4' : '#4b5563') + '!important;margin:0!important;transform:none!important;';
+    }
+    if (dot) {
+      dot.classList.remove('left-1','top-1','w-6','h-6','transform','translate-x-0','translate-y-0','transition-transform','duration-300');
+      dot.style.cssText = 'position:absolute!important;top:4px!important;left:' + (input.checked ? '28px' : '4px') + '!important;width:24px!important;height:24px!important;border-radius:9999px!important;background:#fff!important;margin:0!important;transform:none!important;transition:left .18s ease!important;box-shadow:0 2px 7px rgba(0,0,0,.38)!important;';
+    }
+    input.style.cssText = 'position:absolute!important;opacity:0!important;width:56px!important;height:32px!important;left:0!important;top:0!important;margin:0!important;z-index:3!important;cursor:pointer!important;pointer-events:auto!important;';
+  }
+  function refreshToggleVisuals(){
+    ['joystickToggle','lightModeToggle','pauseJoystickToggle','pauseLightModeToggle'].forEach(id => normalizeOneToggle($(id)));
+    document.querySelectorAll('.nsv-toggle-final input[type="checkbox"]').forEach(input => {
+      const wrap = input.parentElement;
+      const track = wrap?.querySelector('.block');
+      const dot = wrap?.querySelector('.dot');
+      if (track) track.style.setProperty('background', input.checked ? '#06b6d4' : '#4b5563', 'important');
+      if (dot) {
+        dot.style.setProperty('left', input.checked ? '28px' : '4px', 'important');
+        dot.style.setProperty('transform', 'none', 'important');
+      }
+    });
+  }
+  window.nsvRefreshToggleVisuals = refreshToggleVisuals;
+
+  // 3) 画面レンダリングを安全に呼ぶ。
+  function safeRender(fnName){
+    try {
+      if (typeof window[fnName] === 'function') return window[fnName]();
+      if (fnName === 'renderUpgradeScreen' && typeof renderUpgradeScreen === 'function') return renderUpgradeScreen();
+      if (fnName === 'renderWeaponCodexScreen' && typeof renderWeaponCodexScreen === 'function') return renderWeaponCodexScreen();
+      if (fnName === 'renderCollectionScreen' && typeof renderCollectionScreen === 'function') return renderCollectionScreen();
+      if (fnName === 'renderMissionsScreen' && typeof renderMissionsScreen === 'function') return renderMissionsScreen();
+      if (fnName === 'renderStableShop' && typeof renderStableShop === 'function') return renderStableShop();
+      if (fnName === 'renderStableLeaderboard' && typeof renderStableLeaderboard === 'function') return renderStableLeaderboard();
+      if (fnName === 'renderDailyEventScreen' && typeof renderDailyEventScreen === 'function') return renderDailyEventScreen();
+    } catch(e) { console.warn('render failed:', fnName, e); }
+  }
+  function openUpgrade(){ safeRender('renderUpgradeScreen'); stableShowScreen('upgradeScreen'); }
+  function openCodex(){ safeRender('renderWeaponCodexScreen'); stableShowScreen('weaponCodexScreen'); }
+  function openCollection(){ safeRender('renderCollectionScreen'); stableShowScreen('collectionScreen'); }
+  function openMissions(){ safeRender('renderMissionsScreen'); stableShowScreen('missionsScreen'); }
+  function openShop(){ safeRender('renderStableShop'); stableShowScreen('shopScreen'); }
+  function openRanking(){ safeRender('renderStableLeaderboard'); stableShowScreen('leaderboardScreen'); }
+  function openEvent(){ safeRender('renderDailyEventScreen'); stableShowScreen('eventModeScreen'); }
+  function openOnline(){
+    if (!hasNickname() || !syncNickname()) return;
+    try {
+      if (typeof nsv915OpenOnlineRoleSelect === 'function') return nsv915OpenOnlineRoleSelect();
+      if (typeof openOnlineRoleSelect === 'function') return openOnlineRoleSelect();
+    } catch(e) { console.warn(e); }
+    stableShowScreen('onlineRoleScreen');
+  }
+  function startSolo(){
+    if (!hasNickname() || !syncNickname()) return;
+    try { if (typeof initGame === 'function') initGame('solo'); } catch(e) { console.error(e); }
+    setTimeout(restoreGameplayHud, 0);
+    setTimeout(restoreGameplayHud, 120);
+  }
+  function resumePlay(){
+    try { gameState = 'playing'; } catch(_) {}
+    stableShowScreen(null);
+    restoreGameplayHud();
+  }
+  function titleMenu(){
+    try { if (typeof endRunToMenu === 'function') return endRunToMenu(); } catch(_) {}
+    try { gameState = 'start'; } catch(_) {}
+    stableShowScreen('startScreen');
+    refreshToggleVisuals();
+  }
+
+  const ROUTES = {
+    startBtn: startSolo,
+    onlineStartBtn: openOnline,
+    openUpgradeBtn: openUpgrade,
+    openWeaponCodexBtn: openCodex,
+    openShopBtn: openShop,
+    openMissionBtn: openMissions,
+    openCollectionBtn: openCollection,
+    openLeaderboardBtn: openRanking,
+    openEventModeBtn: openEvent,
+    closeUpgradeBtn: () => stableShowScreen('startScreen'),
+    closeWeaponCodexBtn: () => stableShowScreen('startScreen'),
+    closeShopBtn: () => stableShowScreen('startScreen'),
+    closeMissionsBtn: () => stableShowScreen('startScreen'),
+    closeCollectionBtn: () => stableShowScreen('startScreen'),
+    closeLeaderboardBtn: () => stableShowScreen('startScreen'),
+    closeEventModeBtn: () => stableShowScreen('startScreen'),
+    closeOnlineRoleBtn: () => stableShowScreen('startScreen'),
+    resumeBtn: resumePlay,
+    titleFromPauseBtn: titleMenu,
+    restartBtn: titleMenu,
+    pauseBtn: () => { try { gameState = 'paused'; } catch(_) {} stableShowScreen('pauseScreen'); refreshToggleVisuals(); }
+  };
+
+  // 4) スクロール中の誤タップ防止。スクロール直後だけボタン実行を止める。
+  let pointerDown = {x:0,y:0,t:0};
+  let lastScrollAt = 0;
+  let moved = false;
+  function rememberScroll(){ lastScrollAt = Date.now(); }
+  function bindScrollGuards(){
+    MENU_IDS.forEach(id => {
+      const el = $(id);
+      if (el && !el.dataset.nsvFinalScrollGuard) {
+        el.dataset.nsvFinalScrollGuard = '1';
+        el.addEventListener('scroll', rememberScroll, {passive:true});
+      }
+    });
+  }
+  document.addEventListener('pointerdown', e => {
+    pointerDown = {x:e.clientX || 0, y:e.clientY || 0, t:Date.now()};
+    moved = false;
+  }, true);
+  document.addEventListener('pointermove', e => {
+    if (Math.hypot((e.clientX || 0) - pointerDown.x, (e.clientY || 0) - pointerDown.y) > 10) moved = true;
+  }, true);
+  document.addEventListener('click', e => {
+    const input = e.target?.closest?.('input,textarea,select');
+    if (input) { setTimeout(refreshToggleVisuals, 0); return; }
+    const btn = e.target?.closest?.('button,[role="button"]');
+    if (!btn) return;
+    const route = ROUTES[btn.id];
+    if (!route) return;
+    if (moved || Date.now() - lastScrollAt < 180) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation?.();
+    route(e);
+    setTimeout(refreshToggleVisuals, 0);
+  }, true);
+  document.addEventListener('change', e => {
+    const input = e.target;
+    if (!input || input.type !== 'checkbox') return;
+    setTimeout(() => {
+      try {
+        if (input.id === 'joystickToggle' || input.id === 'pauseJoystickToggle') {
+          if (typeof window.toggleJoystickFromPause === 'function') window.toggleJoystickFromPause(input.checked);
+        }
+        if (input.id === 'lightModeToggle' || input.id === 'pauseLightModeToggle') {
+          if (typeof window.toggleLightMode === 'function') window.toggleLightMode(input.checked);
+        }
+      } catch(_) {}
+      refreshToggleVisuals();
+      restoreGameplayHud();
+    }, 0);
+  }, true);
+
+  // 5) レベルアップ後にHUD/ジョイスティックが消えるバグの最終対策。
+  try {
+    const prevCloseLevelUp = closeLevelUpScreen;
+    closeLevelUpScreen = function nsv97CloseLevelUpScreen(){
+      try { if (typeof prevCloseLevelUp === 'function') prevCloseLevelUp.call(this); } catch(_) {}
+      try { gameState = 'playing'; } catch(_) {}
+      try { $('levelUpScreen')?.classList.add('hidden'); $('levelUpScreen')?.style.removeProperty('display'); } catch(_) {}
+      stableShowScreen(null);
+      restoreGameplayHud();
+      setTimeout(restoreGameplayHud, 80);
+      setTimeout(restoreGameplayHud, 220);
+    };
+    window.closeLevelUpScreen = closeLevelUpScreen;
+  } catch(_) {}
+
+  // 6) 定期的なDOM再生成ではなく、状態の再同期だけを軽く行う。
+  function installFinal(){
+    document.body.classList.add('nsv-v97-final');
+    bindScrollGuards();
+    refreshToggleVisuals();
+    if (gameplayHudVisible()) restoreGameplayHud();
+    else if (!$('startScreen')?.classList.contains('hidden')) hideGameplayHudOnMenu();
+    document.querySelectorAll('[data-version-badge],#nsvStableBadge,#nsv94VersionBadge,#nsv93VersionBadge,#nsv95VersionBadge,#nsv96VersionBadge,#nsv97VersionBadge').forEach(el => el.remove());
+    const badge = document.createElement('div');
+    badge.id = 'nsv97VersionBadge';
+    badge.dataset.versionBadge = '1';
+    badge.textContent = PATCH_VERSION;
+    document.body.appendChild(badge);
+    document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = PATCH_VERSION);
+  }
+
+  const style = document.createElement('style');
+  style.id = 'nsv97FinalControlStyle';
+  style.textContent = `
+    .nsv-v97-final #gameCanvas{pointer-events:none!important;}
+    .nsv-v97-final button,.nsv-v97-final [role="button"]{pointer-events:auto!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent;}
+    .nsv-v97-final input,.nsv-v97-final label{pointer-events:auto!important;touch-action:manipulation!important;}
+    .nsv-v97-final .hidden{display:none!important;pointer-events:none!important;}
+    .nsv-toggle-final{position:relative!important;width:56px!important;height:32px!important;min-width:56px!important;max-width:56px!important;display:inline-block!important;flex:0 0 56px!important;overflow:hidden!important;border-radius:9999px!important;line-height:0!important;vertical-align:middle!important;transform:none!important;margin:0!important;}
+    .nsv-toggle-final .block{position:absolute!important;left:0!important;top:0!important;width:56px!important;height:32px!important;border-radius:9999px!important;margin:0!important;transform:none!important;}
+    .nsv-toggle-final .dot{position:absolute!important;top:4px!important;width:24px!important;height:24px!important;border-radius:9999px!important;background:#fff!important;margin:0!important;transform:none!important;transition:left .18s ease!important;}
+    .nsv-toggle-final input:checked ~ .dot{transform:none!important;}
+    #uiLayer:not(.hidden){display:flex!important;pointer-events:none!important;z-index:40!important;}
+    #uiLayer:not(.hidden) #pauseBtn{display:inline-flex!important;pointer-events:auto!important;z-index:60!important;}
+    #joystickZone:not(.hidden){display:flex!important;pointer-events:auto!important;z-index:100!important;}
+    #startScreen:not(.hidden),#upgradeScreen:not(.hidden),#weaponCodexScreen:not(.hidden),#shopScreen:not(.hidden),#missionsScreen:not(.hidden),#collectionScreen:not(.hidden),#leaderboardScreen:not(.hidden),#eventModeScreen:not(.hidden),#onlineRoleScreen:not(.hidden){display:flex!important;pointer-events:auto!important;}
+    #nsv97VersionBadge{position:fixed;left:10px;bottom:8px;z-index:9999;pointer-events:none;color:#e0f2fe;background:rgba(2,6,23,.84);border:1px solid rgba(34,211,238,.72);border-radius:999px;padding:4px 9px;font:900 11px Orbitron,Noto Sans JP,sans-serif;letter-spacing:.08em;box-shadow:0 0 12px rgba(34,211,238,.28);}
+  `;
+  document.head.appendChild(style);
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installFinal, {once:true});
+  else installFinal();
+  window.addEventListener('resize', () => { setTimeout(refreshToggleVisuals, 0); setTimeout(restoreGameplayHud, 0); }, {passive:true});
+  setInterval(() => { refreshToggleVisuals(); if (gameplayHudVisible()) restoreGameplayHud(); }, 1000);
+})();
+
 </script>
 
 </body>
