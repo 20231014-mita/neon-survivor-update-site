@@ -8126,7 +8126,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
 
         /* ===== V88 HOME EVENT BUTTON FINAL FIX: reliable open/join from title menu ===== */
-        installStableMenuButtons = function installStableMenuButtonsFinal() {
+        function installStableMenuButtons() {
             const grid = document.querySelector('#startScreen .menu-grid');
             if (grid) {
                 // Remove old generated event buttons first. This avoids half-bound buttons after updates.
@@ -8170,7 +8170,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             bindFinal('openDailyEventBtn', (e) => { e.preventDefault(); e.stopPropagation(); renderStableDailyEvent(); showScreen('eventModeScreen'); });
             bindFinal('homeDailyEventJoinBtn', (e) => { e.preventDefault(); e.stopPropagation(); startStableDailyEventMatch(); });
             syncHomeDailyEventJoinButton();
-        };
+        }
 
         function handleHomeDailyEventPointer(e) {
             const openBtn = e.target.closest?.('[data-open-daily-event], #openDailyEventBtn');
@@ -8217,6 +8217,334 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', stableBoot, { once: true });
         else stableBoot();
         window.addEventListener('pageshow', () => { updateStableVersionBadge(); syncHomeDailyEventJoinButton(); if (gameState === 'start') showScreen('startScreen'); }, { passive: true });
+
+
+        /* ===== V89 HOME SHOP / DAILY EVENT / FRIEND RANKING FINAL PATCH ===== */
+        const NSV_V89_FRIEND_STORE = 'neon_survivor_friend_rankings_v1';
+        const NSV_V89_FRIEND_ID_STORE = 'neon_survivor_friend_id_v1';
+        const NSV_V89_EVENT_VERSION = 'daily-event-v89-distinct';
+
+        function nsvSafeJsonParse(text, fallback) {
+            try { return JSON.parse(text); } catch(e) { return fallback; }
+        }
+        function nsvUtf8ToB64(text) {
+            return btoa(unescape(encodeURIComponent(String(text || '')))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+        }
+        function nsvB64ToUtf8(text) {
+            const s = String(text || '').replace(/-/g, '+').replace(/_/g, '/');
+            const padded = s + '='.repeat((4 - s.length % 4) % 4);
+            return decodeURIComponent(escape(atob(padded)));
+        }
+        function nsvLocalDateKeyV89(offset = 0) {
+            const d = new Date();
+            d.setHours(0,0,0,0);
+            d.setDate(d.getDate() + Number(offset || 0));
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+        function nsvDayNumberV89(offset = 0) {
+            const d = new Date();
+            d.setHours(0,0,0,0);
+            d.setDate(d.getDate() + Number(offset || 0));
+            return Math.floor(d.getTime() / 86400000);
+        }
+
+        const NSV_DAILY_EVENT_POOL_V89 = [
+            { id:'meteor_dash', name:'メテオダッシュ', type:'スピード', desc:'隕石を避けながら、スピード感のあるサバイバルに挑戦。', rule:'移動速度アップ / 敵の圧力アップ', reward:'コイン +35%', bonus:{speed:1.10, hp:1.00, coins:1.35} },
+            { id:'coin_fever', name:'コインフィーバー', type:'報酬', desc:'今日一番コインを稼ぎやすいボーナスイベント。', rule:'獲得コイン大幅アップ', reward:'コイン +80%', bonus:{speed:1.00, hp:1.00, coins:1.80} },
+            { id:'neon_rush', name:'ネオンラッシュ', type:'スコア', desc:'敵が増える代わりに、ハイスコアを狙いやすい日。', rule:'敵出現アップ / スコア向け', reward:'コイン +45%', bonus:{speed:1.05, hp:1.00, coins:1.45} },
+            { id:'boss_hunt', name:'ボスハント', type:'ボス', desc:'ボス戦を練習しながら、強敵撃破を狙うイベント。', rule:'ボス練習向け / HP少しアップ', reward:'コイン +50%', bonus:{speed:1.00, hp:1.18, coins:1.50} },
+            { id:'gem_storm', name:'ジェムストーム', type:'育成', desc:'経験値ジェムを集めて、一気にレベルアップを楽しむ日。', rule:'成長しやすい / 序盤安定', reward:'コイン +40%', bonus:{speed:1.04, hp:1.10, coins:1.40} },
+            { id:'overdrive', name:'オーバードライブ', type:'高難度', desc:'少し危険だけど、上手く生き残れば報酬が大きい。', rule:'ハイリスク / ハイリターン', reward:'コイン +70%', bonus:{speed:1.08, hp:0.95, coins:1.70} },
+            { id:'shield_trial', name:'シールドトライアル', type:'耐久', desc:'HPボーナス付きで、長く生き残る練習ができる。', rule:'HPアップ / 耐久向け', reward:'コイン +30%', bonus:{speed:0.98, hp:1.30, coins:1.30} },
+            { id:'blackhole_escape', name:'ブラックホール脱出', type:'特殊', desc:'吸い込みギミックを意識して立ち回るスペシャルイベント。', rule:'位置取り重視 / 特殊練習', reward:'コイン +60%', bonus:{speed:1.12, hp:1.05, coins:1.60} }
+        ];
+
+        function getStableDailyEventPick(offset = 0) {
+            const pool = NSV_DAILY_EVENT_POOL_V89;
+            const day = nsvDayNumberV89(offset);
+            const base = 3; // 8個のイベントと相性がよく、毎日違う種類になりやすい固定ステップ
+            const index = ((day * base) + 5) % pool.length;
+            return Object.assign({ dateKey:nsvLocalDateKeyV89(offset), offset, version:NSV_V89_EVENT_VERSION }, pool[index]);
+        }
+        window.getStableDailyEventPick = getStableDailyEventPick;
+
+        function getStableDailyEventPreviewV89() {
+            const used = new Set();
+            return [0,1,2,3].map(offset => {
+                let ev = getStableDailyEventPick(offset);
+                if (used.has(ev.id)) {
+                    const pool = NSV_DAILY_EVENT_POOL_V89;
+                    let start = pool.findIndex(x => x.id === ev.id);
+                    for (let i = 1; i < pool.length; i++) {
+                        const alt = pool[(start + i) % pool.length];
+                        if (!used.has(alt.id)) { ev = Object.assign({ dateKey:nsvLocalDateKeyV89(offset), offset, version:NSV_V89_EVENT_VERSION }, alt); break; }
+                    }
+                }
+                used.add(ev.id);
+                return ev;
+            });
+        }
+
+        function nsvFriendId() {
+            let id = localStorage.getItem(NSV_V89_FRIEND_ID_STORE);
+            if (!id) {
+                id = 'NSF-' + Math.random().toString(36).slice(2, 6).toUpperCase() + '-' + Date.now().toString(36).slice(-4).toUpperCase();
+                localStorage.setItem(NSV_V89_FRIEND_ID_STORE, id);
+            }
+            return id;
+        }
+        function nsvCountMissionCompleted() {
+            try {
+                const m1 = Object.keys(userData?.missions?.completed || {}).length;
+                const m2 = Object.keys(userData?.daily?.completed || {}).length;
+                return m1 + m2;
+            } catch(e) { return 0; }
+        }
+        function nsvOwnRankProfile() {
+            ensureProgressionData?.();
+            const stats = userData?.stats || {};
+            return {
+                v: 1,
+                code: nsvFriendId(),
+                name: normalizeNickname?.(getNickname?.() || userData?.nickname || '') || 'PLAYER',
+                score: Number(userData?.score || 0),
+                coins: Number(userData?.coins || userData?.metaCoins || 0),
+                missions: nsvCountMissionCompleted(),
+                kills: Number(stats.totalKills || stats.dailyKills || 0),
+                bosses: Number(stats.totalBossLikeKills || stats.dailyBossKills || 0),
+                updatedAt: Date.now()
+            };
+        }
+        function nsvLoadFriendStore() {
+            const raw = nsvSafeJsonParse(localStorage.getItem(NSV_V89_FRIEND_STORE) || '{}', {});
+            return { friends: raw.friends && typeof raw.friends === 'object' ? raw.friends : {} };
+        }
+        function nsvSaveFriendStore(store) {
+            try { localStorage.setItem(NSV_V89_FRIEND_STORE, JSON.stringify(store || {friends:{}})); } catch(e) {}
+        }
+        function nsvMakeFriendShareCode() {
+            return 'NSFR.' + nsvUtf8ToB64(JSON.stringify(nsvOwnRankProfile()));
+        }
+        function nsvParseFriendCode(input) {
+            const code = String(input || '').trim();
+            if (!code) return null;
+            if (code.startsWith('NSFR.')) {
+                const profile = nsvSafeJsonParse(nsvB64ToUtf8(code.slice(5)), null);
+                if (profile && profile.code) return profile;
+            }
+            if (/^NSF-[A-Z0-9]+-[A-Z0-9]+$/i.test(code)) return { code: code.toUpperCase(), name: code.toUpperCase(), score:0, coins:0, missions:0, kills:0, bosses:0, updatedAt:0, liveOnly:true };
+            return null;
+        }
+        function nsvAddFriendFromCode(input) {
+            const profile = nsvParseFriendCode(input);
+            if (!profile || !profile.code) { alert('友達コードの形式が正しくありません。'); return false; }
+            if (profile.code === nsvFriendId()) { alert('自分のコードは追加できません。'); return false; }
+            const store = nsvLoadFriendStore();
+            store.friends[profile.code] = Object.assign({}, store.friends[profile.code] || {}, profile, { addedAt: Date.now() });
+            nsvSaveFriendStore(store);
+            nsvStartFriendLiveWatch(profile.code);
+            return true;
+        }
+
+        async function nsvPublishFriendProfile() {
+            try {
+                if (!db || !fbDoc || !fbSetDoc) return false;
+                const profile = nsvOwnRankProfile();
+                const ref = fbDoc(db, 'artifacts', appId, 'public', 'data', 'neon_survivor_friend_rankings', profile.code);
+                await fbSetDoc(ref, profile, { merge: true });
+                return true;
+            } catch(e) { console.warn('Friend ranking publish skipped:', e); return false; }
+        }
+        window.NSV_FRIEND_UNSUBS = window.NSV_FRIEND_UNSUBS || {};
+        function nsvStartFriendLiveWatch(code) {
+            try {
+                if (!code || window.NSV_FRIEND_UNSUBS[code] || !db || !fbDoc || !fbOnSnapshot) return;
+                const ref = fbDoc(db, 'artifacts', appId, 'public', 'data', 'neon_survivor_friend_rankings', code);
+                window.NSV_FRIEND_UNSUBS[code] = fbOnSnapshot(ref, (snap) => {
+                    if (!snap.exists()) return;
+                    const store = nsvLoadFriendStore();
+                    store.friends[code] = Object.assign({}, store.friends[code] || {}, snap.data(), { code });
+                    nsvSaveFriendStore(store);
+                    if (!document.getElementById('leaderboardScreen')?.classList.contains('hidden')) renderStableRanking();
+                });
+            } catch(e) { console.warn('Friend ranking watch skipped:', e); }
+        }
+        function nsvRefreshAllFriendLive() {
+            nsvPublishFriendProfile();
+            const store = nsvLoadFriendStore();
+            Object.keys(store.friends || {}).forEach(nsvStartFriendLiveWatch);
+        }
+
+        function nsvRankRows(metric) {
+            const own = Object.assign({ isMe:true }, nsvOwnRankProfile());
+            const friends = Object.values(nsvLoadFriendStore().friends || {});
+            return [own].concat(friends).sort((a,b) => Number(b[metric] || 0) - Number(a[metric] || 0));
+        }
+        function nsvRankTable(title, metric, suffix = '') {
+            const rows = nsvRankRows(metric).map((p, i) => `<tr class="border-b border-cyan-400/20">
+                <td class="py-2 pr-2 text-yellow-300 font-bold">${i + 1}</td>
+                <td class="py-2 pr-2 ${p.isMe ? 'text-green-300' : 'text-cyan-100'} font-bold">${p.isMe ? '自分' : (p.name || p.code || 'FRIEND')}</td>
+                <td class="py-2 text-right text-white font-black">${Number(p[metric] || 0).toLocaleString()}${suffix}</td>
+            </tr>`).join('');
+            return `<div class="collection-card unlocked"><div class="text-yellow-300 font-bold text-lg mb-2">${title}</div><table class="w-full text-sm"><tbody>${rows}</tbody></table></div>`;
+        }
+
+        function renderStableRanking() {
+            nsvPublishFriendProfile();
+            nsvRefreshAllFriendLive();
+            const own = nsvOwnRankProfile();
+            const friendCount = Object.keys(nsvLoadFriendStore().friends || {}).length;
+            const firebaseReady = !!(db && fbDoc && fbSetDoc && fbOnSnapshot);
+            const body = `
+                <div class="collection-card unlocked" style="border-color:rgba(250,204,21,.9);">
+                    <div class="text-yellow-300 font-bold text-xl">友達ランキング</div>
+                    <p class="text-gray-300 text-sm mt-2">友達からコードをもらって貼ると、スコア・ミッション達成数・コインなどを比べられます。</p>
+                    <p class="text-cyan-200 text-xs mt-2">${firebaseReady ? 'オンライン同期: ON / 友達の記録は開いている間に自動更新されます。' : 'オンライン同期: OFF / Firebase未設定のため、貼り付けたコードの記録を保存して表示します。'}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                        <div class="bg-black/50 border border-cyan-400/40 rounded-xl p-3"><b>自分の友達ID</b><br><input id="ownFriendIdBox" class="menu-input mt-2" value="${own.code}" readonly></div>
+                        <div class="bg-black/50 border border-yellow-400/40 rounded-xl p-3"><b>共有コード</b><br><textarea id="ownFriendShareCodeBox" class="menu-input mt-2" rows="3" readonly>${nsvMakeFriendShareCode()}</textarea></div>
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-2 mt-3">
+                        <button id="copyFriendIdBtn" class="btn-neon px-4 py-2 rounded font-bold">IDをコピー</button>
+                        <button id="copyFriendShareBtn" class="btn-gold px-4 py-2 rounded font-bold">共有コードをコピー</button>
+                    </div>
+                    <div class="mt-5 bg-black/50 border border-green-400/40 rounded-xl p-3">
+                        <b class="text-green-300">友達コードを追加</b>
+                        <textarea id="friendCodeInput" class="menu-input mt-2" rows="3" placeholder="友達のNSFR...コード、またはNSF-...IDを貼る"></textarea>
+                        <div class="flex flex-col md:flex-row gap-2 mt-3">
+                            <button id="addFriendCodeBtn" class="btn-green px-4 py-2 rounded font-bold">追加してランキングを見る</button>
+                            <button id="refreshFriendRanksBtn" class="btn-neon px-4 py-2 rounded font-bold">ランキング更新</button>
+                        </div>
+                        <p class="text-gray-400 text-xs mt-2">登録中の友達: ${friendCount}人</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto max-h-[58vh] pr-1">
+                    ${nsvRankTable('スコアランキング', 'score', ' SCORE')}
+                    ${nsvRankTable('ミッション達成ランキング', 'missions', ' 個')}
+                    ${nsvRankTable('コインランキング', 'coins', ' COINS')}
+                    ${nsvRankTable('ボス撃破ランキング', 'bosses', ' 体')}
+                </div>`;
+            const el = ensureStableScreen('leaderboardScreen', 'RANKING', body);
+            const copyText = async (text) => { try { await navigator.clipboard.writeText(text); alert('コピーしました。'); } catch(e) { prompt('コピーしてください', text); } };
+            el.querySelector('#copyFriendIdBtn')?.addEventListener('click', () => copyText(own.code));
+            el.querySelector('#copyFriendShareBtn')?.addEventListener('click', () => copyText(nsvMakeFriendShareCode()));
+            el.querySelector('#addFriendCodeBtn')?.addEventListener('click', () => {
+                const value = el.querySelector('#friendCodeInput')?.value || '';
+                if (nsvAddFriendFromCode(value)) renderStableRanking();
+            });
+            el.querySelector('#refreshFriendRanksBtn')?.addEventListener('click', () => { nsvRefreshAllFriendLive(); renderStableRanking(); });
+        }
+        window.renderStableRanking = renderStableRanking;
+
+        renderStableDailyEvent = function renderStableDailyEventV89Distinct() {
+            const today = getStableDailyEventPick(0);
+            const state = ensureDailyEventMatchData();
+            const used = Number(state.count || 0);
+            const left = Math.max(0, 5 - used);
+            const disabled = left <= 0;
+            const preview = getStableDailyEventPreviewV89().map(ev => {
+                const isToday = ev.offset === 0;
+                return `<div class="collection-card ${isToday ? 'unlocked' : ''}" style="border-color:${isToday ? 'rgba(250,204,21,.85)' : 'rgba(6,182,212,.35)'};">
+                    <div class="text-xs ${isToday ? 'text-yellow-300' : 'text-cyan-300'} font-bold">${isToday ? 'TODAY' : `${ev.offset}日後`} / ${ev.type}</div>
+                    <div class="text-2xl font-black ${isToday ? 'text-yellow-300' : 'text-cyan-200'} mt-1">${ev.name}</div>
+                    <p class="text-gray-300 text-sm mt-2">${ev.desc}</p>
+                    <div class="text-cyan-100 text-xs mt-3">特殊ルール: ${ev.rule}</div>
+                    <div class="text-yellow-200 text-sm font-bold mt-1">報酬: ${ev.reward}</div>
+                    ${isToday ? `<button type="button" id="dailyEventJoinBtn" data-daily-event-join="1" class="btn-gold px-6 py-3 rounded font-bold mt-4 w-full" ${disabled ? 'disabled' : ''}>${disabled ? '今日は参加上限です' : '今日のイベントに参加'}</button>` : `<div class="text-gray-400 text-xs mt-4">予告のみ / 当日参加できます</div>`}
+                </div>`;
+            }).join('');
+            ensureStableScreen('eventModeScreen', 'DAILY EVENT', `
+                <div class="collection-card unlocked" style="border-color:rgba(250,204,21,.9);box-shadow:0 0 24px rgba(250,204,21,.22);">
+                    <div class="text-yellow-300 font-bold text-sm">今日のイベント</div>
+                    <div class="text-3xl md:text-4xl font-black neon-text mt-1" style="font-family:Orbitron,Noto Sans JP,sans-serif;">${today.name}</div>
+                    <p class="text-gray-200 mt-3">${today.desc}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4 text-sm">
+                        <div class="bg-black/50 border border-cyan-400/40 rounded-xl p-3"><b>タイプ</b><br>${today.type}</div>
+                        <div class="bg-black/50 border border-cyan-400/40 rounded-xl p-3"><b>ルール</b><br>${today.rule}</div>
+                        <div class="bg-black/50 border border-yellow-400/40 rounded-xl p-3"><b>参加回数</b><br><span class="text-yellow-300 font-bold">${used}/5</span> 残り ${left} 回</div>
+                    </div>
+                    <button type="button" id="dailyEventHeroJoinBtn" data-daily-event-join="1" class="btn-neon px-8 py-4 rounded font-bold text-xl mt-5 w-full" ${disabled ? 'disabled' : ''}>${disabled ? '今日は参加上限です' : '今日のイベントに参加'}</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto max-h-[58vh] pr-1">${preview}</div>
+            `);
+            document.querySelectorAll('[data-daily-event-join]').forEach(btn => {
+                btn.style.setProperty('pointer-events','auto','important');
+                btn.style.setProperty('position','relative','important');
+                btn.style.setProperty('z-index','20','important');
+                btn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); startStableDailyEventMatch(); };
+            });
+            syncHomeDailyEventJoinButton();
+        };
+        window.renderStableDailyEvent = renderStableDailyEvent;
+
+        function nsvForceHomeButtonInteractivityV89() {
+            document.querySelectorAll('#startScreen button,#startScreen input,#startScreen label').forEach(el => {
+                el.style.setProperty('pointer-events','auto','important');
+                el.style.setProperty('position','relative','important');
+                el.style.setProperty('z-index','90','important');
+                el.style.setProperty('touch-action','manipulation','important');
+            });
+            ['openShopBtn','openLeaderboardBtn','openDailyEventBtn','homeDailyEventJoinBtn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.disabled = false; el.style.setProperty('pointer-events','auto','important'); }
+            });
+        }
+
+        function nsvHomeMenuFinalRouterV89(e) {
+            const target = e.target;
+            const shop = target.closest?.('#openShopBtn');
+            const ranking = target.closest?.('#openLeaderboardBtn');
+            const eventOpen = target.closest?.('#openDailyEventBtn,[data-open-daily-event]');
+            const eventJoin = target.closest?.('#homeDailyEventJoinBtn,[data-home-daily-event-join]');
+            const hit = shop || ranking || eventOpen || eventJoin;
+            if (!hit) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (hit.dataset.nsvBusy === '1') return;
+            hit.dataset.nsvBusy = '1';
+            try {
+                if (shop) { renderStableShop(); showScreen('shopScreen'); return; }
+                if (ranking) { renderStableRanking(); showScreen('leaderboardScreen'); return; }
+                if (eventOpen) { renderStableDailyEvent(); showScreen('eventModeScreen'); return; }
+                if (eventJoin && !eventJoin.disabled) { startStableDailyEventMatch(); return; }
+            } finally {
+                setTimeout(() => { hit.dataset.nsvBusy = '0'; }, 220);
+            }
+        }
+        if (!window.__NSV_V89_HOME_ROUTER__) {
+            window.__NSV_V89_HOME_ROUTER__ = true;
+            document.addEventListener('click', nsvHomeMenuFinalRouterV89, true);
+            document.addEventListener('pointerup', nsvHomeMenuFinalRouterV89, true);
+        }
+
+        const __nsvV89InstallStableMenuButtons = installStableMenuButtons;
+        installStableMenuButtons = function installStableMenuButtonsV89() {
+            __nsvV89InstallStableMenuButtons?.();
+            nsvForceHomeButtonInteractivityV89();
+            const shop = document.getElementById('openShopBtn');
+            if (shop) shop.onclick = (e) => { e.preventDefault(); e.stopPropagation(); renderStableShop(); showScreen('shopScreen'); };
+            const rank = document.getElementById('openLeaderboardBtn');
+            if (rank) rank.onclick = (e) => { e.preventDefault(); e.stopPropagation(); renderStableRanking(); showScreen('leaderboardScreen'); };
+        };
+        window.installStableMenuButtons = installStableMenuButtons;
+
+        const __nsvV89SaveData = saveData;
+        saveData = function saveDataV89() {
+            const r = __nsvV89SaveData.apply(this, arguments);
+            try { nsvPublishFriendProfile(); } catch(e) {}
+            return r;
+        };
+
+        setTimeout(() => {
+            try {
+                installStableMenuButtons();
+                nsvForceHomeButtonInteractivityV89();
+                nsvPublishFriendProfile();
+                nsvRefreshAllFriendLive();
+                if (typeof gameState !== 'undefined' && gameState === 'start') showScreen('startScreen');
+            } catch(e) { console.warn('V89 final boot skipped:', e); }
+        }, 0);
+
 
 
 </script>
