@@ -1120,7 +1120,7 @@
             { id:'ALL', label:'すべて' }
         ];
 
-        // ===== V30 STABLE: readable Japanese data patch =====
+        // ===== V31 STABLE: readable Japanese data patch =====
         (() => {
             if (window.__NSV_V30_DATA_PATCH__) return;
             window.__NSV_V30_DATA_PATCH__ = true;
@@ -11436,7 +11436,7 @@
 
 
     /* =========================================================
-       V30 STABLE: READABLE NEON PASS SCREEN
+       V31 STABLE: READABLE NEON PASS SCREEN
        - ネオンパス画面を進行状況?報酬・受け取り状態が見やすい形に整?
        - ??ゲーム?は維持。表示とボタンの?りやすさを改?
     ========================================================= */
@@ -11802,7 +11802,7 @@
 
 
 /* =========================================================
-   V30 STABLE FINAL PATCH
+   V31 STABLE FINAL PATCH
    ========================================================= */
 (() => {
   'use strict';
@@ -11811,7 +11811,7 @@
   window[V13_PATCH_ID] = true;
 
   const ADMIN_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
-  const V13_VERSION_TEXT = 'V30 STABLE';
+  const V13_VERSION_TEXT = 'V31 STABLE';
   const ULTIMATE_IDS_V13 = new Set([
     'hollowMurasaki','kamehameha','vader','thor','muryoku','funnel','ironBlaster','disneyMagic','infinitySnap','infiniteBlade','shieldThrow','keraunos','phantomStep',
     'neonLance','phoenixCore','starfallCrown','voidCollector','railCannon','blackholeEmperor','thunderAegis','solarDrill','chronoLotus'
@@ -12710,7 +12710,7 @@
 
 
 /* =========================================================
-   V30 STABLE: SAFE BUTTON / OVERLAY PATCH
+   V31 STABLE: SAFE BUTTON / OVERLAY PATCH
    - 画面の透?重なりを消す
    - 主要?タンをmodule?直接ルー?ング
    - 後ろの古?常scriptのcapture蜃ｦ逅ｈ繧雁縺ｫ蜃ｦ逅☆繧
@@ -12721,7 +12721,7 @@
     if (window.__nsvV17SafeButtonPatch) return;
     window.__nsvV17SafeButtonPatch = true;
 
-    const V17_LABEL = 'V30 STABLE';
+    const V17_LABEL = 'V31 STABLE';
     const ADMIN_FORM_URL_V17 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
     const SCREEN_IDS_V17 = [
         'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen',
@@ -13067,7 +13067,7 @@
 
 
     /* =========================================================
-       V30 STABLE: RESULT / AUTO LIGHT LEVEL / BEGINNER MISSIONS
+       V31 STABLE: RESULT / AUTO LIGHT LEVEL / BEGINNER MISSIONS
        - リザルト画面に武器使用・獲得コイン・達?ミッションをまとめて表示
        - 軽量モードドを Lv1 / Lv2 / Lv3 の段階制で自動調整
        - 初???ョンを追?
@@ -13077,7 +13077,7 @@
         if (window.__nsvV22ResultLightBeginnerPatch) return;
         window.__nsvV22ResultLightBeginnerPatch = true;
 
-        const V22_LABEL = 'V30 STABLE';
+        const V22_LABEL = 'V31 STABLE';
         const V22_BEGINNER_MISSIONS = [
             { id:'b001', cat:'BEGINNER', title:'初??イ?', desc:'ソロかオンライン?1回?レイする', metric:'totalRuns', target:1, reward:{coins:180} },
             { id:'b002', cat:'BEGINNER', title:'3?存チャレンジ', desc:'1回?プレイで180秒生き残る', metric:'bestTime', target:180, reward:{coins:360} },
@@ -13403,7 +13403,7 @@
     })();
 
 /* =========================================================
-   V30 STABLE: HARD SCROLL GUARD + FRIEND CODE RANKING + DAILY EVENT
+   V31 STABLE: HARD SCROLL GUARD + FRIEND CODE RANKING + DAILY EVENT
    - プレビューな?
    - スクロール中の誤タ??? window capture で最優先ブロ?
    - ランキングにコピ?できるフレンドコード?貼り付け?追?
@@ -13411,7 +13411,7 @@
 ========================================================= */
 (function(){
   'use strict';
-  const V24_LABEL = 'V30 STABLE';
+  const V24_LABEL = 'V31 STABLE';
   const FRIEND_STORE_KEY = 'nsv_v24_friend_rows';
   const DAILY_EVENT_KEY = 'nsv_v24_active_daily_event';
 
@@ -14124,7 +14124,7 @@
             if (window[PATCH_ID]) return;
             window[PATCH_ID] = true;
             const ADMIN_FORM_URL_V15 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
-            const V15_VERSION_TEXT = 'V30 STABLE';
+            const V15_VERSION_TEXT = 'V31 STABLE';
             const CORE_IDS = new Set([
                 'startBtn','onlineStartBtn','pauseBtn','resumeBtn','restartBtn','titleFromPauseBtn',
                 'openUpgradeBtn','closeUpgradeBtn','openMissionBtn','closeMissionsBtn','openCollectionBtn','closeCollectionBtn',
@@ -14522,7 +14522,7 @@
 
 <script>
 /* =========================================================
-   V30 STABLE: home placement + BACK button fallback
+   V31 STABLE: home placement + BACK button fallback
    - プレビューな?
    - FULL MENUを消して最初?ホ??配置に戻?
    - Back系ボタンを確実に1回タ??で戻?
@@ -14549,7 +14549,7 @@
       if (settings && joy && light) { settings.appendChild(joy); settings.appendChild(light); }
       document.querySelectorAll('button').forEach(b => { b.style.pointerEvents='auto'; b.style.touchAction='manipulation'; });
       const b13=$('nsvV13Badge'), b14=$('nsvV14Badge'), b15=$('nsvV15Badge');
-      [b13,b14,b15].forEach(b => { if (b) b.textContent='V30 STABLE'; });
+      [b13,b14,b15].forEach(b => { if (b) b.textContent='V31 STABLE'; });
     } catch(e) {}
   }
   function route(id){
@@ -14581,7 +14581,7 @@
 
 <script>
 /* =========================================================
-   V30 STABLE: FIXED HOME LAYOUT + BACK BUTTON HARD PATCH
+   V31 STABLE: FIXED HOME LAYOUT + BACK BUTTON HARD PATCH
    - ホ??のボタン移動を止める
    - SOLO / ONLINE を上段に固定し、他?タンの?1.5倍にする
    - Back ボタン? window capture で最優先???
@@ -14592,7 +14592,7 @@
   if (window.__nsvV18FixedHomeBackPatch) return;
   window.__nsvV18FixedHomeBackPatch = true;
 
-  const VERSION = 'V30 STABLE';
+  const VERSION = 'V31 STABLE';
   const HOME_BUTTON_IDS = new Set([
     'startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn',
     'openBossCodexBtn','openLeaderboardBtn','openDailyEventBtnV13','openBattlePassBtn','openShopBtn','adminContactBtn',
@@ -14815,7 +14815,7 @@
 
 <script>
 /* =========================================================
-   V30 STABLE: ORIENTATION ONLY LAYOUT LOCK
+   V31 STABLE: ORIENTATION ONLY LAYOUT LOCK
    - 画面の向きを変えた時以外、?ー?ボタン位置を動かさな?
    - スクロール揺れ?再?置タイマ?・透?レイヤー干渉を抑え?
    - プレビュー表示な?
@@ -14825,7 +14825,7 @@
   if (window.__nsvV20OrientationLockPatch) return;
   window.__nsvV20OrientationLockPatch = true;
 
-  const VERSION = 'V30 STABLE';
+  const VERSION = 'V31 STABLE';
   const PROTECTED_HOME_IDS = new Set([
     'startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn',
     'openBossCodexBtn','openLeaderboardBtn','openDailyEventBtnV13','openBattlePassBtn','openShopBtn','adminContactBtn',
@@ -15010,14 +15010,14 @@
 
 <script>
 /* =========================================================
-   V30 STABLE: FINAL LABEL
+   V31 STABLE: FINAL LABEL
 ========================================================= */
 (function(){
   'use strict';
   function setV21(){
     ['nsvV20Badge','nsvV18Badge','nsvV17Badge','nsvV15Badge','nsvV14Badge','nsvV13Badge'].forEach(function(id){
       var el = document.getElementById(id);
-      if (el) el.textContent = 'V30 STABLE';
+      if (el) el.textContent = 'V31 STABLE';
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setV21, { once:true });
@@ -15026,12 +15026,12 @@
 })();
 
 /* =========================================================
-   V30 STABLE - HOME SCROLL MIS-TAP GUARD + TOP3 RANKING
+   V31 STABLE - HOME SCROLL MIS-TAP GUARD + TOP3 RANKING
    プレビューな? / ホ??誤タ??防止 / ランキング3位固定表示
 ========================================================= */
 (function(){
   'use strict';
-  const V23_LABEL = 'V30 STABLE';
+  const V23_LABEL = 'V31 STABLE';
 
   function nsvV23Escape(v){
     try {
@@ -15322,7 +15322,7 @@
 
 
 /* =========================================================
-   V30 STABLE: HOME SETTINGS / DATA TRANSFER LAYOUT FIX
+   V31 STABLE: HOME SETTINGS / DATA TRANSFER LAYOUT FIX
    - ??タ引き継ぎを?ー?最下部へ固?
    - 設定?ら重?ベント?タンを除去
    - 管??ォー?を通常ボタン列へ移?
@@ -15331,7 +15331,7 @@
 ========================================================= */
 (function(){
   'use strict';
-  const V25_LABEL = 'V30 STABLE';
+  const V25_LABEL = 'V31 STABLE';
   const CLEAN_ROOT_ID = 'nsvCleanStartRoot20260504';
   const ADMIN_FORM_URL_V25 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
 
@@ -15591,7 +15591,7 @@
 
 
 /* =========================================================
-   V30 STABLE: HOME CLEANUP / TOGGLE SETTINGS / CHEAT POSITION / BIG RANKING
+   V31 STABLE: HOME CLEANUP / TOGGLE SETTINGS / CHEAT POSITION / BIG RANKING
    - ??タ引き継ぎ??下に残る不要表示を削除
    - SETTINGSをON/OFFトグル式に整?
    - チ?トコード???タ引き継ぎの真上へ移?
@@ -15600,7 +15600,7 @@
 ========================================================= */
 (function(){
   'use strict';
-  const V26_LABEL = 'V30 STABLE';
+  const V26_LABEL = 'V31 STABLE';
   const ROOT_ID = 'nsvCleanStartRoot20260504';
   const ADMIN_FORM_URL_V26 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
   const FRIEND_KEY_V26 = 'neon_survivor_friend_rows_v26';
@@ -15922,11 +15922,11 @@
 
 
 // ==========================================================
-// V30 STABLE add-on: no first tutorial, game-over scroll fix, pause cheat input
+// V31 STABLE add-on: no first tutorial, game-over scroll fix, pause cheat input
 // ==========================================================
 (() => {
   'use strict';
-  const V27_VERSION_TEXT = 'V30 STABLE';
+  const V27_VERSION_TEXT = 'V31 STABLE';
 
   function $(id){ return document.getElementById(id); }
   function safe(fn){ try { fn(); } catch(e) { console.warn('V27 patch skipped:', e); } }
@@ -16190,7 +16190,7 @@
 
 <script>
 /* ==========================================================
-   V30 STABLE FINAL UI / TEXT PATCH - no preview build
+   V31 STABLE FINAL UI / TEXT PATCH - no preview build
    目的: スクリーンショットで見えた文字化け、?、□表示、重なりを最終補正
    ========================================================== */
 (() => {
@@ -16253,7 +16253,7 @@
       `; document.head.appendChild(st);
     }
     document.querySelectorAll('.nsv-v13-badge,.nsv-v14-badge,.nsv-v20-badge,.nsv-v24-badge,.nsv-v25-badge,.nsv-v27-badge,.nsv-final-badge').forEach((el,i)=>{ if(i>0 || !el.id) el.remove(); });
-    let b=$('nsvV30Badge'); if(!b){ b=document.createElement('div'); b.id='nsvV30Badge'; b.className='nsv-v30-badge'; document.body.appendChild(b); } b.textContent='V30 STABLE';
+    let b=$('nsvV30Badge'); if(!b){ b=document.createElement('div'); b.id='nsvV30Badge'; b.className='nsv-v30-badge'; document.body.appendChild(b); } b.textContent='V31 STABLE';
   }
   function patchStart(){
     const warn=$('nicknameWarn'); if(warn) warn.textContent='ニックネームを入力するとゲームを開始できます。';
@@ -16315,6 +16315,230 @@
   const mo=new MutationObserver(()=>{ if(lock) return; lock=true; setTimeout(()=>{ try{patchAll();}finally{lock=false;} },60); });
   mo.observe(document.documentElement,{childList:true,subtree:true,characterData:false});
   setInterval(patchAll,1500);
+})();
+</script>
+
+
+<script>
+(() => {
+  'use strict';
+  if (window.__NSV_V31_STABLE_POLISH__) return;
+  window.__NSV_V31_STABLE_POLISH__ = true;
+
+  const $ = (id) => document.getElementById(id);
+  const visible = (el) => !!el && !el.classList.contains('hidden') && getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden';
+  const mojibake = /[縺繧繝譁譛荳驥逕蟄謨蜷蠑遘髢雜譁ｹ蜉髦邨蛻隱螟莉蟆蛹鬮迯雋豁ｦ蝎螳霆譌謌隕邱莠蠢蛟蜀笘竭窶�□]/;
+
+  const dict = [
+    [/軽量モードド/g, '軽量モード'], [/ニックネームを\?れな\?ゲーム開始できません\?/g, 'ニックネームを入れないとゲームを開始できません'],
+    [/自己ベス\?/g, '自己ベスト'], [/スコア\?\?コイン/g, 'スコア・コイン'], [/\?\?タ引き継ぎ/g, 'データ引き継ぎ'],
+    [/ア\?\?グレード/g, 'アップグレード'], [/レベルア\?\?/g, 'レベルアップ'], [/ア\?\?/g, 'アップ'],
+    [/チケ\?/g, 'チケット'], [/交\?/g, '交換'], [/コピ\?/g, 'コピー'], [/クリ\?\?ボ\?ド/g, 'クリップボード'],
+    [/ポ\?ズ/g, 'ポーズ'], [/モ\?ド/g, 'モード'], [/ビ\?\?/g, 'ビーム'], [/ス\?\?/g, 'スピード'],
+    [/初\?\?/g, '初回'], [/\?期/g, '初期'], [/\?酬/g, '報酬'], [/\?ーナス/g, 'ボーナス'],
+    [/攻\?/g, '攻撃'], [/防御\?/g, '防御型'], [/妨害\?/g, '妨害型'], [/移\?/g, '移動'], [/回\?/g, '回避'],
+    [/敵\?\?時/g, '敵撃破時'], [/ボス\?\?時/g, 'ボス撃破時'], [/\?くから/g, '遠くから'], [/安\?に/g, '安全に'],
+    [/強\?\?/g, '強い'], [/弱\?\?/g, '弱い'], [/\?力/g, '高火力'], [/\?距離/g, '遠距離'], [/\?武器/g, '強武器'],
+    [/所\?コイン\?\?/g, '所持コイン：'], [/所持コイン\?\?/g, '所持コイン：'], [/シーズン\?\?/g, 'シーズン：'], [/残り\?\?/g, '残り：'],
+    [/PASS\?\?/g, 'PASS未購入'], [/STAR不足/g, 'スター不足'], [/CLAIM ALL/g, 'CLAIM ALL'], [/CLAIM/g, 'CLAIM'],
+    [/蛟偵☆\s*\?\s*髮ａ繧\s*\?\s*強くな\?/g, '倒す → 集める → 強くなる'],
+    [/Season 1 \/ NEON GENESIS がスタートしました\?\?/g, 'Season 1 / NEON GENESIS がスタートしました！'],
+    [/途中で戻っても、そこまでのスコア\?\?コインを保存します。\?/g, '途中で戻っても、そこまでのスコアとコインを保存します。'],
+    [/ハイスコア・コイン・ア\?\?グレード\?ニックネームをコードで保存できます\?/g, 'ハイスコア・コイン・アップグレード・ニックネームをコードで保存できます。'],
+    [/ジェムを取\?/g, 'ジェムを取る'], [/経験値がたまり、レベルア\?\?する/g, '経験値がたまり、レベルアップします。'],
+    [/武器を選ぶ/g, '武器を選ぶ'], [/レベルア\?\?で強\?器を増や\?/g, 'レベルアップで強い武器を増やします。'],
+    [/ミッションを達成して、コイン・伝説武器・スキン・オーラを解放しよ\?\?/g, 'ミッションを達成して、コイン・伝説武器・スキン・オーラを解放しよう。'],
+    [/笘\s*NEW RECORD\s*笘/g, '★ NEW RECORD ★'], [/7桁コー\?/g, '7桁コード'], [/一時停止中でもチートコードを入力できます\?/g, '一時停止中でもチートコードを入力できます。'],
+    [/今日の大討\?/g, '今日の大討伐'], [/今日の討伐\s*(\d+)体?/g, '今日の討伐 $1体'], [/今日中に敵\?(\d+)菴[\s\S]*?す/g, '今日中に敵を$1体倒す'],
+    [/今日のスコアアタ\?/g, '今日のスコアアタック'], [/今日中にスコア\s*(\d+)を\?\?/g, '今日中にスコア$1を達成する'],
+    [/今日の10\?ャレンジ/g, '今日の10分チャレンジ'], [/今日中に合\?(\d+)秒生き残る/g, '今日中に合計$1秒生き残る'],
+    [/報酬\s*[:：]?\s*/g, '報酬: '], [/蜉?累\s*[:：]?/g, '報酬: '],
+    [/武器図鑑を見る/g, '武器図鑑を見る'], [/使用済み\?\?/g, '使用済み：'], [/解放済み/g, '解放済み'], [/未使用/g, '未使用'],
+    [/攻撃タイプ\?/g, '攻撃タイプ：'], [/強い場面\?/g, '強い場面：'], [/弱い場面\?/g, '弱い場面：'], [/入手\?進化条件\?\?/g, '入手・進化条件：'],
+    [/通常弾/g, '通常弾'], [/周囲を回る/g, '周囲を回る'], [/深淵の重力\?/g, '深淵の重力場'], [/雷\?\?\?・\?/g, '雷神の一撃'], [/跳弾スナイパ\?/g, '跳弾スナイパー'],
+    [/ネオン・プロトランナ\?/g, 'ネオン・プロトランナー'], [/ゼロライト\?リアクター/g, 'ゼロライト・リアクター'], [/ブルーグリ\?・トレイル/g, 'ブルーグリッド・トレイル'],
+    [/ライトア\?\?・ポ\?ズ/g, 'ライトアップ・ポーズ'], [/ホログラ\?・スキャン登場/g, 'ホログラム・スキャン登場'], [/ネオンシ\?・ネ\?\?プレー\?/g, 'ネオンシティ・ネームプレート'],
+    [/バトルパスチケ\?交\?/g, 'バトルパスチケット交換'], [/チケット1.*?交/g, 'チケット1枚交換'], [/初回\?\?/g, '初回は'], [/2回目以降\?/g, '2回目以降は'],
+    [/自\?\?フレンドコー\?/g, '自分のフレンドコード'], [/コード部\?COPYを押すとコピ\?できます\?/g, 'コード部分かCOPYを押すとコピーできます。'],
+    [/ネオン収穫祭/g, 'ネオン収穫祭'], [/ボス特訓デー/g, 'ボス特訓デー'], [/コインフィーバ\?/g, 'コインフィーバー'], [/スピ\?ドトライアル/g, 'スピードトライアル'], [/武器研究\?\?/g, '武器研究デー'], [/サバイバルナイ\?/g, 'サバイバルナイト'], [/ミッションスプリン\?/g, 'ミッションスプリント']
+  ];
+
+  const fallbackMap = [
+    [/^初期攻.*/, '初期攻撃アップ'], [/^騾.*/, '連射強化'], [/^貫通チ.*/, '貫通チップ'], [/^太陽神.*/, '太陽神ヘリオス'],
+    [/^蒼炎オーラ.*/, '蒼炎オーラ'], [/^猛毒パルス.*/, '猛毒パルス'], [/^王.*冠.*/, '王冠ハロー'], [/^虚空.*/, '虚空の星雲マント'],
+    [/^業火.*/, '業火マント'], [/^ブラ.ホ.ル.*/, 'ブラックホールコア'], [/^創世.*/, '創世の光芒'], [/^星.きの流星群.*/, '星なき流星群'],
+    [/^無量空.*/, '無量空処'], [/^絶対防壁.*/, '絶対防壁・反響'], [/^ファントムダガー.*/, 'ファントムダガー'], [/^バナナスリ.*/, 'バナナスリップ砲'],
+    [/^アストラル.*/, 'アストラル・ジャッジメント'], [/^コズミック.*/, 'コズミック・スシレイン'], [/^重力追尾.*/, '重力追尾・グラビトンダガー']
+  ];
+
+  function cleanText(value) {
+    let t = String(value ?? '');
+    if (!t.trim()) return t;
+    for (const [a, b] of dict) t = t.replace(a, b);
+    t = t
+      .replace(/敵を合\?(\d+)菴[^\s]*/g, '敵を合計$1体倒す')
+      .replace(/敵\?\?(\d+)菴[^\s]*/g, '敵を$1体倒す')
+      .replace(/敵\?\?\?\?/g, '敵撃破')
+      .replace(/ジェム\?\?(\d+)蛟/g, 'ジェム $1個')
+      .replace(/選んだ武器\?\?(\d+)蝗/g, '選んだ武器 $1回')
+      .replace(/(\d+)蛟/g, '$1倍')
+      .replace(/(\d+)菴/g, '$1体')
+      .replace(/(\d+)蝗/g, '$1回')
+      .replace(/[][^\s　]*/g, '')
+      .replace(/[竭][｡｢｣]?/g, '')
+      .replace(/[□�]+/g, '')
+      .replace(/\?\?/g, '：')
+      .replace(/\?([。、，,.！!：:])/g, '$1')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    for (const [a, b] of fallbackMap) if (mojibake.test(t) && a.test(t)) t = b;
+    if (mojibake.test(t)) {
+      t = t.replace(/[縺繧繝譁譛荳驥逕蟄謨蜷蠑遘髢雜譁ｹ蜉髦邨蛻隱螟莉蟆蛹鬮迯雋豁ｦ蝎螳霆譌謌隕邱莠蠢蛟蜀笘竭窶�□]+/g, '')
+           .replace(/\s{2,}/g, ' ')
+           .trim();
+    }
+    return t || String(value ?? '');
+  }
+
+  function installCss() {
+    if ($('nsvV31Style')) return;
+    const st = document.createElement('style');
+    st.id = 'nsvV31Style';
+    st.textContent = `
+      :root{--nsv-vh:100svh} html,body{width:100%;height:100%;max-width:100%;overflow:hidden;background:#050505} body{position:fixed;inset:0;overscroll-behavior:none;-webkit-text-size-adjust:100%}
+      #gameCanvas{position:fixed!important;inset:0!important;width:100vw!important;height:var(--nsv-vh)!important;z-index:0!important}
+      #startScreen,#upgradeScreen,#missionsScreen,#collectionScreen,#weaponCodexScreen,#onlineRoleScreen,#battlePassScreen,#shopScreen,#bossCodexScreen,#rankingScreen,#settingsScreen,#saveScreen,#friendScreen,#adminContactScreen{height:var(--nsv-vh)!important;max-height:var(--nsv-vh)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;align-items:flex-start!important;justify-content:flex-start!important;padding:clamp(10px,2vw,22px)!important;padding-bottom:90px!important;box-sizing:border-box!important}
+      #pauseScreen,#gameOverScreen{height:var(--nsv-vh)!important;max-height:var(--nsv-vh)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;align-items:center!important;justify-content:flex-start!important;padding:18px 12px 90px!important;box-sizing:border-box!important}
+      .menu-panel,.nsv-v22-panel,.nsv-v24-panel,.nsv-v25-panel,.nsv-pass-card,.nsv-shop-card{width:min(96vw,1180px)!important;max-width:1180px!important;box-sizing:border-box!important;overflow-wrap:anywhere!important}
+      .menu-grid,.nsv-v16-menu-grid,.nsv-v22-grid{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))!important;gap:12px!important}
+      button,[role=button],label,.cursor-pointer,.upgrade-card,.mission-card,.collection-card{min-height:44px;pointer-events:auto!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent}
+      #uiLayer{transition:opacity .12s ease} body.nsv-menu-visible #uiLayer{opacity:0!important;pointer-events:none!important} body.nsv-in-game #uiLayer{opacity:1!important}
+      #bossHpContainer{max-width:min(92vw,640px)!important}.result-grid{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))!important}
+      #nsvV30Badge,.nsv-v30-badge{display:none!important}.nsv-v31-badge{position:fixed;left:10px;bottom:8px;z-index:1000;color:#67e8f9;background:rgba(0,0,0,.66);border:1px solid rgba(103,232,249,.55);border-radius:999px;padding:4px 10px;font:800 11px Orbitron,sans-serif;box-shadow:0 0 12px rgba(34,211,238,.35);pointer-events:none}
+      body.nsv-low-fps canvas{filter:saturate(.92) brightness(.94)} body.nsv-low-fps .neon-text,body.nsv-low-fps .btn-neon,body.nsv-low-fps .btn-gold,body.nsv-low-fps .btn-purple,body.nsv-low-fps .btn-green{box-shadow:none!important;text-shadow:none!important}
+      @media(max-width:720px){.neon-title{font-size:clamp(2.5rem,13vw,4rem)!important}.solo-hero{min-height:82px!important}.menu-secondary{min-height:60px!important}h1,h2{line-height:1.05!important}.mission-card,.collection-card,.upgrade-card{padding:12px!important}}
+    `;
+    document.head.appendChild(st);
+  }
+
+  function setVh() {
+    document.documentElement.style.setProperty('--nsv-vh', `${window.innerHeight}px`);
+  }
+
+  function patchVersion() {
+    document.querySelectorAll('.nsv-v13-badge,.nsv-v14-badge,.nsv-v20-badge,.nsv-v24-badge,.nsv-v25-badge,.nsv-v27-badge,.nsv-final-badge,#nsvV30Badge,.nsv-v30-badge').forEach(el => el.remove());
+    let b = $('nsvV31Badge');
+    if (!b) { b = document.createElement('div'); b.id = 'nsvV31Badge'; b.className = 'nsv-v31-badge'; document.body.appendChild(b); }
+    b.textContent = 'V31 STABLE';
+  }
+
+  function patchStaticLabels() {
+    const data = {
+      nicknameWarn: 'ニックネームを入力するとゲームを開始できます。',
+      weaponCodexSummary: (($('weaponCodexSummary') || {}).textContent || '').replace(/^解放済み/, '使用済み:'),
+      newRecordText: '★ NEW RECORD ★'
+    };
+    Object.entries(data).forEach(([id, text]) => { const el = $(id); if (el && text) el.textContent = cleanText(text); });
+    const placeholder = { nicknameInput: 'ニックネーム', nsvV27PauseCheatInput: '7桁コード' };
+    Object.entries(placeholder).forEach(([id, text]) => { const el = $(id); if (el) el.placeholder = text; });
+    const html = {
+      startBtn: '<span class="beginner-badge">はじめてならここから</span>SOLO START<span class="solo-sub">1人で練習・ミッションを進める</span>',
+      openWeaponCodexBtn: 'WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">武器図鑑を見る</span>',
+      openBossCodexBtn: 'BOSS CODEX<br><span class="text-xs font-bold">ボス図鑑</span>',
+      openBattlePassBtn: 'NEON PASS<br><span class="text-xs text-purple-100 font-bold">シーズン報酬</span>',
+      openShopBtn: 'SHOP<br><span class="text-xs text-yellow-100 font-bold">チケット交換</span>'
+    };
+    Object.entries(html).forEach(([id, value]) => { const el = $(id); if (el && el.innerHTML !== value) el.innerHTML = value; });
+  }
+
+  function cleanDom(root = document.body) {
+    if (!root) return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const p = node.parentElement;
+        if (!p || ['SCRIPT','STYLE','TEXTAREA'].includes(p.tagName)) return NodeFilter.FILTER_REJECT;
+        if (!/[?縺繧繝譁譛荳驥逕蟄謨蜷蠑遘髢雜譁ｹ蜉髦邨蛻隱螟莉蟆蛹鬮迯雋豁ｦ蝎螳霆譌謌隕邱莠蠢蛟蜀笘竭窶�□]/.test(node.nodeValue)) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(n => { const c = cleanText(n.nodeValue); if (c !== n.nodeValue) n.nodeValue = c; });
+    root.querySelectorAll('input[placeholder],textarea[placeholder],button[title],[title]').forEach(el => {
+      if (el.placeholder) el.placeholder = cleanText(el.placeholder);
+      if (el.title) el.title = cleanText(el.title);
+    });
+  }
+
+  function patchCards() {
+    const upgrades = [
+      ['初期HPアップ','開始時の最大HPが20増えます。'], ['初期攻撃アップ','開始時の弾ダメージが5増えます。'], ['移動速度アップ','開始時の移動速度が少し上がります。'], ['経験値アップ','経験値の取得量が20%増えます。'],
+      ['ネオン装甲','受けるダメージを少し減らします。'], ['ジェム磁力強化','経験値ジェムを遠くから吸い寄せます。'], ['連射強化','通常弾の発射間隔が短くなります。'], ['貫通チップ','通常弾の貫通力が上がります。']
+    ];
+    document.querySelectorAll('#upgradeListContainer .upgrade-card,#upgradeListContainer > div').forEach((card, i) => {
+      if (!upgrades[i]) return; const h = card.querySelector('h3,.text-xl,.font-bold'); const p = card.querySelector('p');
+      if (h) h.textContent = upgrades[i][0]; if (p) p.textContent = upgrades[i][1];
+    });
+    document.querySelectorAll('#missionsListContainer .mission-card').forEach(card => {
+      const h = card.querySelector('h3'); const p = card.querySelector('p.text-sm'); const r = card.querySelector('.text-yellow-200'); const progress = (card.querySelector('.text-right')?.textContent || '').trim();
+      const target = Number((progress.split('/')[1] || '').replace(/[^0-9]/g, ''));
+      if (h) h.textContent = cleanText(h.textContent); if (p) p.textContent = cleanText(p.textContent); if (r) r.textContent = cleanText(r.textContent);
+      if (target && /DAILY/i.test(card.textContent)) {
+        if ([80,180,360].includes(target)) { if (h) h.textContent = `今日の討伐 ${target}体`; if (p) p.textContent = `今日中に敵を${target}体倒す`; }
+        if ([300,600].includes(target)) { if (h) h.textContent = `今日の生存チャレンジ ${Math.round(target/60)}分`; if (p) p.textContent = `今日中に合計${target}秒生き残る`; }
+        if (target === 8000) { if (h) h.textContent = '今日のスコアアタック'; if (p) p.textContent = '今日中にスコア8000を達成する'; }
+      }
+    });
+    document.querySelectorAll('#weaponCodexListContainer .collection-card,#collectionListContainer .collection-card').forEach(card => {
+      const icon = card.querySelector('.text-3xl,.text-4xl,.text-5xl'); if (icon && mojibake.test(icon.textContent)) icon.textContent = '◆';
+      card.querySelectorAll('h3,p,span,button,div').forEach(el => { if (el.children.length === 0) el.textContent = cleanText(el.textContent); });
+    });
+  }
+
+  function screenState() {
+    const menuIds = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','onlineRoleScreen','battlePassScreen','shopScreen','bossCodexScreen','rankingScreen','settingsScreen','saveScreen','friendScreen','adminContactScreen','pauseScreen','gameOverScreen'];
+    const anyMenu = menuIds.some(id => visible($(id)));
+    document.body.classList.toggle('nsv-menu-visible', anyMenu);
+    document.body.classList.toggle('nsv-in-game', !anyMenu);
+  }
+
+  function preventScrollMisTap() {
+    if (window.__NSV_V31_MISTAP_GUARD__) return;
+    window.__NSV_V31_MISTAP_GUARD__ = true;
+    let sx = 0, sy = 0, moved = false;
+    document.addEventListener('touchstart', e => { const t = e.touches[0]; if (!t) return; sx = t.clientX; sy = t.clientY; moved = false; }, {passive:true, capture:true});
+    document.addEventListener('touchmove', e => { const t = e.touches[0]; if (!t) return; if (Math.abs(t.clientX - sx) + Math.abs(t.clientY - sy) > 18) moved = true; }, {passive:true, capture:true});
+    document.addEventListener('click', e => { if (moved && e.target && e.target.closest && e.target.closest('button,[role=button],.cursor-pointer')) { e.preventDefault(); e.stopImmediatePropagation(); moved = false; } }, true);
+  }
+
+  function autoLighten() {
+    if (window.__NSV_V31_FPS_WATCH__) return;
+    window.__NSV_V31_FPS_WATCH__ = true;
+    let last = performance.now(), bad = 0, good = 0;
+    function tick(now) {
+      const dt = now - last; last = now;
+      if (!document.body.classList.contains('nsv-menu-visible')) {
+        if (dt > 42) { bad++; good = 0; } else if (dt < 25) { good++; bad = Math.max(0, bad - 1); }
+        if (bad > 90) { document.body.classList.add('nsv-low-fps'); if (typeof window.toggleLightMode === 'function') window.toggleLightMode(true); bad = 0; }
+        if (good > 360) { document.body.classList.remove('nsv-low-fps'); good = 0; }
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function run() {
+    installCss(); setVh(); patchVersion(); patchStaticLabels(); patchCards(); cleanDom(); screenState(); preventScrollMisTap(); autoLighten();
+    ['startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn','openBossCodexBtn','openRankingBtn','openBattlePassBtn','openShopBtn','closeUpgradeBtn','closeMissionsBtn','closeCollectionBtn','closeWeaponCodexBtn','closeOnlineRoleBtn','restartBtn','resumeBtn','titleFromPauseBtn'].forEach(id => { const b = $(id); if (b) b.disabled = false; });
+  }
+
+  window.addEventListener('resize', () => { setVh(); screenState(); }, {passive:true});
+  window.addEventListener('orientationchange', () => setTimeout(() => { setVh(); run(); }, 250), {passive:true});
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, {once:true}); else run();
+  let queued = false;
+  const mo = new MutationObserver(() => { if (queued) return; queued = true; setTimeout(() => { queued = false; run(); }, 80); });
+  mo.observe(document.documentElement, {childList:true, subtree:true, characterData:true});
+  setInterval(run, 1200);
 })();
 </script>
 
