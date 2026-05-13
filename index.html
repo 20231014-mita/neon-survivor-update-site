@@ -8657,6 +8657,397 @@ window.NEON_FIREBASE_CONFIG = {
         }
 
 
+
+
+/* ===== V91 MINIMAL REQUEST FIX / Firebase config untouched ===== */
+const NSV_REQUEST_FIX_VERSION = 'V91 REQUEST FIX';
+window.GAME_VERSION = NSV_REQUEST_FIX_VERSION;
+
+function nsvFixToggleDotsV91() {
+    document.querySelectorAll('input[type="checkbox"].sr-only').forEach(input => {
+        const box = input.parentElement;
+        if (!box) return;
+        const track = box.querySelector('.block.bg-gray-600, .block');
+        const dot = box.querySelector('.dot');
+        box.style.position = 'relative';
+        box.style.width = '56px';
+        box.style.height = '32px';
+        box.style.minWidth = '56px';
+        box.style.flex = '0 0 56px';
+        if (track) {
+            track.style.width = '56px';
+            track.style.height = '32px';
+            track.style.borderRadius = '999px';
+            track.style.position = 'absolute';
+            track.style.left = '0px';
+            track.style.top = '0px';
+            track.style.backgroundColor = input.checked ? '#06b6d4' : '#4b5563';
+        }
+        if (dot) {
+            dot.style.position = 'absolute';
+            dot.style.width = '24px';
+            dot.style.height = '24px';
+            dot.style.left = '4px';
+            dot.style.top = '4px';
+            dot.style.borderRadius = '999px';
+            dot.style.background = '#fff';
+            dot.style.transform = input.checked ? 'translateX(24px)' : 'translateX(0px)';
+            dot.style.transition = 'transform .22s ease';
+            dot.style.pointerEvents = 'none';
+        }
+    });
+}
+
+updateStableVersionBadge = function() {
+    document.querySelectorAll('[data-version-badge],#nsvV30Badge,#nsvV31Badge,#nsvV33Badge,#nsvV34Badge,#nsvV35Badge,#nsvV37Badge,#nsvV39Badge,#nsvV59Badge,#nsvV74Badge,#nsvV80BuildBadge,#nsvV81BuildBadge,#nsvStableBadge:not(:last-of-type)').forEach(el => {
+        if (el.id !== 'nsvStableBadge') el.remove();
+    });
+    let b = document.getElementById('nsvStableBadge');
+    if (!b) { b = document.createElement('div'); b.id = 'nsvStableBadge'; document.body.appendChild(b); }
+    b.textContent = NSV_REQUEST_FIX_VERSION;
+    Object.assign(b.style, {position:'fixed',left:'10px',bottom:'8px',zIndex:'9999',pointerEvents:'none',color:'#67e8f9',background:'rgba(2,6,23,.78)',border:'1px solid rgba(103,232,249,.55)',borderRadius:'999px',padding:'4px 9px',font:'900 11px Orbitron, Noto Sans JP, sans-serif',letterSpacing:'.08em',boxShadow:'0 0 12px rgba(34,211,238,.28)'});
+    document.querySelectorAll('.nsv-pause-mini').forEach(el => { el.textContent = NSV_REQUEST_FIX_VERSION; });
+}
+
+function nsvEnsurePlayHudVisibleV91() {
+    const playing = gameState === 'playing';
+    const paused = gameState === 'paused';
+    const ui = document.getElementById('uiLayer');
+    const pause = document.getElementById('pauseBtn');
+    if (ui) {
+        ui.classList.toggle('hidden', !playing && !paused);
+        ui.style.display = (playing || paused) ? 'flex' : '';
+        ui.style.pointerEvents = 'none';
+    }
+    if (pause) {
+        pause.classList.remove('hidden');
+        pause.style.display = (playing || paused) ? 'flex' : '';
+        pause.style.pointerEvents = 'auto';
+        pause.style.position = 'relative';
+        pause.style.zIndex = '120';
+    }
+    const hp = document.getElementById('hpBar');
+    const exp = document.getElementById('expBar');
+    const scoreEl = document.getElementById('scoreDisplay');
+    const levelEl = document.getElementById('levelDisplay');
+    if (player) {
+        if (hp) hp.style.width = `${Math.max(0, Math.min(100, (player.hp / Math.max(1, player.maxHp)) * 100))}%`;
+        if (exp) exp.style.width = `${Math.max(0, Math.min(100, (player.exp / Math.max(1, player.expToNext)) * 100))}%`;
+        if (scoreEl) scoreEl.textContent = String(Math.floor(score || 0));
+        if (levelEl) levelEl.textContent = String(player.level || 1);
+    }
+    syncJoystickVisibility();
+}
+
+showScreen = function(screenId) {
+    const menuScreens = [
+        'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen',
+        'leaderboardScreen','eventModeScreen','onlineRoleScreen','levelUpScreen','gameOverScreen',
+        'pauseScreen','shopScreen','tutorialOverlay'
+    ];
+    const requested = screenId && document.getElementById(screenId) ? screenId : (screenId ? 'startScreen' : null);
+    menuScreens.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const show = id === requested;
+        el.classList.toggle('hidden', !show);
+        el.style.pointerEvents = show ? 'auto' : 'none';
+        if (show) el.style.display = 'flex';
+        else el.style.removeProperty('display');
+    });
+    const showHud = !requested && (gameState === 'playing' || gameState === 'paused');
+    const hud = document.getElementById('uiLayer');
+    if (hud) {
+        hud.classList.toggle('hidden', !showHud);
+        if (showHud) hud.style.display = 'flex';
+        else hud.style.removeProperty('display');
+    }
+    if (!showHud) {
+        const joy = document.getElementById('joystickZone');
+        if (joy) joy.classList.add('hidden');
+        document.getElementById('bossWarning')?.classList.add('hidden');
+        document.getElementById('bossHpContainer')?.classList.add('hidden');
+    } else {
+        nsvEnsurePlayHudVisibleV91();
+    }
+    nsvFixToggleDotsV91();
+    updateStableVersionBadge();
+}
+
+requireNickname = function() {
+    const input = document.getElementById('nicknameInput');
+    const warn = document.getElementById('nicknameWarn');
+    const nick = normalizeNickname(input ? input.value : '');
+    if (!nick) {
+        if (warn) {
+            warn.textContent = 'ニックネームは必須です。入力してからスタートしてください。';
+            warn.classList.remove('hidden');
+        }
+        if (input) {
+            input.classList.add('border-red-500');
+            input.focus();
+        }
+        return false;
+    }
+    userData.nickname = nick;
+    try { localStorage.setItem('neon_survivor_nickname', nick); } catch(e) {}
+    if (warn) warn.classList.add('hidden');
+    if (input) input.classList.remove('border-red-500');
+    saveData();
+    const label = document.getElementById('onlineNickLabel');
+    if (label) label.innerText = nick;
+    return true;
+}
+
+function nsvPrefillNicknameV91() {
+    const input = document.getElementById('nicknameInput');
+    if (!input) return;
+    const saved = normalizeNickname(localStorage.getItem('neon_survivor_nickname') || userData?.nickname || '');
+    if (saved && !input.value) input.value = saved;
+    const label = document.querySelector('label[for="nicknameInput"]');
+    if (label) label.innerHTML = 'ニックネーム <span class="text-red-300">必須</span>';
+    const warn = document.getElementById('nicknameWarn');
+    if (warn) warn.textContent = 'ニックネームは必須です。入力してからスタートしてください。';
+}
+
+function nsvRenderUpgradeScreenV91() {
+    try { renderUpgradeScreen(); } catch(e) { console.warn('upgrade render fallback', e); }
+    const screen = document.getElementById('upgradeScreen');
+    const container = document.getElementById('upgradeListContainer');
+    if (screen) {
+        screen.style.alignItems = 'center';
+        screen.style.justifyContent = 'center';
+        screen.style.overflowY = 'auto';
+        screen.style.padding = '14px';
+        screen.style.touchAction = 'pan-y';
+    }
+    if (container) {
+        container.style.width = 'min(94vw, 980px)';
+        container.style.maxHeight = '68vh';
+        container.style.overflowY = 'auto';
+        container.style.paddingBottom = '18px';
+        if (!container.children.length && Array.isArray(upgradeDef)) {
+            container.innerHTML = upgradeDef.map(u => {
+                const lv = Number(userData?.upgrades?.[u.id] || 0);
+                const cost = Math.floor(120 * Math.pow(1.45, lv));
+                return `<button class="upgrade-card p-4 rounded-lg text-left" data-upgrade-id="${u.id}">
+                    <div class="text-3xl">${u.icon || '⚡'}</div><h3 class="font-bold text-yellow-300 mt-1">${u.name}</h3>
+                    <p class="text-sm text-gray-300">${u.desc || ''}</p><p class="text-cyan-200 text-sm mt-2">LV ${lv} / COST ${cost}</p></button>`;
+            }).join('');
+            container.querySelectorAll('[data-upgrade-id]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.dataset.upgradeId;
+                    const lv = Number(userData.upgrades[id] || 0);
+                    const cost = Math.floor(120 * Math.pow(1.45, lv));
+                    if (Number(userData.coins || 0) < cost) { alert('コインが足りません。'); return; }
+                    userData.coins -= cost; userData.upgrades[id] = lv + 1; saveData(); nsvRenderUpgradeScreenV91();
+                });
+            });
+        }
+    }
+}
+
+function nsvRenderWeaponCodexScreenV91() {
+    try { renderWeaponCodexScreen(); } catch(e) { console.warn('weapon codex render fallback', e); }
+    const screen = document.getElementById('weaponCodexScreen');
+    const container = document.getElementById('weaponCodexListContainer');
+    if (screen) {
+        screen.style.overflowY = 'auto';
+        screen.style.padding = '14px';
+        screen.style.touchAction = 'pan-y';
+    }
+    if (container) {
+        container.style.width = '100%';
+        container.style.maxHeight = '72vh';
+        container.style.overflowY = 'auto';
+        if (!container.children.length) {
+            let defs = [];
+            try { defs = getAllWeaponCodexDefs(); } catch(e) {}
+            container.innerHTML = defs.map(w => `<div class="collection-card unlocked"><h3 class="font-bold text-cyan-300">${w.icon || '⚔️'} ${w.name || w.id}</h3><p class="text-sm text-gray-300">${w.desc || ''}</p></div>`).join('') || '<p class="text-gray-300">武器図鑑を読み込めませんでした。</p>';
+        }
+    }
+}
+
+function nsvOpenOnlineV91() {
+    if (!requireNickname()) return;
+    try { renderOnlineRoleScreen(); } catch(e) { console.warn('online role render failed', e); }
+    const container = document.getElementById('onlineRoleListContainer');
+    if (container && !container.querySelector('[data-role-id]')) {
+        container.innerHTML = `<button class="upgrade-card p-5 rounded-lg text-left cursor-pointer pointer-events-auto" data-role-id="attacker">
+            <h3 class="text-2xl font-bold text-yellow-300">ATTACKER</h3><p class="text-gray-300 text-sm mt-2">オンラインバトルを開始します。</p></button>`;
+    }
+    container?.querySelectorAll('[data-role-id]').forEach(btn => {
+        btn.onclick = () => { selectedOnlineRoleId = btn.dataset.roleId || 'attacker'; initGame('online'); };
+    });
+    showScreen('onlineRoleScreen');
+}
+
+const nsvOriginalInitGameV91 = initGame;
+initGame = function(mode = 'solo') {
+    if (!requireNickname()) return;
+    const ret = nsvOriginalInitGameV91.apply(this, arguments);
+    setTimeout(() => {
+        if (gameState === 'playing' || gameState === 'tutorial') {
+            if (gameState === 'playing') showScreen(null);
+            nsvApplyActiveAdminCheatsToPlayerV91();
+            nsvEnsurePlayHudVisibleV91();
+        }
+    }, 40);
+    return ret;
+};
+
+closeLevelUpScreen = function() {
+    gameState = 'playing';
+    showScreen(null);
+    lastTime = performance.now();
+    let isCharging = (hollowMurasakiCharges?.length || 0) > 0 || (infiniteBladeCharges?.length || 0) > 0 || (keraunosCharges?.length || 0) > 0 || (blackholes?.length || 0) > 0;
+    if (!isCharging && player && !player.pendingMonkeyBoss && !player.pendingBossSpawn && !player.pendingMidBossSpawn) isTimeStopped = false;
+    nsvApplyActiveAdminCheatsToPlayerV91();
+    nsvEnsurePlayHudVisibleV91();
+    if (animationId) cancelAnimationFrame(animationId);
+    animationId = requestAnimationFrame(gameLoop);
+}
+
+function nsvEnsureAdminCodeUIV91() {
+    const homePanel = document.querySelector('#startScreen .menu-panel');
+    if (homePanel && !document.getElementById('adminCodeHomeBox')) {
+        const box = document.createElement('div');
+        box.id = 'adminCodeHomeBox';
+        box.className = 'bg-gray-900/80 p-4 rounded-xl border border-yellow-500/40 w-full';
+        box.innerHTML = `<div class="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+            <div><span class="text-yellow-300 font-bold text-sm tracking-wider">管理者コード</span><p class="text-gray-400 text-xs mt-1">7桁のコードを入力して適用します。</p></div>
+            <div class="flex gap-2"><input id="adminCodeInputHome" class="menu-input" inputmode="numeric" maxlength="7" placeholder="コード入力" style="max-width:150px"><button id="adminCodeApplyHome" class="btn-gold px-4 py-2 rounded font-bold">APPLY</button></div>
+        </div>`;
+        homePanel.appendChild(box);
+    }
+    const pauseExtra = document.getElementById('pauseExtraArea');
+    if (pauseExtra && !document.getElementById('adminCodePauseBox')) {
+        const box = document.createElement('div');
+        box.id = 'adminCodePauseBox';
+        box.innerHTML = `<div class="bg-gray-900/80 p-4 rounded-xl border border-yellow-500/40 w-full">
+            <div class="text-yellow-300 font-bold text-sm tracking-wider mb-2">管理者コード</div>
+            <div class="flex flex-col sm:flex-row gap-2"><input id="adminCodeInputPause" class="menu-input" inputmode="numeric" maxlength="7" placeholder="コード入力"><button id="adminCodeApplyPause" class="btn-gold px-4 py-2 rounded font-bold">APPLY</button></div>
+        </div>`;
+        pauseExtra.appendChild(box);
+    }
+    document.getElementById('adminCodeApplyHome')?.addEventListener('click', () => nsvApplyAdminCodeV91(document.getElementById('adminCodeInputHome')?.value));
+    document.getElementById('adminCodeApplyPause')?.addEventListener('click', () => nsvApplyAdminCodeV91(document.getElementById('adminCodeInputPause')?.value));
+    ['adminCodeInputHome','adminCodeInputPause'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input && !input.dataset.nsvAdminBound) {
+            input.dataset.nsvAdminBound = '1';
+            input.addEventListener('keydown', e => { if (e.key === 'Enter') nsvApplyAdminCodeV91(input.value); });
+        }
+    });
+}
+
+function nsvEnsureCheatStateV91() {
+    userData.adminCheats = userData.adminCheats || { hpMult:1, atkMult:1, speedMult:1, regen:0 };
+    return userData.adminCheats;
+}
+function nsvUnlockAllLegendaryV91(codexToo = false, ultimateToo = false) {
+    ensureProgressionData();
+    userData.unlocks = userData.unlocks || {}; userData.unlocks.legendaryWeapons = userData.unlocks.legendaryWeapons || {};
+    try { (LEGENDARY_WEAPON_DEFS || []).forEach(w => { userData.unlocks.legendaryWeapons[w.id] = true; }); } catch(e) {}
+    if (codexToo) {
+        userData.codex = userData.codex || {}; userData.codex.weapons = userData.codex.weapons || {};
+        try { getAllWeaponCodexDefs().forEach(w => { userData.codex.weapons[w.id] = true; }); } catch(e) {}
+    }
+    if (ultimateToo) userData.allUltimateUnlocked = true;
+}
+function nsvAddAllUpgradeLevelsV91(n) {
+    userData.upgrades = userData.upgrades || {};
+    Object.keys(userData.upgrades).forEach(k => userData.upgrades[k] = Number(userData.upgrades[k] || 0) + n);
+    if (Array.isArray(upgradeDef)) upgradeDef.forEach(u => { userData.upgrades[u.id] = Number(userData.upgrades[u.id] || 0) + n; });
+}
+function nsvApplyActiveAdminCheatsToPlayerV91() {
+    if (!player || !userData?.adminCheats) return;
+    const c = userData.adminCheats;
+    if (!player.nsvBaseMaxHpV91) player.nsvBaseMaxHpV91 = Math.max(1, player.maxHp || 100);
+    if (!player.nsvBaseSpeedV91) player.nsvBaseSpeedV91 = Math.max(0.1, player.speed || 4);
+    if (c.hpMult && c.hpMult > 1) { player.maxHp = Math.max(player.maxHp || 1, Math.floor(player.nsvBaseMaxHpV91 * c.hpMult)); player.hp = Math.max(player.hp || 0, player.maxHp); }
+    if (c.speedMult && c.speedMult > 1) player.speed = Math.max(player.speed || 0, player.nsvBaseSpeedV91 * c.speedMult);
+    if (c.atkMult && c.atkMult > 1) player.nsvAdminAtkMult = Math.max(player.nsvAdminAtkMult || 1, c.atkMult);
+    if (c.regen && c.regen > 0) player.nsvAdminRegen = Math.max(player.nsvAdminRegen || 0, c.regen);
+    updateUI();
+}
+
+function nsvApplyAdminCodeV91(raw) {
+    const code = String(raw || '').replace(/\D/g, '').slice(0,7);
+    const c = nsvEnsureCheatStateV91();
+    let msg = '';
+    switch(code) {
+        case '7429136': userData.coins = Number(userData.coins || 0) + 10000; msg = 'コイン +10,000'; break;
+        case '6814297': userData.coins = Number(userData.coins || 0) + 100000; msg = 'コイン +100,000'; break;
+        case '3947162': c.hpMult = Math.max(c.hpMult || 1, 2); msg = '最大体力 2倍'; break;
+        case '8274613': c.hpMult = Math.max(c.hpMult || 1, 3); msg = '最大体力 3倍'; break;
+        case '5192847': c.hpMult = Math.max(c.hpMult || 1, 5); msg = '最大体力 5倍'; break;
+        case '6381974': nsvAddAllUpgradeLevelsV91(5); msg = '全アップグレード +5'; break;
+        case '4719368': nsvUnlockAllLegendaryV91(false, true); msg = '主要アルティメット武器を解放'; break;
+        case '8531269': nsvUnlockAllLegendaryV91(false, true); userData.allUltimateWeaponsUnlocked = true; msg = '全アルティメット系武器を解放'; break;
+        case '7293846': c.atkMult = Math.max(c.atkMult || 1, 2); c.speedMult = Math.max(c.speedMult || 1, 1.25); msg = '攻撃力2倍 / 移動速度1.25倍'; break;
+        case '4862759': c.regen = Math.max(c.regen || 0, 8); msg = '自動回復を強化'; break;
+        case '9176384': c.regen = Math.max(c.regen || 0, 15); nsvUnlockAllLegendaryV91(false, true); msg = 'プレイ中に体力回復＋強武器'; break;
+        case '9285734': userData.coins = Number(userData.coins || 0) + 9999999; msg = 'コイン +9,999,999'; break;
+        case '5739281': c.hpMult = Math.max(c.hpMult || 1, 50); c.atkMult = Math.max(c.atkMult || 1, 12); c.speedMult = Math.max(c.speedMult || 1, 2); c.regen = Math.max(c.regen || 0, 25); msg = '体力50倍 / 攻撃12倍 / 速度2倍 / 自動回復+25'; break;
+        case '8463917': nsvAddAllUpgradeLevelsV91(50); userData.battleStars = Number(userData.battleStars || 0) + 500; userData.tickets = Number(userData.tickets || 0) + 10; msg = '全アップグレード+50 / バトルスター+500 / チケット+10'; break;
+        case '3918462': nsvUnlockAllLegendaryV91(true, true); msg = '全伝説武器解放＋武器図鑑使用済み'; break;
+        case '7641928': c.hpMult = Math.max(c.hpMult || 1, 20); c.atkMult = Math.max(c.atkMult || 1, 10); c.speedMult = Math.max(c.speedMult || 1, 2); c.regen = Math.max(c.regen || 0, 50); nsvUnlockAllLegendaryV91(true, true); if (player) player.hp = player.maxHp || player.hp; msg = 'プレイ中に最強装備・全回復・超強化'; break;
+        case '2847396': userData.adminCheats.levelStep = 5; if (player) { player.level = Number(player.level || 1) + 5; updateUI(); } msg = '1回のレベルアップで5レベル分上がる'; break;
+        case '0000000': userData.adminCheats = { hpMult:1, atkMult:1, speedMult:1, regen:0 }; msg = 'チート効果を解除'; break;
+        default: alert('管理者コードが違います。'); return;
+    }
+    nsvApplyActiveAdminCheatsToPlayerV91();
+    saveData();
+    try { renderUpgradeScreen(); } catch(e) {}
+    try { renderWeaponCodexScreen(); } catch(e) {}
+    updateStableVersionBadge();
+    alert(msg);
+    ['adminCodeInputHome','adminCodeInputPause'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+}
+
+const nsvOriginalPlayerUpdateV91 = Player.prototype.update;
+Player.prototype.update = function() {
+    const ret = nsvOriginalPlayerUpdateV91.apply(this, arguments);
+    if (userData?.adminCheats?.regen && gameState === 'playing' && frameCount % 60 === 0) {
+        this.hp = Math.min(this.maxHp || this.hp, (this.hp || 0) + userData.adminCheats.regen);
+        updateUI();
+    }
+    return ret;
+};
+
+const nsvOriginalProcessLevelUpV91 = Player.prototype.processLevelUp;
+Player.prototype.processLevelUp = function() {
+    const before = this.level || 1;
+    const ret = nsvOriginalProcessLevelUpV91.apply(this, arguments);
+    const step = Number(userData?.adminCheats?.levelStep || 1);
+    if (step > 1 && (this.level || 1) > before) this.level += (step - 1);
+    updateUI();
+    return ret;
+};
+
+function nsvButtonRouterV91(e) {
+    const t = e.target?.closest?.('button');
+    if (!t || t.disabled) return;
+    const id = t.id || '';
+    if (id === 'onlineStartBtn') { e.preventDefault(); e.stopPropagation(); nsvOpenOnlineV91(); return; }
+    if (id === 'openUpgradeBtn') { e.preventDefault(); e.stopPropagation(); nsvRenderUpgradeScreenV91(); showScreen('upgradeScreen'); return; }
+    if (id === 'openWeaponCodexBtn') { e.preventDefault(); e.stopPropagation(); nsvRenderWeaponCodexScreenV91(); showScreen('weaponCodexScreen'); return; }
+    if (t.dataset.roleId) { e.preventDefault(); e.stopPropagation(); selectedOnlineRoleId = t.dataset.roleId; initGame('online'); return; }
+}
+
+document.addEventListener('click', nsvButtonRouterV91, true);
+document.addEventListener('change', nsvFixToggleDotsV91, true);
+setInterval(() => { if (gameState === 'playing') nsvEnsurePlayHudVisibleV91(); }, 1200);
+
+setTimeout(() => {
+    nsvPrefillNicknameV91();
+    nsvEnsureAdminCodeUIV91();
+    nsvFixToggleDotsV91();
+    updateStableVersionBadge();
+    showScreen('startScreen');
+}, 0);
+
 </script>
 
 </body>
