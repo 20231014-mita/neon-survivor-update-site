@@ -239,7 +239,7 @@
                     <div class="text-yellow-300 font-bold text-xs tracking-[0.35em]">GAME MENU</div>
                     <h2 class="text-5xl md:text-6xl font-bold text-white tracking-widest neon-text" style="font-family: 'Orbitron', sans-serif;">PAUSED</h2>
                 </div>
-                <div class="nsv-pause-mini">V88 STABLE</div>
+                <div class="nsv-pause-mini">V90 FIREBASE READY</div>
             </div>
 
             <div class="nsv-pause-grid">
@@ -470,13 +470,15 @@
 
 
 <script>
-window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+// Firebase config for GitHub Pages / Neon Survivor Online
+window.NEON_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyC-zEp1x3F_3IGffCeAdo6DrMxVgWwxgVM",
+  authDomain: "neon-survivor-online.firebaseapp.com",
+  projectId: "neon-survivor-online",
+  storageBucket: "neon-survivor-online.firebasestorage.app",
+  messagingSenderId: "182093637358",
+  appId: "1:182093637358:web:cd83a5fa16951ff0bb75ff",
+  measurementId: "G-SGJPD3HK8V"
 };
 </script>
 
@@ -1910,7 +1912,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
         let dbUserId = null;
         let db = null;
-        let appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        let appId = 'neon-survivor-online';
         let gameState = 'start'; 
         let frameCount = 0, lastTime = 0, gameTime = 0, score = 0, animationId;
         let isTimeStopped = false, shakeTime = 0, shakeIntensity = 0;
@@ -2987,8 +2989,13 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
         (async () => {
             try {
-                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-                if (!firebaseConfig) return;
+                const firebaseConfig = (window.NEON_FIREBASE_CONFIG && window.NEON_FIREBASE_CONFIG.apiKey)
+                    ? window.NEON_FIREBASE_CONFIG
+                    : ((typeof __firebase_config !== 'undefined' && __firebase_config) ? JSON.parse(__firebase_config) : null);
+                if (!firebaseConfig || !firebaseConfig.apiKey) {
+                    console.warn('Firebase config is missing. Local save is still available.');
+                    return;
+                }
 
                 const [appMod, authMod, firestoreMod] = await Promise.all([
                     import('https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js'),
