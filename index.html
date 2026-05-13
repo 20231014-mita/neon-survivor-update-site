@@ -7151,7 +7151,7 @@ window.NEON_FIREBASE_CONFIG = {
                     {a:unibeams, l:30}, {a:keraunosStorms, l:30}, {a:vaderSkills, l:50},
                     {a:stormbreakers, l:50}, {a:disneyMagics, l:50}, {a:muryokushos, l:10},
                     {a:bounceBombs, l:50}, {a:poisonClouds, l:50}, {a:blackholes, l:10}, {a:divineSwords, l:10},
-                    {a:phantomDaggers, l:70}, {a:gravityPulsars, l:20}, {a:mapBlackholes, l:1}, {a:bananaPeels, l:45}, {a:onlineLegendaryChests, l:2}, {a:astralJudgements, l:8}, {a:harisenNovas, l:8}, {a:overlordFlames, l:35}, {a:cosmicSushiStorms, l:6}
+                    {a:phantomDaggers, l:70}, {a:gravityPulsars, l:20}, {a:mapBlackholes, l:1}, {a:bananaPeels, l:45}, {a:onlineLegendaryChests, l:3}, {a:astralJudgements, l:8}, {a:harisenNovas, l:8}, {a:overlordFlames, l:35}, {a:cosmicSushiStorms, l:6}
                 ];
                 
                 if (isLightMode) {
@@ -8707,7 +8707,7 @@ updateStableVersionBadge = function() {
     b.textContent = NSV_REQUEST_FIX_VERSION;
     Object.assign(b.style, {position:'fixed',left:'10px',bottom:'8px',zIndex:'9999',pointerEvents:'none',color:'#67e8f9',background:'rgba(2,6,23,.78)',border:'1px solid rgba(103,232,249,.55)',borderRadius:'999px',padding:'4px 9px',font:'900 11px Orbitron, Noto Sans JP, sans-serif',letterSpacing:'.08em',boxShadow:'0 0 12px rgba(34,211,238,.28)'});
     document.querySelectorAll('.nsv-pause-mini').forEach(el => { el.textContent = NSV_REQUEST_FIX_VERSION; });
-}
+};
 
 function nsvEnsurePlayHudVisibleV91() {
     const playing = gameState === 'playing';
@@ -8772,7 +8772,7 @@ showScreen = function(screenId) {
     }
     nsvFixToggleDotsV91();
     updateStableVersionBadge();
-}
+};
 
 requireNickname = function() {
     const input = document.getElementById('nicknameInput');
@@ -8797,7 +8797,7 @@ requireNickname = function() {
     const label = document.getElementById('onlineNickLabel');
     if (label) label.innerText = nick;
     return true;
-}
+};
 
 function nsvPrefillNicknameV91() {
     const input = document.getElementById('nicknameInput');
@@ -8906,7 +8906,7 @@ closeLevelUpScreen = function() {
     nsvEnsurePlayHudVisibleV91();
     if (animationId) cancelAnimationFrame(animationId);
     animationId = requestAnimationFrame(gameLoop);
-}
+};
 
 function nsvEnsureAdminCodeUIV91() {
     const homePanel = document.querySelector('#startScreen .menu-panel');
@@ -8974,6 +8974,7 @@ function nsvApplyActiveAdminCheatsToPlayerV91() {
 
 function nsvApplyAdminCodeV91(raw) {
     const code = String(raw || '').replace(/\D/g, '').slice(0,7);
+    if (code === '2967481') { alert('このコードはこの版では追加していません。'); return; }
     const c = nsvEnsureCheatStateV91();
     let msg = '';
     switch(code) {
@@ -9047,6 +9048,195 @@ setTimeout(() => {
     updateStableVersionBadge();
     showScreen('startScreen');
 }, 0);
+
+
+
+/* ===== V92 ONLINE PVP / TOGGLE FINAL FIX ===== */
+const NSV_V92_VERSION = 'V92 ONLINE PVP FIX';
+window.GAME_VERSION = NSV_V92_VERSION;
+
+function nsvV92FixToggleDots() {
+    document.querySelectorAll('input[type="checkbox"].sr-only').forEach(input => {
+        const box = input.parentElement;
+        if (!box) return;
+        let track = null;
+        for (const child of Array.from(box.children)) {
+            if (child !== input && child.classList && child.classList.contains('block')) { track = child; break; }
+        }
+        const dot = box.querySelector('.dot');
+        box.classList.add('nsv-switch-box');
+        box.style.setProperty('position', 'relative', 'important');
+        box.style.setProperty('display', 'inline-block', 'important');
+        box.style.setProperty('width', '56px', 'important');
+        box.style.setProperty('height', '32px', 'important');
+        box.style.setProperty('min-width', '56px', 'important');
+        box.style.setProperty('max-width', '56px', 'important');
+        box.style.setProperty('flex', '0 0 56px', 'important');
+        box.style.setProperty('overflow', 'visible', 'important');
+        box.style.setProperty('vertical-align', 'middle', 'important');
+        input.style.setProperty('position', 'absolute', 'important');
+        input.style.setProperty('inset', '0', 'important');
+        input.style.setProperty('width', '56px', 'important');
+        input.style.setProperty('height', '32px', 'important');
+        input.style.setProperty('opacity', '0', 'important');
+        input.style.setProperty('clip', 'auto', 'important');
+        input.style.setProperty('margin', '0', 'important');
+        input.style.setProperty('z-index', '3', 'important');
+        input.style.setProperty('cursor', 'pointer', 'important');
+        if (track) {
+            track.classList.add('nsv-switch-track');
+            track.style.setProperty('position', 'absolute', 'important');
+            track.style.setProperty('left', '0px', 'important');
+            track.style.setProperty('top', '0px', 'important');
+            track.style.setProperty('width', '56px', 'important');
+            track.style.setProperty('height', '32px', 'important');
+            track.style.setProperty('border-radius', '999px', 'important');
+            track.style.setProperty('background-color', input.checked ? '#06b6d4' : '#4b5563', 'important');
+            track.style.setProperty('box-shadow', input.checked ? '0 0 12px rgba(6,182,212,.55)' : 'inset 0 0 6px rgba(0,0,0,.35)', 'important');
+            track.style.setProperty('z-index', '1', 'important');
+        }
+        if (dot) {
+            dot.classList.add('nsv-switch-dot');
+            dot.classList.remove('left-1','top-1','translate-x-0','translate-y-0','transform');
+            dot.style.setProperty('position', 'absolute', 'important');
+            dot.style.setProperty('left', '4px', 'important');
+            dot.style.setProperty('top', '4px', 'important');
+            dot.style.setProperty('width', '24px', 'important');
+            dot.style.setProperty('height', '24px', 'important');
+            dot.style.setProperty('min-width', '24px', 'important');
+            dot.style.setProperty('min-height', '24px', 'important');
+            dot.style.setProperty('border-radius', '999px', 'important');
+            dot.style.setProperty('background', '#fff', 'important');
+            dot.style.setProperty('box-shadow', '0 2px 8px rgba(0,0,0,.35)', 'important');
+            dot.style.setProperty('transform', input.checked ? 'translate3d(24px,0,0)' : 'translate3d(0,0,0)', 'important');
+            dot.style.setProperty('transition', 'transform .20s ease', 'important');
+            dot.style.setProperty('pointer-events', 'none', 'important');
+            dot.style.setProperty('z-index', '2', 'important');
+        }
+    });
+}
+
+function nsvV92InstallToggleStyle() {
+    if (document.getElementById('nsvV92ToggleStyle')) return;
+    const style = document.createElement('style');
+    style.id = 'nsvV92ToggleStyle';
+    style.textContent = `
+      .nsv-switch-box{position:relative!important;display:inline-block!important;width:56px!important;height:32px!important;min-width:56px!important;max-width:56px!important;flex:0 0 56px!important;overflow:visible!important;}
+      .nsv-switch-box .nsv-switch-track{position:absolute!important;left:0!important;top:0!important;width:56px!important;height:32px!important;border-radius:999px!important;}
+      .nsv-switch-box .nsv-switch-dot{position:absolute!important;left:4px!important;top:4px!important;width:24px!important;height:24px!important;border-radius:999px!important;transform:translate3d(0,0,0)!important;}
+      .nsv-switch-box input:checked ~ .nsv-switch-dot{transform:translate3d(24px,0,0)!important;}
+      .nsv-switch-box input:checked ~ .nsv-switch-track{background:#06b6d4!important;}
+    `;
+    document.head.appendChild(style);
+}
+
+function nsvV92ApplyOnlineBalance() {
+    try {
+        NSV_BALANCE_20260502.sniperSpeedMult = 4;
+        NSV_BALANCE_20260502.onlineSniperDamageBase = 220;
+        NSV_BALANCE_20260502.onlineSniperDamageStep = 80;
+        NSV_BALANCE_20260502.onlineRicochetDamageMult = 1.65;
+    } catch(e) {}
+    try {
+        calcOnlinePvpDamage = function(baseDamage) {
+            const raw = Math.max(8, Number(baseDamage || 0) * 1.15);
+            return Math.round(Math.min(48, raw));
+        };
+    } catch(e) {}
+}
+
+function nsvV92TuneOnlinePlayer() {
+    if (!isOnlineMode || !player || player.nsvV92PvpTuned) return;
+    player.nsvV92PvpTuned = true;
+    player.maxHp = Math.max(90, Math.round((player.maxHp || 200) * 0.72));
+    player.hp = Math.min(player.hp || player.maxHp, player.maxHp);
+    player.damage = Math.max(player.damage || 20, Math.round((player.damage || 20) * 1.22));
+    if (typeof player.baseDamage === 'number') player.baseDamage = Math.max(player.baseDamage, Math.round(player.baseDamage * 1.15));
+    updateUI();
+    nsvEnsurePlayHudVisibleV91?.();
+}
+
+function nsvV92EnsureThreeOnlineChests() {
+    if (!isOnlineMode || !player || !Array.isArray(onlineLegendaryChests)) return;
+    const existing = onlineLegendaryChests.filter(c => c && !c.markedForDeletion).length;
+    for (let i = existing; i < 3; i++) {
+        const angle = (Math.PI * 2 / 3) * i + Math.random() * 0.75;
+        const dist = MathUtils.random(2100, 4300);
+        const x = player.x + Math.cos(angle) * dist;
+        const y = player.y + Math.sin(angle) * dist;
+        const type = i % 2 === 0 ? 'murasaki' : 'kamehameha';
+        onlineLegendaryChests.push(new OnlineLegendaryChest(x, y, type));
+    }
+}
+
+function nsvV92OpenOnline() {
+    if (!requireNickname()) return;
+    try { nsvV92ApplyOnlineBalance(); } catch(e) {}
+    try { renderOnlineRoleScreen(); } catch(e) { console.warn('online role render failed', e); }
+    const container = document.getElementById('onlineRoleListContainer');
+    if (container) {
+        const top = document.createElement('div');
+        top.className = 'section-header text-center';
+        top.innerHTML = '<div class="text-yellow-300 font-bold text-lg">オンライン対戦</div><p class="text-gray-300 text-sm mt-1">役割を押すとすぐにオンライン対戦を開始します。スナイパー弾速2倍・高火力・低HPのギリギリ調整です。</p>';
+        if (!container.querySelector('[data-nsv-v92-online-head]')) {
+            top.dataset.nsvV92OnlineHead = '1';
+            container.prepend(top);
+        }
+        container.querySelectorAll('[data-role-id]').forEach(btn => {
+            btn.style.pointerEvents = 'auto';
+            btn.onclick = ev => {
+                ev.preventDefault(); ev.stopPropagation();
+                selectedOnlineRoleId = btn.dataset.roleId || 'attacker';
+                initGame('online');
+            };
+        });
+    }
+    showScreen('onlineRoleScreen');
+}
+
+const nsvV92PrevInitGame = initGame;
+initGame = function(mode = 'solo') {
+    if (mode === 'online') nsvV92ApplyOnlineBalance();
+    const ret = nsvV92PrevInitGame.apply(this, arguments);
+    if (mode === 'online') {
+        setTimeout(() => {
+            nsvV92ApplyOnlineBalance();
+            nsvV92TuneOnlinePlayer();
+            nsvV92EnsureThreeOnlineChests();
+            nsvEnsurePlayHudVisibleV91?.();
+        }, 160);
+    }
+    return ret;
+};
+
+function nsvV92ButtonRouter(e) {
+    const t = e.target?.closest?.('button');
+    if (!t || t.disabled) return;
+    if (t.id === 'onlineStartBtn') {
+        e.preventDefault(); e.stopPropagation();
+        nsvV92OpenOnline();
+        return;
+    }
+    if (t.dataset && t.dataset.roleId) {
+        e.preventDefault(); e.stopPropagation();
+        selectedOnlineRoleId = t.dataset.roleId || 'attacker';
+        initGame('online');
+    }
+}
+
+document.addEventListener('click', nsvV92ButtonRouter, true);
+document.addEventListener('change', () => setTimeout(nsvV92FixToggleDots, 0), true);
+setInterval(() => { if (gameState === 'playing' && isOnlineMode) { nsvV92TuneOnlinePlayer(); nsvV92EnsureThreeOnlineChests(); } }, 1500);
+
+setTimeout(() => {
+    nsvV92InstallToggleStyle();
+    nsvV92ApplyOnlineBalance();
+    nsvV92FixToggleDots();
+    document.querySelectorAll('.nsv-pause-mini').forEach(el => { el.textContent = NSV_V92_VERSION; });
+    const badge = document.getElementById('nsvStableBadge');
+    if (badge) badge.textContent = NSV_V92_VERSION;
+}, 0);
+
 
 </script>
 
