@@ -9040,6 +9040,171 @@ window.NEON_FIREBASE_CONFIG = {
         else nsv915Boot();
         window.addEventListener('pageshow', nsv915Boot, { passive:true });
 
+
+
+        /* ===== V92.2 SHOP BLACK SCREEN FIX ONLY ===== */
+        (function(){
+            const PATCH_VERSION = 'V92.2 SHOP FIX';
+            const SHOP_FIX_ITEMS = [
+                { id:'neon_ninja', name:'ネオンニンジャ', type:'スキン', cost:650000, desc:'青く光る軽量スキン。' },
+                { id:'cyber_samurai', name:'サイバーサムライ', type:'スキン', cost:1200000, desc:'和風ネオンの高級スキン。' },
+                { id:'cyan_flame', name:'シアンフレイム', type:'オーラ', cost:780000, desc:'青い炎のオーラ。' },
+                { id:'gold_spark', name:'ゴールドスパーク', type:'オーラ', cost:1100000, desc:'金色に光るオーラ。' },
+                { id:'rainbow_trail', name:'レインボートレイル', type:'トレイル', cost:1750000, desc:'移動時に虹色の光が出る。' },
+                { id:'lucky_drone', name:'ラッキードローン', type:'ペット', cost:2800000, desc:'横に浮く見た目アイテム。' }
+            ];
+            function readShopSave(){
+                try { return JSON.parse(localStorage.getItem('neon_survivor_save') || '{}') || {}; }
+                catch(e) { return {}; }
+            }
+            function writeShopSave(data){
+                try { localStorage.setItem('neon_survivor_save', JSON.stringify(data || {})); }
+                catch(e) {}
+            }
+            function getShopCoins(){
+                try {
+                    if (typeof userData === 'object' && userData) {
+                        if (Number.isFinite(Number(userData.coins))) return Number(userData.coins);
+                        if (Number.isFinite(Number(userData.metaCoins))) return Number(userData.metaCoins);
+                    }
+                } catch(e) {}
+                const s = readShopSave();
+                return Number(s.coins ?? s.metaCoins ?? 0) || 0;
+            }
+            function setShopCoins(nextCoins){
+                nextCoins = Math.max(0, Math.floor(Number(nextCoins) || 0));
+                try {
+                    if (typeof userData === 'object' && userData) {
+                        if (typeof userData.coins === 'number') userData.coins = nextCoins;
+                        else userData.metaCoins = nextCoins;
+                    }
+                    if (typeof saveData === 'function') saveData();
+                } catch(e) {}
+                const s = readShopSave();
+                s.coins = nextCoins;
+                s.metaCoins = nextCoins;
+                writeShopSave(s);
+            }
+            function ensureShopScreenFixed(){
+                let el = document.getElementById('shopScreen');
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = 'shopScreen';
+                    document.body.appendChild(el);
+                }
+                el.className = 'fixed inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3';
+                el.style.cssText = 'position:fixed!important;inset:0!important;z-index:86!important;overflow-y:auto!important;overflow-x:hidden!important;touch-action:pan-y!important;';
+                return el;
+            }
+            function shopOwnedData(){
+                const save = readShopSave();
+                save.shop = save.shop || {};
+                save.shop.owned = save.shop.owned || {};
+                save.shop.equipped = save.shop.equipped || {};
+                return save;
+            }
+            function renderShopFixed(){
+                const el = ensureShopScreenFixed();
+                const save = shopOwnedData();
+                const coins = getShopCoins();
+                const cards = SHOP_FIX_ITEMS.map(item => {
+                    const owned = !!save.shop.owned[item.id];
+                    const equipped = save.shop.equipped[item.type] === item.id;
+                    const buttonText = owned ? (equipped ? 'EQUIPPED' : 'EQUIP') : 'BUY';
+                    return `
+                        <div class="collection-card ${owned ? 'unlocked' : ''}" style="min-height:160px;">
+                            <div class="text-yellow-300 font-bold text-lg">${item.name}</div>
+                            <div class="text-cyan-200 text-sm font-bold">${item.type}</div>
+                            <p class="text-gray-300 text-sm mt-1">${item.desc}</p>
+                            <p class="text-yellow-200 font-bold mt-2">${owned ? '購入済み' : item.cost.toLocaleString() + ' COINS'}</p>
+                            <button class="${owned ? 'btn-green' : 'btn-gold'} px-4 py-2 rounded font-bold mt-2" data-shop-fix-item="${item.id}">${buttonText}</button>
+                        </div>`;
+                }).join('');
+                el.innerHTML = `
+                    <div class="menu-panel w-full flex flex-col gap-4" style="max-height:94vh;overflow-y:auto;">
+                        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+                            <div>
+                                <h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">SHOP</h2>
+                                <p class="text-gray-300 text-sm mt-2">スキン・オーラ・トレイル・ペットを購入できます。</p>
+                            </div>
+                            <button id="closeShopBtn" class="btn-neon px-4 py-2 rounded font-bold">BACK</button>
+                        </div>
+                        <div class="text-yellow-300 font-bold text-lg">COINS: ${coins.toLocaleString()}</div>
+                        <div id="shopFixList" class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto pr-1">${cards}</div>
+                    </div>`;
+                el.querySelector('#closeShopBtn')?.addEventListener('click', function(e){
+                    e.preventDefault(); e.stopPropagation();
+                    try { showScreen('startScreen'); } catch(err) {
+                        el.classList.add('hidden');
+                        document.getElementById('startScreen')?.classList.remove('hidden');
+                    }
+                });
+                el.querySelectorAll('[data-shop-fix-item]').forEach(btn => {
+                    btn.addEventListener('click', function(e){
+                        e.preventDefault(); e.stopPropagation();
+                        const item = SHOP_FIX_ITEMS.find(x => x.id === btn.dataset.shopFixItem);
+                        if (!item) return;
+                        const next = shopOwnedData();
+                        const coinsNow = getShopCoins();
+                        if (!next.shop.owned[item.id]) {
+                            if (coinsNow < item.cost) { alert('コインが足りません。'); return; }
+                            next.shop.owned[item.id] = true;
+                            setShopCoins(coinsNow - item.cost);
+                        }
+                        next.shop.equipped[item.type] = item.id;
+                        writeShopSave(next);
+                        renderShopFixed();
+                        showShopFixed();
+                    });
+                });
+                return el;
+            }
+            function showShopFixed(){
+                const el = renderShopFixed();
+                ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','leaderboardScreen','eventModeScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen','tutorialOverlay'].forEach(id => {
+                    const s = document.getElementById(id);
+                    if (!s) return;
+                    s.classList.add('hidden');
+                    s.style.setProperty('display','none','important');
+                    s.style.setProperty('pointer-events','none','important');
+                });
+                el.classList.remove('hidden');
+                el.style.setProperty('display','flex','important');
+                el.style.setProperty('pointer-events','auto','important');
+                el.style.setProperty('z-index','86','important');
+            }
+            window.renderStableShop = renderShopFixed;
+            window.nsvOpenShopFixed = showShopFixed;
+            try { nsvV921OpenShopScreen = showShopFixed; } catch(e) {}
+            try { nsv915OpenShop = showShopFixed; } catch(e) {}
+            document.addEventListener('click', function(e){
+                const btn = e.target?.closest?.('#openShopBtn');
+                if (!btn) return;
+                if (window.nsvIsScrollingTap && window.nsvIsScrollingTap(e)) return;
+                e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+                showShopFixed();
+            }, true);
+            document.addEventListener('pointerup', function(e){
+                const btn = e.target?.closest?.('#openShopBtn');
+                if (!btn) return;
+                if (window.nsvIsScrollingTap && window.nsvIsScrollingTap(e)) return;
+                e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+                showShopFixed();
+            }, { capture:true, passive:false });
+            try {
+                const b = document.getElementById('openShopBtn');
+                if (b) b.onclick = function(e){ e.preventDefault(); e.stopPropagation(); showShopFixed(); };
+            } catch(e) {}
+            try {
+                document.querySelectorAll('[data-version-badge],#nsvStableBadge').forEach(x => x.remove());
+                const badge = document.createElement('div');
+                badge.id = 'nsvStableBadge';
+                badge.textContent = PATCH_VERSION;
+                badge.style.cssText = 'position:fixed;left:10px;bottom:8px;z-index:9999;pointer-events:none;color:#67e8f9;background:rgba(2,6,23,.78);border:1px solid rgba(103,232,249,.55);border-radius:999px;padding:4px 9px;font:900 11px Orbitron,Noto Sans JP,sans-serif;letter-spacing:.08em;box-shadow:0 0 12px rgba(34,211,238,.28);';
+                document.body.appendChild(badge);
+                document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = PATCH_VERSION);
+            } catch(e) {}
+        })();
 </script>
 
 </body>
