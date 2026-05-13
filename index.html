@@ -8169,6 +8169,93 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         };
         window.showScreen = showScreen;
 
+
+        /* ===== V88 GAMEPLAY HUD FIX: keep pause button and joystick visible only while playing ===== */
+        function nsvSetGameplayHudVisible(visible) {
+            const hud = document.getElementById('uiLayer');
+            if (hud) {
+                hud.classList.toggle('hidden', !visible);
+                hud.style.setProperty('display', visible ? 'flex' : 'none', 'important');
+                hud.style.setProperty('visibility', visible ? 'visible' : 'hidden', 'important');
+                hud.style.setProperty('opacity', visible ? '1' : '0', 'important');
+                hud.style.setProperty('pointer-events', 'none', 'important');
+                const pause = document.getElementById('pauseBtn');
+                if (pause) {
+                    pause.classList.remove('hidden');
+                    pause.style.setProperty('display', 'inline-flex', 'important');
+                    pause.style.setProperty('visibility', 'visible', 'important');
+                    pause.style.setProperty('opacity', '1', 'important');
+                    pause.style.setProperty('pointer-events', 'auto', 'important');
+                    pause.style.setProperty('z-index', '120', 'important');
+                }
+            }
+        }
+
+        syncJoystickVisibility = function nsvGameplayJoystickVisibility() {
+            const zone = document.getElementById('joystickZone');
+            const stick = document.getElementById('joystickStick');
+            if (!zone) return;
+            const enabled = !!isJoystickEnabled;
+            const shouldShow = enabled && gameState === 'playing';
+            zone.classList.toggle('hidden', !shouldShow);
+            zone.style.setProperty('display', shouldShow ? 'flex' : 'none', 'important');
+            zone.style.setProperty('visibility', shouldShow ? 'visible' : 'hidden', 'important');
+            zone.style.setProperty('opacity', shouldShow ? '1' : '0', 'important');
+            zone.style.setProperty('pointer-events', shouldShow ? 'auto' : 'none', 'important');
+            zone.style.setProperty('z-index', '120', 'important');
+            zone.style.setProperty('touch-action', 'none', 'important');
+            if (!shouldShow) {
+                joystickData.dx = 0;
+                joystickData.dy = 0;
+                joystickData.active = false;
+                joystickData.touchId = null;
+                if (stick) stick.style.transform = 'translate(0px, 0px)';
+            }
+        };
+        window.syncJoystickVisibility = syncJoystickVisibility;
+
+        const nsvShowScreenBeforeHudFix = showScreen;
+        showScreen = function nsvShowScreenWithGameplayHud(screenId) {
+            const result = nsvShowScreenBeforeHudFix(screenId);
+            const gameplayVisible = result === null && (gameState === 'playing' || gameState === 'paused');
+            nsvSetGameplayHudVisible(gameplayVisible);
+            if (gameState === 'playing') syncJoystickVisibility();
+            if (gameState !== 'playing') {
+                const zone = document.getElementById('joystickZone');
+                if (zone) {
+                    zone.classList.add('hidden');
+                    zone.style.setProperty('display', 'none', 'important');
+                    zone.style.setProperty('pointer-events', 'none', 'important');
+                }
+            }
+            return result;
+        };
+        window.showScreen = showScreen;
+
+        const nsvInitGameBeforeHudFix = initGame;
+        initGame = function nsvInitGameWithGameplayHud(mode = 'solo') {
+            const beforeState = gameState;
+            const ret = nsvInitGameBeforeHudFix(mode);
+            if (gameState === 'playing' || gameState === 'tutorial') {
+                nsvSetGameplayHudVisible(gameState === 'playing');
+                syncJoystickVisibility();
+            } else if (beforeState === 'start') {
+                nsvSetGameplayHudVisible(false);
+                syncJoystickVisibility();
+            }
+            return ret;
+        };
+        window.initGame = initGame;
+
+        window.toggleJoystickFromPause = function(enabled) {
+            isJoystickEnabled = !!enabled;
+            const jt = document.getElementById('joystickToggle');
+            if (jt) jt.checked = isJoystickEnabled;
+            const pjt = document.getElementById('pauseJoystickToggle');
+            if (pjt) pjt.checked = isJoystickEnabled;
+            syncJoystickVisibility();
+        };
+
         function stableBoot() {
             removeLegacyOverlayElements();
             sanitizeSaveObject(userData);
