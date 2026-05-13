@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V88 STABLE / no-flicker final / GitHub Pages single-file build -->
+<!-- V88 STABLE / premium-daily-event-upgrade / GitHub Pages single-file build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -8030,16 +8030,89 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             ensureStableScreen('leaderboardScreen', 'RANKING', `<p class="text-gray-300 text-sm">ローカル保存の自己ベストと記録を確認できます。</p><div class="grid grid-cols-1 md:grid-cols-2 gap-3"><div class="collection-card unlocked"><b>自己ベスト</b><br><span class="text-3xl text-yellow-300 font-bold">${best.toLocaleString()}</span> SCORE</div><div class="collection-card unlocked"><b>コイン</b><br><span class="text-3xl text-yellow-300 font-bold">${coins.toLocaleString()}</span></div></div>`);
         }
 
-        function renderStableDailyEvent() {
-            const today = new Date().toISOString().slice(0,10);
+        function getJapanLocalDateString(offsetDays = 0) {
+            const d = new Date();
+            d.setDate(d.getDate() + Number(offsetDays || 0));
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function getStableDailyEventPick(dateKey) {
             const events = [
-                ['NEON RUSH', '敵の出現が少し増え、スコアを伸ばしやすい日。'],
-                ['COIN BOOST', 'プレイ後のコイン獲得を狙いやすい日。'],
-                ['BOSS TRAINING', 'ボス戦の練習に向いた日。']
+                { name:'NEON RUSH', desc:'敵の出現が少し増え、スコアを伸ばしやすい日。', bonus:'スコア練習向け' },
+                { name:'COIN BOOST', desc:'プレイ後のコイン獲得を狙いやすい日。', bonus:'コイン集め向け' },
+                { name:'BOSS TRAINING', desc:'ボス戦の練習に向いた日。', bonus:'ボス練習向け' },
+                { name:'GEM FEVER', desc:'経験値ジェムを集めてレベルアップを狙いやすい日。', bonus:'育成練習向け' },
+                { name:'SURVIVAL TEST', desc:'長く生き残ることを目標にするイベント日。', bonus:'耐久チャレンジ' }
             ];
-            const pick = events[Math.abs(today.split('').reduce((a,c)=>a+c.charCodeAt(0),0)) % events.length];
-            ensureStableScreen('eventModeScreen', 'DAILY EVENT', `<div class="collection-card unlocked"><div class="text-yellow-300 font-bold text-2xl">${pick[0]}</div><p class="text-gray-300 mt-2">${pick[1]}</p><p class="text-cyan-200 text-sm mt-3">日付: ${today}</p><button id="dailySoloStartBtn" class="btn-neon px-6 py-3 rounded font-bold mt-4">SOLO START</button></div>`);
-            replaceButton('dailySoloStartBtn', () => initGame('solo'));
+            const seed = String(dateKey || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+            return events[Math.abs(seed) % events.length];
+        }
+
+        function ensureDailyEventMatchData() {
+            const today = getJapanLocalDateString(0);
+            const d = getStableSave();
+            const current = d.dailyEventMatches || {};
+            const count = current.date === today ? Number(current.count || 0) : 0;
+            d.dailyEventMatches = { date: today, count: Math.max(0, Math.min(5, count)) };
+            if (typeof userData === 'object' && userData) userData.dailyEventMatches = Object.assign({}, d.dailyEventMatches);
+            setStableSave(d);
+            return d.dailyEventMatches;
+        }
+
+        function canStartDailyEventMatch() {
+            const data = ensureDailyEventMatchData();
+            return Number(data.count || 0) < 5;
+        }
+
+        function recordDailyEventMatchStart() {
+            const today = getJapanLocalDateString(0);
+            const d = getStableSave();
+            const current = d.dailyEventMatches || {};
+            const count = current.date === today ? Number(current.count || 0) : 0;
+            d.dailyEventMatches = { date: today, count: Math.max(0, Math.min(5, count + 1)) };
+            if (typeof userData === 'object' && userData) userData.dailyEventMatches = Object.assign({}, d.dailyEventMatches);
+            setStableSave(d);
+            try { saveData(); } catch(e) {}
+            return d.dailyEventMatches;
+        }
+
+        function renderStableDailyEvent() {
+            const matchData = ensureDailyEventMatchData();
+            const used = Math.max(0, Math.min(5, Number(matchData.count || 0)));
+            const remaining = Math.max(0, 5 - used);
+            const cards = [];
+            for (let offset = 0; offset <= 3; offset++) {
+                const dateKey = getJapanLocalDateString(offset);
+                const pick = getStableDailyEventPick(dateKey);
+                const label = offset === 0 ? '今日' : `${offset}日後`;
+                const startArea = offset === 0
+                    ? `<div class="mt-4">
+                        <p class="text-cyan-200 text-sm font-bold mb-2">本日の参加回数: ${used}/5　残り: ${remaining}</p>
+                        <button id="dailySoloStartBtn" class="${remaining > 0 ? 'btn-neon' : 'bg-gray-700 text-gray-400 cursor-not-allowed'} px-6 py-3 rounded font-bold" ${remaining > 0 ? '' : 'disabled'}>${remaining > 0 ? 'EVENT MATCH START' : '今日は参加上限です'}</button>
+                    </div>`
+                    : `<p class="text-gray-400 text-sm mt-4">予告のみ。参加は当日できます。</p>`;
+                cards.push(`<div class="collection-card ${offset === 0 ? 'unlocked' : ''}">
+                    <div class="flex justify-between gap-3 items-start">
+                        <div>
+                            <div class="text-xs ${offset === 0 ? 'text-yellow-300' : 'text-cyan-300'} font-bold">${label}</div>
+                            <div class="text-yellow-300 font-bold text-2xl">${pick.name}</div>
+                        </div>
+                        <div class="text-cyan-200 text-xs font-bold whitespace-nowrap">${dateKey}</div>
+                    </div>
+                    <p class="text-gray-300 mt-2">${pick.desc}</p>
+                    <p class="text-purple-200 text-sm mt-2">${pick.bonus}</p>
+                    ${startArea}
+                </div>`);
+            }
+            ensureStableScreen('eventModeScreen', 'DAILY EVENT', `<p class="text-gray-300 text-sm">デイリーイベントは1日5回まで参加できます。今日から3日後までのイベント予定を確認できます。</p><div class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto max-h-[72vh] pr-1">${cards.join('')}</div>`);
+            replaceButton('dailySoloStartBtn', () => {
+                if (!canStartDailyEventMatch()) { alert('今日のデイリーイベント参加回数は5回までです。明日また参加できます。'); renderStableDailyEvent(); return; }
+                recordDailyEventMatchStart();
+                initGame('solo');
+            });
         }
 
         function ensureDailyButton() {
@@ -8300,6 +8373,168 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             if (pjt) pjt.checked = isJoystickEnabled;
             syncJoystickVisibility();
         };
+
+
+        /* ===== V88 DAILY EVENT QUALITY UPGRADE: attractive cards / special rules / event bonus ===== */
+        const NSV_EVENT_STYLE_ID = 'nsvDailyEventQualityStyle';
+        let nsvActiveDailyEventRun = null;
+
+        function installDailyEventQualityStyle() {
+            if (document.getElementById(NSV_EVENT_STYLE_ID)) return;
+            const style = document.createElement('style');
+            style.id = NSV_EVENT_STYLE_ID;
+            style.textContent = `
+                .nsv-event-hero{position:relative;overflow:hidden;border:1px solid rgba(34,211,238,.65);border-radius:22px;padding:18px;background:radial-gradient(circle at 10% 10%,rgba(34,211,238,.24),transparent 30%),radial-gradient(circle at 90% 0%,rgba(250,204,21,.18),transparent 28%),linear-gradient(180deg,rgba(2,6,23,.95),rgba(0,0,0,.86));box-shadow:0 0 28px rgba(34,211,238,.24),inset 0 0 22px rgba(34,211,238,.08)}
+                .nsv-event-hero::before{content:'';position:absolute;inset:-2px;background:linear-gradient(120deg,transparent,rgba(255,255,255,.16),transparent);transform:translateX(-120%);animation:nsvEventShine 4.5s ease-in-out infinite;pointer-events:none}
+                @keyframes nsvEventShine{0%,55%{transform:translateX(-120%)}78%,100%{transform:translateX(120%)}}
+                .nsv-event-today{border-color:rgba(250,204,21,.85);box-shadow:0 0 34px rgba(250,204,21,.24),0 0 18px rgba(34,211,238,.18)}
+                .nsv-event-name{font-family:Orbitron,'Noto Sans JP',sans-serif;font-size:clamp(1.55rem,4vw,2.55rem);font-weight:900;letter-spacing:.06em;color:#fff;text-shadow:0 0 10px #22d3ee,0 0 22px rgba(250,204,21,.45)}
+                .nsv-event-tag{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(103,232,249,.55);border-radius:999px;background:rgba(15,23,42,.82);color:#a5f3fc;padding:5px 10px;font-size:.75rem;font-weight:900;white-space:nowrap}
+                .nsv-event-rule{background:rgba(15,23,42,.75);border:1px solid rgba(148,163,184,.28);border-radius:14px;padding:10px 12px;color:#e5e7eb;font-size:.9rem}
+                .nsv-event-rule b{color:#fde047}
+                .nsv-event-reward{background:linear-gradient(90deg,rgba(250,204,21,.18),rgba(34,211,238,.12));border:1px solid rgba(250,204,21,.5);border-radius:14px;padding:10px 12px;color:#fef08a;font-weight:900}
+                .nsv-event-progress{height:10px;border-radius:999px;background:rgba(15,23,42,.95);border:1px solid rgba(148,163,184,.25);overflow:hidden}
+                .nsv-event-progress>div{height:100%;background:linear-gradient(90deg,#22d3ee,#fde047);box-shadow:0 0 14px rgba(250,204,21,.65)}
+                .nsv-event-start{width:100%;min-height:58px;font-size:1.08rem;letter-spacing:.08em}
+                .nsv-event-note{color:#cbd5e1;font-size:.85rem;line-height:1.55}
+                .nsv-event-mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+                .nsv-event-mini div{background:rgba(2,6,23,.68);border:1px solid rgba(34,211,238,.25);border-radius:12px;padding:8px;text-align:center;font-size:.78rem;color:#cbd5e1}
+                .nsv-event-mini b{display:block;color:#67e8f9;font-size:.95rem}
+                @media(max-width:720px){.nsv-event-mini{grid-template-columns:1fr}.nsv-event-hero{padding:14px}.nsv-event-start{min-height:54px}}
+            `;
+            document.head.appendChild(style);
+        }
+
+        function nsvHashSeed(text) {
+            return String(text || '').split('').reduce((a, c, i) => (a + c.charCodeAt(0) * (i + 3)) % 99991, 17);
+        }
+
+        getStableDailyEventPick = function nsvQualityDailyEventPick(dateKey) {
+            const events = [
+                { id:'neon_rush', icon:'⚡', name:'NEON RUSH', jp:'ネオンラッシュ', desc:'敵を倒してコンボ気分でスコアを伸ばす高速イベント。短時間でも爽快に遊べます。', rule:'開始時に移動速度が少し上がる。攻めてスコアを伸ばす日。', reward:'イベントボーナスコイン +25%', tag:'スコア特化', coinMult:1.25, speedMult:1.12, startHp:0 },
+                { id:'coin_fever', icon:'💰', name:'COIN FEVER', jp:'コインフィーバー', desc:'今日だけ報酬がかなりおいしい、育成を進めたい人向けのイベント。', rule:'結果画面で追加コインを獲得。アップグレード用の稼ぎにおすすめ。', reward:'イベントボーナスコイン +45%', tag:'稼ぎ特化', coinMult:1.45, speedMult:1.00, startHp:0 },
+                { id:'boss_hunt', icon:'👹', name:'BOSS HUNT', jp:'ボスハント', desc:'ボス戦の練習に向いたチャレンジ。強敵を倒す達成感を狙えます。', rule:'開始時HPが少し増える。ボス戦まで生き残ることが目標。', reward:'イベントボーナスコイン +35%', tag:'ボス練習', coinMult:1.35, speedMult:1.00, startHp:35 },
+                { id:'gem_fever', icon:'💎', name:'GEM FEVER', jp:'ジェムフィーバー', desc:'レベルアップをたくさん狙う日。新しい武器構成を試しやすいイベント。', rule:'開始時に少し動きやすくなる。ジェムを拾って武器を育てよう。', reward:'イベントボーナスコイン +30%', tag:'育成特化', coinMult:1.30, speedMult:1.08, startHp:15 },
+                { id:'survival_trial', icon:'🛡️', name:'SURVIVAL TRIAL', jp:'サバイバルトライアル', desc:'長く生き残るほど気持ちいい耐久イベント。初心者にもおすすめ。', rule:'開始時HPが大きく増える。安全に長く生き残る日。', reward:'イベントボーナスコイン +30%', tag:'耐久特化', coinMult:1.30, speedMult:0.98, startHp:55 },
+                { id:'blackout', icon:'🌌', name:'BLACKOUT NIGHT', jp:'ブラックアウトナイト', desc:'暗いネオン空間で集中して避けるスペシャルイベント。雰囲気重視で楽しい日。', rule:'軽量モードでも見やすい派手すぎない演出。慎重に立ち回ろう。', reward:'イベントボーナスコイン +40%', tag:'高報酬', coinMult:1.40, speedMult:1.04, startHp:25 }
+            ];
+            const seed = nsvHashSeed(dateKey);
+            const e = events[Math.abs(seed) % events.length];
+            return Object.assign({ dateKey }, e);
+        };
+
+        renderStableDailyEvent = function nsvRenderQualityDailyEvent() {
+            installDailyEventQualityStyle();
+            const matchData = ensureDailyEventMatchData();
+            const used = Math.max(0, Math.min(5, Number(matchData.count || 0)));
+            const remaining = Math.max(0, 5 - used);
+            const progressPct = Math.max(0, Math.min(100, (used / 5) * 100));
+            const cards = [];
+            for (let offset = 0; offset <= 3; offset++) {
+                const dateKey = getJapanLocalDateString(offset);
+                const pick = getStableDailyEventPick(dateKey);
+                const label = offset === 0 ? '今日のメインイベント' : `${offset}日後の予告`;
+                const isToday = offset === 0;
+                const startArea = isToday
+                    ? `<div class="mt-4">
+                        <div class="flex justify-between text-sm font-bold text-cyan-100 mb-2"><span>参加回数 ${used}/5</span><span>残り ${remaining}回</span></div>
+                        <div class="nsv-event-progress"><div style="width:${progressPct}%"></div></div>
+                        <button id="dailySoloStartBtn" class="nsv-event-start ${remaining > 0 ? 'btn-neon' : 'bg-gray-700 text-gray-400 cursor-not-allowed'} px-6 py-3 rounded font-black mt-4" ${remaining > 0 ? '' : 'disabled'}>${remaining > 0 ? `${pick.icon} EVENT MATCH START` : '今日は参加上限です'}</button>
+                        <p class="nsv-event-note mt-2">イベントで始めると、結果画面でイベントボーナスが追加されます。</p>
+                    </div>`
+                    : `<div class="mt-4 nsv-event-rule"><b>予告</b><br>参加は当日できます。今日のうちに相性の良さそうな武器を考えておこう。</div>`;
+                cards.push(`<div class="nsv-event-hero ${isToday ? 'nsv-event-today' : ''}">
+                    <div class="flex justify-between gap-3 items-start flex-wrap">
+                        <div>
+                            <div class="nsv-event-tag">${pick.icon} ${label}</div>
+                            <div class="nsv-event-name mt-2">${pick.name}</div>
+                            <div class="text-yellow-200 font-bold">${pick.jp}</div>
+                        </div>
+                        <div class="text-cyan-200 text-xs font-bold whitespace-nowrap bg-black/40 border border-cyan-400/30 rounded-full px-3 py-1">${dateKey}</div>
+                    </div>
+                    <p class="text-gray-200 mt-3 leading-relaxed">${pick.desc}</p>
+                    <div class="nsv-event-mini">
+                        <div><b>${pick.tag}</b>タイプ</div>
+                        <div><b>x${Number(pick.coinMult).toFixed(2)}</b>報酬倍率</div>
+                        <div><b>${isToday ? `${remaining}回` : '予告'}</b>${isToday ? '残り参加' : '参加待ち'}</div>
+                    </div>
+                    <div class="nsv-event-rule mt-3"><b>特殊ルール</b><br>${pick.rule}</div>
+                    <div class="nsv-event-reward mt-3">報酬：${pick.reward}</div>
+                    ${startArea}
+                </div>`);
+            }
+            ensureStableScreen('eventModeScreen', 'DAILY EVENT', `<div class="nsv-event-hero nsv-event-today mb-2">
+                <div class="nsv-event-tag">🔥 DAILY SPECIAL</div>
+                <h3 class="text-2xl md:text-3xl font-black text-yellow-300 mt-2">毎日5回だけ挑戦できる特別マッチ</h3>
+                <p class="text-gray-200 mt-2">今日のイベントはすぐ参加可能。明日から3日後までの予定も見られます。報酬倍率や特殊ルールを見て、参加したくなるイベントを選ぼう。</p>
+            </div><div class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto max-h-[72vh] pr-1">${cards.join('')}</div>`);
+            replaceButton('dailySoloStartBtn', () => {
+                if (!canStartDailyEventMatch()) {
+                    alert('今日のデイリーイベント参加回数は5回までです。明日また参加できます。');
+                    renderStableDailyEvent();
+                    return;
+                }
+                const todayEvent = getStableDailyEventPick(getJapanLocalDateString(0));
+                nsvActiveDailyEventRun = Object.assign({}, todayEvent, { startedAt: Date.now() });
+                recordDailyEventMatchStart();
+                initGame('dailyEvent');
+            });
+        };
+
+        const nsvDailyEventInitBeforeQuality = initGame;
+        initGame = function nsvInitGameWithDailyEventQuality(mode = 'solo') {
+            const ret = nsvDailyEventInitBeforeQuality(mode === 'dailyEvent' ? 'solo' : mode);
+            if (nsvActiveDailyEventRun && gameState === 'playing' && player) {
+                try {
+                    if (Number(nsvActiveDailyEventRun.speedMult || 1) !== 1) player.speed *= Number(nsvActiveDailyEventRun.speedMult || 1);
+                    if (Number(nsvActiveDailyEventRun.startHp || 0) > 0) {
+                        player.maxHp += Number(nsvActiveDailyEventRun.startHp || 0);
+                        player.hp = Math.min(player.maxHp, player.hp + Number(nsvActiveDailyEventRun.startHp || 0));
+                    }
+                    const hud = document.getElementById('missionMiniHud');
+                    if (hud) {
+                        hud.classList.remove('hidden');
+                        hud.innerHTML = `<div class="text-yellow-300 font-bold">${nsvActiveDailyEventRun.icon} EVENT: ${nsvActiveDailyEventRun.name}</div><div class="text-gray-300">${nsvActiveDailyEventRun.reward}</div>`;
+                    }
+                    if (player && typeof FloatingText === 'function') floatingTexts.push(new FloatingText(player.x, player.y, `${nsvActiveDailyEventRun.icon} ${nsvActiveDailyEventRun.jp}`, '#fde047', 20));
+                } catch(e) { console.warn('Daily event start bonus failed:', e); }
+            }
+            return ret;
+        };
+        window.initGame = initGame;
+
+        const nsvDailyEventGameOverBeforeQuality = gameOver;
+        gameOver = function nsvGameOverWithDailyEventBonus() {
+            const active = nsvActiveDailyEventRun ? Object.assign({}, nsvActiveDailyEventRun) : null;
+            nsvDailyEventGameOverBeforeQuality();
+            if (active) {
+                try {
+                    const finalScoreVal = Math.max(0, Math.floor(score || 0));
+                    const base = Math.max(1, Math.floor((Math.floor(finalScoreVal / 100) + Math.floor(gameTime || 0)) / 6));
+                    const bonus = Math.max(50, Math.floor(base * Math.max(0, Number(active.coinMult || 1) - 1) + 120));
+                    userData.coins = Number(userData.coins || 0) + bonus;
+                    const earned = document.getElementById('earnedCoinsDisplay');
+                    if (earned) {
+                        const current = Number(String(earned.innerText || '').replace(/[^0-9]/g, '')) || 0;
+                        earned.innerText = `+${current + bonus}`;
+                    }
+                    const summary = document.getElementById('resultSummary');
+                    if (summary) {
+                        summary.insertAdjacentHTML('beforeend', `<div class="result-pill" style="border-color:rgba(250,204,21,.7)">イベント：<b>${active.jp}</b></div><div class="result-pill" style="border-color:rgba(250,204,21,.7)">ボーナス：<b>+${bonus}</b> COINS</div>`);
+                    }
+                    try { saveData(); } catch(e) {}
+                } catch(e) { console.warn('Daily event finish bonus failed:', e); }
+                nsvActiveDailyEventRun = null;
+            }
+        };
+        window.gameOver = gameOver;
+
+        const nsvDailyEventReturnBeforeQuality = endRunAndReturnToMenu;
+        endRunAndReturnToMenu = function nsvEndRunWithDailyEventCleanup() {
+            nsvActiveDailyEventRun = null;
+            return nsvDailyEventReturnBeforeQuality();
+        };
+        window.endRunAndReturnToMenu = endRunAndReturnToMenu;
 
         function stableBoot() {
             removeLegacyOverlayElements();
