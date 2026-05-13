@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<!-- V28 MERGED STABLE UTF-8 / V27 + reset-highscore-intro branch / no-preview build -->
+<!-- V32 STABLE UTF-8 / no-preview build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -175,7 +175,7 @@
             <div class="season-intro-kicker">NEW SEASON START</div>
             <div class="season-intro-title">SEASON ONE</div>
             <div class="season-intro-name">NEON GENESIS</div>
-            <div class="season-intro-msg">Season 1 / NEON GENESIS がスタートしました??</div>
+            <div class="season-intro-msg">Season 1 / NEON GENESIS がスタートしました！</div>
             <div class="season-intro-tap">TAP / CLICK TO START</div>
         </div>
     </div>
@@ -271,7 +271,7 @@
                     <div class="block bg-gray-600 w-14 h-8 rounded-full transition-colors duration-300"></div>
                     <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300 shadow"></div>
                 </div>
-                <span class="text-white select-none font-bold text-sm">軽量モードドを使用</span>
+                <span class="text-white select-none font-bold text-sm">軽量モードを使用</span>
             </label>
         </div>
 
@@ -279,7 +279,7 @@
             <button id="resumeBtn" class="btn-neon px-8 py-3 text-xl font-bold rounded cursor-pointer">RESUME</button>
             <button id="titleFromPauseBtn" class="btn-red px-8 py-3 text-xl font-bold rounded cursor-pointer">TITLE MENU</button>
         </div>
-        <p class="text-gray-300 text-sm mt-4 text-center">途中で戻っても、そこまでのスコア??コインを保存します。?</p>
+        <p class="text-gray-300 text-sm mt-4 text-center">途中で戻っても、そこまでのスコア・コインを保存します。?</p>
     </div>
 
     <div id="generalCutin" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center z-50 hidden overflow-hidden">
@@ -296,11 +296,11 @@
                 <div class="bg-gray-900/80 p-4 rounded-xl border border-cyan-500/40">
                     <label for="nicknameInput" class="block text-cyan-300 font-bold text-sm mb-2 tracking-wider">ニックネーム <span class="text-red-400">※必須</span></label>
                     <input id="nicknameInput" class="menu-input" maxlength="12" placeholder="" autocomplete="off">
-                    <p id="nicknameWarn" class="hidden text-red-300 text-xs mt-2">ニックネームを?れな?ゲーム開始できません?</p>
-                    <p class="menu-help">名前を?れるとスタートできま?</p>
+                    <p id="nicknameWarn" class="hidden text-red-300 text-xs mt-2">ニックネームを入れないとゲームを開始できません</p>
+                    <p class="menu-help">名前を入れるとスタートできます</p>
                 </div>
                 <div class="bg-gray-900/80 p-4 rounded-xl border border-yellow-500/40 flex flex-col justify-center">
-                    <p class="text-yellow-300 font-bold text-lg drop-shadow-[0_0_10px_yellow]">自己ベス?: <span id="currentBestDisplay">0</span> SCORE</p>
+                    <p class="text-yellow-300 font-bold text-lg drop-shadow-[0_0_10px_yellow]">自己ベスト: <span id="currentBestDisplay">0</span> SCORE</p>
                     <p class="text-gray-300 text-sm mt-1">蛟偵☆ ? 髮ａ繧 ? 強くな?</p>
                 </div>
             </div>
@@ -325,7 +325,7 @@
                 </div>
                 <div class="bg-gray-900/80 p-4 rounded-xl border border-gray-500 flex items-center justify-between gap-3">
                     <div>
-                        <span class="text-cyan-300 font-bold text-sm tracking-wider">軽量モードド</span>
+                        <span class="text-cyan-300 font-bold text-sm tracking-wider">軽量モード</span>
                         <p class="text-gray-400 text-xs mt-1">スマ?・学校PCでも軽くす?</p>
                     </div>
                     <label class="flex items-center cursor-pointer gap-3">
@@ -447,7 +447,7 @@
             <p class="text-2xl mb-2 text-gray-300">今回のスコア</p>
             <p class="text-5xl font-bold text-yellow-300 mb-6" id="finalScore" style="font-family: 'Orbitron', sans-serif;">0</p>
             <div class="w-full h-px bg-gray-600 mb-6"></div>
-            <p class="text-lg text-gray-400">自己ベス?</p>
+            <p class="text-lg text-gray-400">自己ベスト</p>
             <p class="text-3xl font-bold text-cyan-400 mb-2" id="bestScore" style="font-family: 'Orbitron', sans-serif;">0</p>
             <p class="text-lg text-yellow-200">獲得コイン: <span id="earnedCoinsDisplay" class="font-bold text-2xl text-yellow-400">+0</span></p>
             <div id="resultSummary" class="result-grid"></div>
@@ -864,10 +864,10 @@
             { id:'m023', cat:'LEVEL', title:'覚?の始ま?', desc:'最高レベル10に到達す?', metric:'bestLevel', target:10, reward:{coins:700} },
             { id:'m024', cat:'LEVEL', title:'髯千阜遯∫ｴ', desc:'最高レベル15に到達す?', metric:'bestLevel', target:15, reward:{coins:1300, aura:'toxicPulse'} },
             { id:'m025', cat:'LEVEL', title:'伝説の領域', desc:'最高レベル25に到達す?', metric:'bestLevel', target:25, reward:{coins:3000, skin:'angel'} },
-            { id:'m026', cat:'SCORE', title:'スコア1000', desc:'自己ベス?1000点を??', metric:'bestScore', target:1000, reward:{coins:250} },
-            { id:'m027', cat:'SCORE', title:'スコア5000', desc:'自己ベス?5000点を??', metric:'bestScore', target:5000, reward:{coins:700} },
-            { id:'m028', cat:'SCORE', title:'スコア15000', desc:'自己ベス?15000点を??', metric:'bestScore', target:15000, reward:{coins:1500} },
-            { id:'m029', cat:'SCORE', title:'スコア50000', desc:'自己ベス?50000点を??', metric:'bestScore', target:50000, reward:{coins:5000} },
+            { id:'m026', cat:'SCORE', title:'スコア1000', desc:'自己ベスト1000点を??', metric:'bestScore', target:1000, reward:{coins:250} },
+            { id:'m027', cat:'SCORE', title:'スコア5000', desc:'自己ベスト5000点を??', metric:'bestScore', target:5000, reward:{coins:700} },
+            { id:'m028', cat:'SCORE', title:'スコア15000', desc:'自己ベスト15000点を??', metric:'bestScore', target:15000, reward:{coins:1500} },
+            { id:'m029', cat:'SCORE', title:'スコア50000', desc:'自己ベスト50000点を??', metric:'bestScore', target:50000, reward:{coins:5000} },
             { id:'m030', cat:'COIN', title:'貯金開?', desc:'合?500コイン獲得す?', metric:'totalCoinsEarned', target:500, reward:{coins:250} },
             { id:'m031', cat:'COIN', title:'ネオン富豪', desc:'合?3000コイン獲得す?', metric:'totalCoinsEarned', target:3000, reward:{coins:900, skin:'gold'} },
             { id:'m032', cat:'COIN', title:'コイン?', desc:'合?10000コイン獲得す?', metric:'totalCoinsEarned', target:10000, reward:{coins:2500} },
@@ -892,7 +892,7 @@
             { id:'m051', cat:'KILL', title:'討伐ランク1', desc:'敵を合?2500菴灘偵☆', metric:'totalKills', target:2500, reward:{coins:720} },
             { id:'m052', cat:'GEM', title:'ジェムランク1', desc:'ジェムを合?2000個集める', metric:'totalGems', target:2000, reward:{coins:840} },
             { id:'m053', cat:'TIME', title:'生存ランク1', desc:'1回?プレイで720秒生き残る', metric:'bestTime', target:720, reward:{coins:960} },
-            { id:'m054', cat:'SCORE', title:'スコアランク1', desc:'自己ベス?75000点を??', metric:'bestScore', target:75000, reward:{coins:1080} },
+            { id:'m054', cat:'SCORE', title:'スコアランク1', desc:'自己ベスト75000点を??', metric:'bestScore', target:75000, reward:{coins:1080} },
             { id:'m055', cat:'LEVEL', title:'覚?ランク1', desc:'最高レベル30に到達す?', metric:'bestLevel', target:30, reward:{coins:1200} },
             { id:'m056', cat:'BOSS', title:'ボスランク1', desc:'ボス系の敵を合?25菴灘偵☆', metric:'totalBossLikeKills', target:25, reward:{coins:1320} },
             { id:'m057', cat:'PLAY', title:'出?ンク1', desc:'合?45回?レイする', metric:'totalRuns', target:45, reward:{coins:1440} },
@@ -902,7 +902,7 @@
             { id:'m061', cat:'KILL', title:'討伐ランク2', desc:'敵を合?3500菴灘偵☆', metric:'totalKills', target:3500, reward:{coins:2100} },
             { id:'m062', cat:'GEM', title:'ジェムランク2', desc:'ジェムを合?3000個集める', metric:'totalGems', target:3000, reward:{coins:2220} },
             { id:'m063', cat:'TIME', title:'生存ランク2', desc:'1回?プレイで840秒生き残る', metric:'bestTime', target:840, reward:{coins:2340} },
-            { id:'m064', cat:'SCORE', title:'スコアランク2', desc:'自己ベス?100000点を??', metric:'bestScore', target:100000, reward:{coins:2460} },
+            { id:'m064', cat:'SCORE', title:'スコアランク2', desc:'自己ベスト100000点を??', metric:'bestScore', target:100000, reward:{coins:2460} },
             { id:'m065', cat:'LEVEL', title:'覚?ランク2', desc:'最高レベル35に到達す?', metric:'bestLevel', target:35, reward:{coins:2580} },
             { id:'m066', cat:'BOSS', title:'ボスランク2', desc:'ボス系の敵を合?40菴灘偵☆', metric:'totalBossLikeKills', target:40, reward:{coins:2700} },
             { id:'m067', cat:'PLAY', title:'出?ンク2', desc:'合?60回?レイする', metric:'totalRuns', target:60, reward:{coins:2820} },
@@ -912,7 +912,7 @@
             { id:'m071', cat:'KILL', title:'討伐ランク3', desc:'敵を合?5000菴灘偵☆', metric:'totalKills', target:5000, reward:{coins:3480} },
             { id:'m072', cat:'GEM', title:'ジェムランク3', desc:'ジェムを合?4500個集める', metric:'totalGems', target:4500, reward:{coins:3600} },
             { id:'m073', cat:'TIME', title:'生存ランク3', desc:'1回?プレイで960秒生き残る', metric:'bestTime', target:960, reward:{coins:3720} },
-            { id:'m074', cat:'SCORE', title:'スコアランク3', desc:'自己ベス?140000点を??', metric:'bestScore', target:140000, reward:{coins:3840} },
+            { id:'m074', cat:'SCORE', title:'スコアランク3', desc:'自己ベスト140000点を??', metric:'bestScore', target:140000, reward:{coins:3840} },
             { id:'m075', cat:'LEVEL', title:'覚?ランク3', desc:'最高レベル40に到達す?', metric:'bestLevel', target:40, reward:{coins:3960} },
             { id:'m076', cat:'BOSS', title:'ボスランク3', desc:'ボス系の敵を合?60菴灘偵☆', metric:'totalBossLikeKills', target:60, reward:{coins:4080} },
             { id:'m077', cat:'PLAY', title:'出?ンク3', desc:'合?80回?レイする', metric:'totalRuns', target:80, reward:{coins:4200} },
@@ -922,7 +922,7 @@
             { id:'m081', cat:'KILL', title:'討伐ランク4', desc:'敵を合?7000菴灘偵☆', metric:'totalKills', target:7000, reward:{coins:4860} },
             { id:'m082', cat:'GEM', title:'ジェムランク4', desc:'ジェムを合?6500個集める', metric:'totalGems', target:6500, reward:{coins:4980} },
             { id:'m083', cat:'TIME', title:'生存ランク4', desc:'1回?プレイで1080秒生き残る', metric:'bestTime', target:1080, reward:{coins:5100} },
-            { id:'m084', cat:'SCORE', title:'スコアランク4', desc:'自己ベス?180000点を??', metric:'bestScore', target:180000, reward:{coins:5220} },
+            { id:'m084', cat:'SCORE', title:'スコアランク4', desc:'自己ベスト180000点を??', metric:'bestScore', target:180000, reward:{coins:5220} },
             { id:'m085', cat:'LEVEL', title:'覚?ランク4', desc:'最高レベル45に到達す?', metric:'bestLevel', target:45, reward:{coins:5340} },
             { id:'m086', cat:'BOSS', title:'ボスランク4', desc:'ボス系の敵を合?85菴灘偵☆', metric:'totalBossLikeKills', target:85, reward:{coins:5460} },
             { id:'m087', cat:'PLAY', title:'出?ンク4', desc:'合?100回?レイする', metric:'totalRuns', target:100, reward:{coins:5580} },
@@ -932,7 +932,7 @@
             { id:'m091', cat:'KILL', title:'討伐ランク5', desc:'敵を合?9000菴灘偵☆', metric:'totalKills', target:9000, reward:{coins:6240} },
             { id:'m092', cat:'GEM', title:'ジェムランク5', desc:'ジェムを合?9000個集める', metric:'totalGems', target:9000, reward:{coins:6360} },
             { id:'m093', cat:'TIME', title:'生存ランク5', desc:'1回?プレイで1200秒生き残る', metric:'bestTime', target:1200, reward:{coins:6480} },
-            { id:'m094', cat:'SCORE', title:'スコアランク5', desc:'自己ベス?240000点を??', metric:'bestScore', target:240000, reward:{coins:6600} },
+            { id:'m094', cat:'SCORE', title:'スコアランク5', desc:'自己ベスト240000点を??', metric:'bestScore', target:240000, reward:{coins:6600} },
             { id:'m095', cat:'LEVEL', title:'覚?ランク5', desc:'最高レベル50に到達す?', metric:'bestLevel', target:50, reward:{coins:6720} },
             { id:'m096', cat:'BOSS', title:'ボスランク5', desc:'ボス系の敵を合?115菴灘偵☆', metric:'totalBossLikeKills', target:115, reward:{coins:6840} },
             { id:'m097', cat:'PLAY', title:'出?ンク5', desc:'合?130回?レイする', metric:'totalRuns', target:130, reward:{coins:6960} },
@@ -942,7 +942,7 @@
             { id:'m101', cat:'KILL', title:'討伐ランク6', desc:'敵を合?12000菴灘偵☆', metric:'totalKills', target:12000, reward:{coins:7620} },
             { id:'m102', cat:'GEM', title:'ジェムランク6', desc:'ジェムを合?12000個集める', metric:'totalGems', target:12000, reward:{coins:7740} },
             { id:'m103', cat:'TIME', title:'生存ランク6', desc:'1回?プレイで1350秒生き残る', metric:'bestTime', target:1350, reward:{coins:7860} },
-            { id:'m104', cat:'SCORE', title:'スコアランク6', desc:'自己ベス?320000点を??', metric:'bestScore', target:320000, reward:{coins:7980} },
+            { id:'m104', cat:'SCORE', title:'スコアランク6', desc:'自己ベスト320000点を??', metric:'bestScore', target:320000, reward:{coins:7980} },
             { id:'m105', cat:'LEVEL', title:'覚?ランク6', desc:'最高レベル55に到達す?', metric:'bestLevel', target:55, reward:{coins:8100} },
             { id:'m106', cat:'BOSS', title:'ボスランク6', desc:'ボス系の敵を合?150菴灘偵☆', metric:'totalBossLikeKills', target:150, reward:{coins:8220} },
             { id:'m107', cat:'PLAY', title:'出?ンク6', desc:'合?160回?レイする', metric:'totalRuns', target:160, reward:{coins:8340} },
@@ -952,7 +952,7 @@
             { id:'m111', cat:'KILL', title:'討伐ランク7', desc:'敵を合?15000菴灘偵☆', metric:'totalKills', target:15000, reward:{coins:9000} },
             { id:'m112', cat:'GEM', title:'ジェムランク7', desc:'ジェムを合?16000個集める', metric:'totalGems', target:16000, reward:{coins:9120} },
             { id:'m113', cat:'TIME', title:'生存ランク7', desc:'1回?プレイで1500秒生き残る', metric:'bestTime', target:1500, reward:{coins:9240} },
-            { id:'m114', cat:'SCORE', title:'スコアランク7', desc:'自己ベス?420000点を??', metric:'bestScore', target:420000, reward:{coins:9360} },
+            { id:'m114', cat:'SCORE', title:'スコアランク7', desc:'自己ベスト420000点を??', metric:'bestScore', target:420000, reward:{coins:9360} },
             { id:'m115', cat:'LEVEL', title:'覚?ランク7', desc:'最高レベル60に到達す?', metric:'bestLevel', target:60, reward:{coins:9480} },
             { id:'m116', cat:'BOSS', title:'ボスランク7', desc:'ボス系の敵を合?190菴灘偵☆', metric:'totalBossLikeKills', target:190, reward:{coins:9600} },
             { id:'m117', cat:'PLAY', title:'出?ンク7', desc:'合?200回?レイする', metric:'totalRuns', target:200, reward:{coins:9720} },
@@ -962,7 +962,7 @@
             { id:'m121', cat:'KILL', title:'討伐ランク8', desc:'敵を合?20000菴灘偵☆', metric:'totalKills', target:20000, reward:{coins:10380} },
             { id:'m122', cat:'GEM', title:'ジェムランク8', desc:'ジェムを合?21000個集める', metric:'totalGems', target:21000, reward:{coins:10500} },
             { id:'m123', cat:'TIME', title:'生存ランク8', desc:'1回?プレイで1680秒生き残る', metric:'bestTime', target:1680, reward:{coins:10620} },
-            { id:'m124', cat:'SCORE', title:'スコアランク8', desc:'自己ベス?550000点を??', metric:'bestScore', target:550000, reward:{coins:10740} },
+            { id:'m124', cat:'SCORE', title:'スコアランク8', desc:'自己ベスト550000点を??', metric:'bestScore', target:550000, reward:{coins:10740} },
             { id:'m125', cat:'LEVEL', title:'覚?ランク8', desc:'最高レベル70に到達す?', metric:'bestLevel', target:70, reward:{coins:10860} },
             { id:'m126', cat:'BOSS', title:'ボスランク8', desc:'ボス系の敵を合?240菴灘偵☆', metric:'totalBossLikeKills', target:240, reward:{coins:10980} },
             { id:'m127', cat:'PLAY', title:'出?ンク8', desc:'合?250回?レイする', metric:'totalRuns', target:250, reward:{coins:11100} },
@@ -972,7 +972,7 @@
             { id:'m131', cat:'KILL', title:'討伐ランク9', desc:'敵を合?26000菴灘偵☆', metric:'totalKills', target:26000, reward:{coins:11760} },
             { id:'m132', cat:'GEM', title:'ジェムランク9', desc:'ジェムを合?27000個集める', metric:'totalGems', target:27000, reward:{coins:11880} },
             { id:'m133', cat:'TIME', title:'生存ランク9', desc:'1回?プレイで1860秒生き残る', metric:'bestTime', target:1860, reward:{coins:12000} },
-            { id:'m134', cat:'SCORE', title:'スコアランク9', desc:'自己ベス?700000点を??', metric:'bestScore', target:700000, reward:{coins:12120} },
+            { id:'m134', cat:'SCORE', title:'スコアランク9', desc:'自己ベスト700000点を??', metric:'bestScore', target:700000, reward:{coins:12120} },
             { id:'m135', cat:'LEVEL', title:'覚?ランク9', desc:'最高レベル80に到達す?', metric:'bestLevel', target:80, reward:{coins:12240} },
             { id:'m136', cat:'BOSS', title:'ボスランク9', desc:'ボス系の敵を合?300菴灘偵☆', metric:'totalBossLikeKills', target:300, reward:{coins:12360} },
             { id:'m137', cat:'PLAY', title:'出?ンク9', desc:'合?320回?レイする', metric:'totalRuns', target:320, reward:{coins:12480} },
@@ -982,7 +982,7 @@
             { id:'m141', cat:'KILL', title:'討伐ランク10', desc:'敵を合?33000菴灘偵☆', metric:'totalKills', target:33000, reward:{coins:13140} },
             { id:'m142', cat:'GEM', title:'ジェムランク10', desc:'ジェムを合?35000個集める', metric:'totalGems', target:35000, reward:{coins:13260} },
             { id:'m143', cat:'TIME', title:'生存ランク10', desc:'1回?プレイで2100秒生き残る', metric:'bestTime', target:2100, reward:{coins:13380} },
-            { id:'m144', cat:'SCORE', title:'スコアランク10', desc:'自己ベス?900000点を??', metric:'bestScore', target:900000, reward:{coins:13500} },
+            { id:'m144', cat:'SCORE', title:'スコアランク10', desc:'自己ベスト900000点を??', metric:'bestScore', target:900000, reward:{coins:13500} },
             { id:'m145', cat:'LEVEL', title:'覚?ランク10', desc:'最高レベル90に到達す?', metric:'bestLevel', target:90, reward:{coins:13620} },
             { id:'m146', cat:'BOSS', title:'ボスランク10', desc:'ボス系の敵を合?380菴灘偵☆', metric:'totalBossLikeKills', target:380, reward:{coins:13740} },
             { id:'m147', cat:'PLAY', title:'出?ンク10', desc:'合?400回?レイする', metric:'totalRuns', target:400, reward:{coins:13860} },
@@ -996,14 +996,14 @@
             { id:'m152', cat:'CAPE', title:'王??マン?', desc:'最高レベル35に到達す?', metric:'bestLevel', target:35, reward:{coins:2500, cape:'royal'} },
             { id:'m153', cat:'CAPE', title:'虚空をまと??', desc:'1回?プレイで900秒生き残る', metric:'bestTime', target:900, reward:{coins:3500, cape:'voidCape', skin:'obsidian'} },
             { id:'m154', cat:'CAPE', title:'髮ｷ蟶昴雉ｼ', desc:'ボス系の敵を合?60菴灘偵☆', metric:'totalBossLikeKills', target:60, reward:{coins:4200, cape:'stormCape', aura:'stormKing'} },
-            { id:'m155', cat:'AURA', title:'太陽神?覚?', desc:'自己ベス?300000点を??', metric:'bestScore', target:300000, reward:{coins:5000, skin:'solar', aura:'solarFlare'} },
+            { id:'m155', cat:'AURA', title:'太陽神?覚?', desc:'自己ベスト300000点を??', metric:'bestScore', target:300000, reward:{coins:5000, skin:'solar', aura:'solarFlare'} },
             { id:'m156', cat:'BOSS', title:'大猿王に挑??', desc:'ボス系の敵を合?120菴灘偵☆', metric:'totalBossLikeKills', target:120, reward:{coins:8000, cape:'royal', aura:'royalHalo'} },
             { id:'m157', cat:'SKIN', title:'蒼き挑戦?', desc:'最高レベル20に到達す?', metric:'bestLevel', target:20, reward:{coins:2000, skin:'sapphire'} },
             { id:'m158', cat:'SKIN', title:'幻影の一?', desc:'オンラインで攻?合?420回当て?', metric:'totalOnlineHits', target:420, reward:{coins:4200, skin:'phantomSkin', aura:'phantomAfterimage'} },
             { id:'m159', cat:'SKIN', title:'辯∴繧玖ｨ惹ｼ占', desc:'敵を合?15000菴灘偵☆', metric:'totalKills', target:15000, reward:{coins:5200, skin:'infernoSkin', aura:'infernoRing'} },
             { id:'m160', cat:'SKIN', title:'銀河騎士の誕生', desc:'ミッション?60個達成す?', metric:'completedMissionCount', target:60, reward:{coins:6500, skin:'galaxyKnight', cape:'galaxy'} },
             { id:'m161', cat:'BOSS', title:'大猿討伐?証', desc:'ボス系の敵を合?180菴灘偵☆', metric:'totalBossLikeKills', target:180, reward:{coins:9000, skin:'monkeySlayer', cape:'monarch'} },
-            { id:'m162', cat:'AURA', title:'王?、?ぜる', desc:'自己ベス?420000点を??', metric:'bestScore', target:420000, reward:{coins:8500, aura:'crownBurst'} },
+            { id:'m162', cat:'AURA', title:'王?、?ぜる', desc:'自己ベスト420000点を??', metric:'bestScore', target:420000, reward:{coins:8500, aura:'crownBurst'} },
             { id:'m163', cat:'AURA', title:'銀河の軌跡', desc:'1回?プレイで1500秒生き残る', metric:'bestTime', target:1500, reward:{coins:7200, aura:'galaxyTrail'} },
             { id:'m164', cat:'CAPE', title:'業火の??', desc:'1回?プレイで敵?1500菴灘偵☆', metric:'bestRunKills', target:1500, reward:{coins:7600, cape:'inferno'} },
             { id:'m165', cat:'BLACKHOLE', title:'黒き中??', desc:'最高レベル60に到達す?', metric:'bestLevel', target:60, reward:{coins:10000, skin:'blackholeCore', aura:'blackholeAura'} },
@@ -1016,7 +1016,7 @@
             { id:'m169', cat:'LEGEND', title:'黒穴の支配?', desc:'最高レベル70に到達す?', metric:'bestLevel', target:70, reward:{coins:18000, weapon:'blackholeEmperor'} },
             { id:'m170', cat:'LEGEND', title:'30?バイバ?', desc:'1回?プレイで1800秒生き残る', metric:'bestTime', target:1800, reward:{coins:26000, weapon:'blackholeEmperor', skin:'blackholeCore'} },
             { id:'m171', cat:'BOSS', title:'雷盾の??', desc:'ボス系の敵を合?320菴灘偵☆', metric:'totalBossLikeKills', target:320, reward:{coins:22000, weapon:'thunderAegis', aura:'thunderCrown'} },
-            { id:'m172', cat:'SCORE', title:'太陽を撃つ?', desc:'自己ベス?650000点を??', metric:'bestScore', target:650000, reward:{coins:30000, weapon:'solarDrill', skin:'solar'} },
+            { id:'m172', cat:'SCORE', title:'太陽を撃つ?', desc:'自己ベスト650000点を??', metric:'bestScore', target:650000, reward:{coins:30000, weapon:'solarDrill', skin:'solar'} },
             { id:'m173', cat:'FINAL', title:'時を咲かせる?', desc:'ミッション?90個達成す?', metric:'completedMissionCount', target:90, reward:{coins:30000, weapon:'chronoLotus', cape:'galaxy'} },
             { id:'m174', cat:'ONLINE', title:'対戦神話への?', desc:'オンラインで攻?合?2000回当て?', metric:'totalOnlineHits', target:2000, reward:{coins:20000, weapon:'railCannon', skin:'phantomSkin'} }
         );
@@ -1038,9 +1038,9 @@
             { id:'m187', cat:'LEVEL', title:'レベル90到?', desc:'最高レベル90に到達す?', metric:'bestLevel', target:90, reward:{coins:50000} },
             { id:'m188', cat:'LEVEL', title:'レベル110到?', desc:'最高レベル110に到達す?', metric:'bestLevel', target:110, reward:{coins:70000, weapon:'chronoLotus'} },
             { id:'m189', cat:'LEVEL', title:'レベル130到?', desc:'最高レベル130に到達す?', metric:'bestLevel', target:130, reward:{coins:100000, aura:'blackholeAura'} },
-            { id:'m190', cat:'SCORE', title:'ミリオンスコア', desc:'自己ベス?1000000点を??', metric:'bestScore', target:1000000, reward:{coins:60000} },
-            { id:'m191', cat:'SCORE', title:'ダブルミリオン', desc:'自己ベス?2000000点を??', metric:'bestScore', target:2000000, reward:{coins:90000, skin:'solar'} },
-            { id:'m192', cat:'SCORE', title:'ネオン神話スコア', desc:'自己ベス?3500000点を??', metric:'bestScore', target:3500000, reward:{coins:130000, weapon:'blackholeEmperor'} },
+            { id:'m190', cat:'SCORE', title:'ミリオンスコア', desc:'自己ベスト1000000点を??', metric:'bestScore', target:1000000, reward:{coins:60000} },
+            { id:'m191', cat:'SCORE', title:'ダブルミリオン', desc:'自己ベスト2000000点を??', metric:'bestScore', target:2000000, reward:{coins:90000, skin:'solar'} },
+            { id:'m192', cat:'SCORE', title:'ネオン神話スコア', desc:'自己ベスト3500000点を??', metric:'bestScore', target:3500000, reward:{coins:130000, weapon:'blackholeEmperor'} },
             { id:'m193', cat:'GEM', title:'ジェム大富豪', desc:'ジェムを合?30000個集める', metric:'totalGems', target:30000, reward:{coins:52000} },
             { id:'m194', cat:'GEM', title:'銀河ジェム?', desc:'ジェムを合?60000個集める', metric:'totalGems', target:60000, reward:{coins:85000, aura:'galaxyTrail'} },
             { id:'m195', cat:'COIN', title:'ネオン銀行王', desc:'合?500000コイン獲得す?', metric:'totalCoinsEarned', target:500000, reward:{coins:65000} },
@@ -1070,9 +1070,9 @@
             { id:'m215', cat:'BOSS', title:'轟?ハンマ?', desc:'MONKEY KINGを合?7体倒して????・轟を解放する', metric:'totalMonkeyKills', target:7, reward:{coins:17000, weapon:'thor'} },
             { id:'m216', cat:'HARD', title:'領域到?', desc:'1回?プレイで900秒生き残って、無量空処を解放する', metric:'bestTime', target:900, reward:{coins:26000, weapon:'muryoku'} },
             { id:'m217', cat:'KILL', title:'流星群観測', desc:'敵を合?9000体倒して、星砕きの流星群を解放する', metric:'totalKills', target:9000, reward:{coins:13000, weapon:'funnel'} },
-            { id:'m218', cat:'SCORE', title:'讖溽･櫁ｵｷ蜍', desc:'自己ベス?250000点を?て、創世?光芒を解放する', metric:'bestScore', target:250000, reward:{coins:14000, weapon:'ironBlaster'} },
+            { id:'m218', cat:'SCORE', title:'讖溽･櫁ｵｷ蜍', desc:'自己ベスト250000点を?て、創世?光芒を解放する', metric:'bestScore', target:250000, reward:{coins:14000, weapon:'ironBlaster'} },
             { id:'m219', cat:'GEM', title:'星夢のス??ジ', desc:'ジェムを合?12000個集めて、星夢の輪舞曲を解放する', metric:'totalGems', target:12000, reward:{coins:15000, weapon:'disneyMagic'} },
-            { id:'m220', cat:'HARD', title:'終焉の合図', desc:'自己ベス?700000点を?て、終焉の?を解放する', metric:'bestScore', target:700000, reward:{coins:32000, weapon:'infinitySnap'} },
+            { id:'m220', cat:'HARD', title:'終焉の合図', desc:'自己ベスト700000点を?て、終焉の?を解放する', metric:'bestScore', target:700000, reward:{coins:32000, weapon:'infinitySnap'} },
             { id:'m221', cat:'KILL', title:'無限剣の契?', desc:'敵を合?16000体倒して、無限?剣陣を解放する', metric:'totalKills', target:16000, reward:{coins:18000, weapon:'infiniteBlade'} },
             { id:'m222', cat:'BOSS', title:'不壊?守り', desc:'ボス系の敵を合?120体倒して、絶対防壁?反響を解放する', metric:'totalBossLikeKills', target:120, reward:{coins:19000, weapon:'shieldThrow'} },
             { id:'m223', cat:'HARD', title:'天帝?雷', desc:'最高レベル80に到達して、天帝?裁界・霹靂を解放する', metric:'bestLevel', target:80, reward:{coins:40000, weapon:'keraunos'} }
@@ -1120,7 +1120,7 @@
             { id:'ALL', label:'すべて' }
         ];
 
-        // ===== V31 STABLE: readable Japanese data patch =====
+        // ===== V32 STABLE: readable Japanese data patch =====
         (() => {
             if (window.__NSV_V30_DATA_PATCH__) return;
             window.__NSV_V30_DATA_PATCH__ = true;
@@ -11436,7 +11436,7 @@
 
 
     /* =========================================================
-       V31 STABLE: READABLE NEON PASS SCREEN
+       V32 STABLE: READABLE NEON PASS SCREEN
        - ネオンパス画面を進行状況?報酬・受け取り状態が見やすい形に整?
        - ??ゲーム?は維持。表示とボタンの?りやすさを改?
     ========================================================= */
@@ -11802,7 +11802,7 @@
 
 
 /* =========================================================
-   V31 STABLE FINAL PATCH
+   V32 STABLE FINAL PATCH
    ========================================================= */
 (() => {
   'use strict';
@@ -11811,7 +11811,7 @@
   window[V13_PATCH_ID] = true;
 
   const ADMIN_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
-  const V13_VERSION_TEXT = 'V31 STABLE';
+  const V13_VERSION_TEXT = 'V32 STABLE';
   const ULTIMATE_IDS_V13 = new Set([
     'hollowMurasaki','kamehameha','vader','thor','muryoku','funnel','ironBlaster','disneyMagic','infinitySnap','infiniteBlade','shieldThrow','keraunos','phantomStep',
     'neonLance','phoenixCore','starfallCrown','voidCollector','railCannon','blackholeEmperor','thunderAegis','solarDrill','chronoLotus'
@@ -12710,7 +12710,7 @@
 
 
 /* =========================================================
-   V31 STABLE: SAFE BUTTON / OVERLAY PATCH
+   V32 STABLE: SAFE BUTTON / OVERLAY PATCH
    - 画面の透?重なりを消す
    - 主要?タンをmodule?直接ルー?ング
    - 後ろの古?常scriptのcapture蜃ｦ逅ｈ繧雁縺ｫ蜃ｦ逅☆繧
@@ -12721,7 +12721,7 @@
     if (window.__nsvV17SafeButtonPatch) return;
     window.__nsvV17SafeButtonPatch = true;
 
-    const V17_LABEL = 'V31 STABLE';
+    const V17_LABEL = 'V32 STABLE';
     const ADMIN_FORM_URL_V17 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
     const SCREEN_IDS_V17 = [
         'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen',
@@ -13067,9 +13067,9 @@
 
 
     /* =========================================================
-       V31 STABLE: RESULT / AUTO LIGHT LEVEL / BEGINNER MISSIONS
+       V32 STABLE: RESULT / AUTO LIGHT LEVEL / BEGINNER MISSIONS
        - リザルト画面に武器使用・獲得コイン・達?ミッションをまとめて表示
-       - 軽量モードドを Lv1 / Lv2 / Lv3 の段階制で自動調整
+       - 軽量モードを Lv1 / Lv2 / Lv3 の段階制で自動調整
        - 初???ョンを追?
     ========================================================= */
     (function(){
@@ -13077,7 +13077,7 @@
         if (window.__nsvV22ResultLightBeginnerPatch) return;
         window.__nsvV22ResultLightBeginnerPatch = true;
 
-        const V22_LABEL = 'V31 STABLE';
+        const V22_LABEL = 'V32 STABLE';
         const V22_BEGINNER_MISSIONS = [
             { id:'b001', cat:'BEGINNER', title:'初??イ?', desc:'ソロかオンライン?1回?レイする', metric:'totalRuns', target:1, reward:{coins:180} },
             { id:'b002', cat:'BEGINNER', title:'3?存チャレンジ', desc:'1回?プレイで180秒生き残る', metric:'bestTime', target:180, reward:{coins:360} },
@@ -13403,7 +13403,7 @@
     })();
 
 /* =========================================================
-   V31 STABLE: HARD SCROLL GUARD + FRIEND CODE RANKING + DAILY EVENT
+   V32 STABLE: HARD SCROLL GUARD + FRIEND CODE RANKING + DAILY EVENT
    - プレビューな?
    - スクロール中の誤タ??? window capture で最優先ブロ?
    - ランキングにコピ?できるフレンドコード?貼り付け?追?
@@ -13411,7 +13411,7 @@
 ========================================================= */
 (function(){
   'use strict';
-  const V24_LABEL = 'V31 STABLE';
+  const V24_LABEL = 'V32 STABLE';
   const FRIEND_STORE_KEY = 'nsv_v24_friend_rows';
   const DAILY_EVENT_KEY = 'nsv_v24_active_daily_event';
 
@@ -14124,7 +14124,7 @@
             if (window[PATCH_ID]) return;
             window[PATCH_ID] = true;
             const ADMIN_FORM_URL_V15 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
-            const V15_VERSION_TEXT = 'V31 STABLE';
+            const V15_VERSION_TEXT = 'V32 STABLE';
             const CORE_IDS = new Set([
                 'startBtn','onlineStartBtn','pauseBtn','resumeBtn','restartBtn','titleFromPauseBtn',
                 'openUpgradeBtn','closeUpgradeBtn','openMissionBtn','closeMissionsBtn','openCollectionBtn','closeCollectionBtn',
@@ -14522,7 +14522,7 @@
 
 <script>
 /* =========================================================
-   V31 STABLE: home placement + BACK button fallback
+   V32 STABLE: home placement + BACK button fallback
    - プレビューな?
    - FULL MENUを消して最初?ホ??配置に戻?
    - Back系ボタンを確実に1回タ??で戻?
@@ -14549,7 +14549,7 @@
       if (settings && joy && light) { settings.appendChild(joy); settings.appendChild(light); }
       document.querySelectorAll('button').forEach(b => { b.style.pointerEvents='auto'; b.style.touchAction='manipulation'; });
       const b13=$('nsvV13Badge'), b14=$('nsvV14Badge'), b15=$('nsvV15Badge');
-      [b13,b14,b15].forEach(b => { if (b) b.textContent='V31 STABLE'; });
+      [b13,b14,b15].forEach(b => { if (b) b.textContent='V32 STABLE'; });
     } catch(e) {}
   }
   function route(id){
@@ -14581,7 +14581,7 @@
 
 <script>
 /* =========================================================
-   V31 STABLE: FIXED HOME LAYOUT + BACK BUTTON HARD PATCH
+   V32 STABLE: FIXED HOME LAYOUT + BACK BUTTON HARD PATCH
    - ホ??のボタン移動を止める
    - SOLO / ONLINE を上段に固定し、他?タンの?1.5倍にする
    - Back ボタン? window capture で最優先???
@@ -14592,7 +14592,7 @@
   if (window.__nsvV18FixedHomeBackPatch) return;
   window.__nsvV18FixedHomeBackPatch = true;
 
-  const VERSION = 'V31 STABLE';
+  const VERSION = 'V32 STABLE';
   const HOME_BUTTON_IDS = new Set([
     'startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn',
     'openBossCodexBtn','openLeaderboardBtn','openDailyEventBtnV13','openBattlePassBtn','openShopBtn','adminContactBtn',
@@ -14815,7 +14815,7 @@
 
 <script>
 /* =========================================================
-   V31 STABLE: ORIENTATION ONLY LAYOUT LOCK
+   V32 STABLE: ORIENTATION ONLY LAYOUT LOCK
    - 画面の向きを変えた時以外、?ー?ボタン位置を動かさな?
    - スクロール揺れ?再?置タイマ?・透?レイヤー干渉を抑え?
    - プレビュー表示な?
@@ -14825,7 +14825,7 @@
   if (window.__nsvV20OrientationLockPatch) return;
   window.__nsvV20OrientationLockPatch = true;
 
-  const VERSION = 'V31 STABLE';
+  const VERSION = 'V32 STABLE';
   const PROTECTED_HOME_IDS = new Set([
     'startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn',
     'openBossCodexBtn','openLeaderboardBtn','openDailyEventBtnV13','openBattlePassBtn','openShopBtn','adminContactBtn',
@@ -15010,14 +15010,14 @@
 
 <script>
 /* =========================================================
-   V31 STABLE: FINAL LABEL
+   V32 STABLE: FINAL LABEL
 ========================================================= */
 (function(){
   'use strict';
   function setV21(){
     ['nsvV20Badge','nsvV18Badge','nsvV17Badge','nsvV15Badge','nsvV14Badge','nsvV13Badge'].forEach(function(id){
       var el = document.getElementById(id);
-      if (el) el.textContent = 'V31 STABLE';
+      if (el) el.textContent = 'V32 STABLE';
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setV21, { once:true });
@@ -15026,12 +15026,12 @@
 })();
 
 /* =========================================================
-   V31 STABLE - HOME SCROLL MIS-TAP GUARD + TOP3 RANKING
+   V32 STABLE - HOME SCROLL MIS-TAP GUARD + TOP3 RANKING
    プレビューな? / ホ??誤タ??防止 / ランキング3位固定表示
 ========================================================= */
 (function(){
   'use strict';
-  const V23_LABEL = 'V31 STABLE';
+  const V23_LABEL = 'V32 STABLE';
 
   function nsvV23Escape(v){
     try {
@@ -15322,7 +15322,7 @@
 
 
 /* =========================================================
-   V31 STABLE: HOME SETTINGS / DATA TRANSFER LAYOUT FIX
+   V32 STABLE: HOME SETTINGS / DATA TRANSFER LAYOUT FIX
    - ??タ引き継ぎを?ー?最下部へ固?
    - 設定?ら重?ベント?タンを除去
    - 管??ォー?を通常ボタン列へ移?
@@ -15331,7 +15331,7 @@
 ========================================================= */
 (function(){
   'use strict';
-  const V25_LABEL = 'V31 STABLE';
+  const V25_LABEL = 'V32 STABLE';
   const CLEAN_ROOT_ID = 'nsvCleanStartRoot20260504';
   const ADMIN_FORM_URL_V25 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
 
@@ -15507,7 +15507,7 @@
     chip.className = 'nsv-clean-season-chip';
     chip.innerHTML = '<span class="nsv-clean-season-big">SEASON 1</span><span class="nsv-clean-season-name">NEON GENESIS</span>';
     titleCard.appendChild(chip);
-    const profile = section('PLAYER DATA','名前と自己ベス?');
+    const profile = section('PLAYER DATA','名前と自己ベスト');
     const profileGrid = document.createElement('div');
     profileGrid.className = 'nsv-v25-profile';
     if (nickCard) profileGrid.appendChild(nickCard);
@@ -15543,7 +15543,7 @@
     const settingsGrid = document.createElement('div');
     settingsGrid.className = 'nsv-v25-settings-grid';
     settingsGrid.appendChild(settingCard('joystickToggle','ジョイスティック','スマ?・iPadで移動し?くします?'));
-    settingsGrid.appendChild(settingCard('lightModeToggle','軽量モードド','重い時にエフェクトを減らして落ちにくくします?'));
+    settingsGrid.appendChild(settingCard('lightModeToggle','軽量モード','重い時にエフェクトを減らして落ちにくくします?'));
     settingsSec.appendChild(settingsGrid);
     root.appendChild(settingsSec);
 
@@ -15591,7 +15591,7 @@
 
 
 /* =========================================================
-   V31 STABLE: HOME CLEANUP / TOGGLE SETTINGS / CHEAT POSITION / BIG RANKING
+   V32 STABLE: HOME CLEANUP / TOGGLE SETTINGS / CHEAT POSITION / BIG RANKING
    - ??タ引き継ぎ??下に残る不要表示を削除
    - SETTINGSをON/OFFトグル式に整?
    - チ?トコード???タ引き継ぎの真上へ移?
@@ -15600,7 +15600,7 @@
 ========================================================= */
 (function(){
   'use strict';
-  const V26_LABEL = 'V31 STABLE';
+  const V26_LABEL = 'V32 STABLE';
   const ROOT_ID = 'nsvCleanStartRoot20260504';
   const ADMIN_FORM_URL_V26 = 'https://docs.google.com/forms/d/e/1FAIpQLSdFIHTE87vQtcVdiMPRVXVedTB9_5iljxxYBKEVkBJzsN8qVA/viewform';
   const FRIEND_KEY_V26 = 'neon_survivor_friend_rows_v26';
@@ -15843,7 +15843,7 @@
     const top = document.createElement('div'); top.className = 'nsv-v26-top';
     const titleCard = document.createElement('div'); titleCard.className = 'nsv-v26-title-card'; if (title) titleCard.appendChild(title);
     const chip = document.createElement('div'); chip.className = 'nsv-clean-season-chip'; chip.innerHTML = '<span class="nsv-clean-season-big">SEASON 1</span><span class="nsv-clean-season-name">NEON GENESIS</span>'; titleCard.appendChild(chip);
-    const profile = section('PLAYER DATA','名前と自己ベス?'); const pg = document.createElement('div'); pg.className = 'nsv-v26-profile'; if (nickCard) pg.appendChild(nickCard); if (bestCard) pg.appendChild(bestCard); profile.appendChild(pg);
+    const profile = section('PLAYER DATA','名前と自己ベスト'); const pg = document.createElement('div'); pg.className = 'nsv-v26-profile'; if (nickCard) pg.appendChild(nickCard); if (bestCard) pg.appendChild(bestCard); profile.appendChild(pg);
     top.appendChild(titleCard); top.appendChild(profile); root.appendChild(top);
 
     const playSec = section('PLAY','まず?ここから'); const playGrid = document.createElement('div'); playGrid.className = 'nsv-v26-play'; playGrid.appendChild(startBtn); playGrid.appendChild(onlineBtn); playSec.appendChild(playGrid); root.appendChild(playSec);
@@ -15852,7 +15852,7 @@
 
     const settingsSec = section('SETTINGS','ON/OFFで?替?'); const sg = document.createElement('div'); sg.className = 'nsv-v26-settings-grid';
     sg.appendChild(makeToggleCard('joystickToggle','ジョイスティック','スマ?・iPadで移動し?くします?', readStoredToggle('joystickToggle', true), on => { try { if (typeof window.toggleJoystickFromPause === 'function') window.toggleJoystickFromPause(on); } catch(e){} }));
-    sg.appendChild(makeToggleCard('lightModeToggle','軽量モードド','重い時にエフェクトを減らして落ちにくくします?', readStoredToggle('lightModeToggle', false), on => { try { if (typeof window.toggleLightMode === 'function') window.toggleLightMode(on); } catch(e){} }));
+    sg.appendChild(makeToggleCard('lightModeToggle','軽量モード','重い時にエフェクトを減らして落ちにくくします?', readStoredToggle('lightModeToggle', false), on => { try { if (typeof window.toggleLightMode === 'function') window.toggleLightMode(on); } catch(e){} }));
     settingsSec.appendChild(sg); root.appendChild(settingsSec);
 
     const cheatSec = section('CHEAT CODE','??タ引き継ぎの真?'); cheatSec.appendChild(cheatCard()); root.appendChild(cheatSec);
@@ -15922,11 +15922,11 @@
 
 
 // ==========================================================
-// V31 STABLE add-on: no first tutorial, game-over scroll fix, pause cheat input
+// V32 STABLE add-on: no first tutorial, game-over scroll fix, pause cheat input
 // ==========================================================
 (() => {
   'use strict';
-  const V27_VERSION_TEXT = 'V31 STABLE';
+  const V27_VERSION_TEXT = 'V32 STABLE';
 
   function $(id){ return document.getElementById(id); }
   function safe(fn){ try { fn(); } catch(e) { console.warn('V27 patch skipped:', e); } }
@@ -16190,7 +16190,7 @@
 
 <script>
 /* ==========================================================
-   V31 STABLE FINAL UI / TEXT PATCH - no preview build
+   V32 STABLE FINAL UI / TEXT PATCH - no preview build
    目的: スクリーンショットで見えた文字化け、?、□表示、重なりを最終補正
    ========================================================== */
 (() => {
@@ -16253,7 +16253,7 @@
       `; document.head.appendChild(st);
     }
     document.querySelectorAll('.nsv-v13-badge,.nsv-v14-badge,.nsv-v20-badge,.nsv-v24-badge,.nsv-v25-badge,.nsv-v27-badge,.nsv-final-badge').forEach((el,i)=>{ if(i>0 || !el.id) el.remove(); });
-    let b=$('nsvV30Badge'); if(!b){ b=document.createElement('div'); b.id='nsvV30Badge'; b.className='nsv-v30-badge'; document.body.appendChild(b); } b.textContent='V31 STABLE';
+    let b=$('nsvV30Badge'); if(!b){ b=document.createElement('div'); b.id='nsvV30Badge'; b.className='nsv-v30-badge'; document.body.appendChild(b); } b.textContent='V32 STABLE';
   }
   function patchStart(){
     const warn=$('nicknameWarn'); if(warn) warn.textContent='ニックネームを入力するとゲームを開始できます。';
@@ -16322,15 +16322,15 @@
 <script>
 (() => {
   'use strict';
-  if (window.__NSV_V31_STABLE_POLISH__) return;
-  window.__NSV_V31_STABLE_POLISH__ = true;
+  if (window.__NSV_V32_STABLE_POLISH__) return;
+  window.__NSV_V32_STABLE_POLISH__ = true;
 
   const $ = (id) => document.getElementById(id);
   const visible = (el) => !!el && !el.classList.contains('hidden') && getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden';
   const mojibake = /[縺繧繝譁譛荳驥逕蟄謨蜷蠑遘髢雜譁ｹ蜉髦邨蛻隱螟莉蟆蛹鬮迯雋豁ｦ蝎螳霆譌謌隕邱莠蠢蛟蜀笘竭窶�□]/;
 
   const dict = [
-    [/軽量モードド/g, '軽量モード'], [/ニックネームを\?れな\?ゲーム開始できません\?/g, 'ニックネームを入れないとゲームを開始できません'],
+    [/軽量モード/g, '軽量モード'], [/ニックネームを\?れな\?ゲーム開始できません\?/g, 'ニックネームを入れないとゲームを開始できません'],
     [/自己ベス\?/g, '自己ベスト'], [/スコア\?\?コイン/g, 'スコア・コイン'], [/\?\?タ引き継ぎ/g, 'データ引き継ぎ'],
     [/ア\?\?グレード/g, 'アップグレード'], [/レベルア\?\?/g, 'レベルアップ'], [/ア\?\?/g, 'アップ'],
     [/チケ\?/g, 'チケット'], [/交\?/g, '交換'], [/コピ\?/g, 'コピー'], [/クリ\?\?ボ\?ド/g, 'クリップボード'],
@@ -16429,7 +16429,7 @@
     document.querySelectorAll('.nsv-v13-badge,.nsv-v14-badge,.nsv-v20-badge,.nsv-v24-badge,.nsv-v25-badge,.nsv-v27-badge,.nsv-final-badge,#nsvV30Badge,.nsv-v30-badge').forEach(el => el.remove());
     let b = $('nsvV31Badge');
     if (!b) { b = document.createElement('div'); b.id = 'nsvV31Badge'; b.className = 'nsv-v31-badge'; document.body.appendChild(b); }
-    b.textContent = 'V31 STABLE';
+    b.textContent = 'V32 STABLE';
   }
 
   function patchStaticLabels() {
@@ -16539,6 +16539,261 @@
   const mo = new MutationObserver(() => { if (queued) return; queued = true; setTimeout(() => { queued = false; run(); }, 80); });
   mo.observe(document.documentElement, {childList:true, subtree:true, characterData:true});
   setInterval(run, 1200);
+})();
+</script>
+
+
+<script>
+(() => {
+  'use strict';
+  if (window.__NSV_V32_STABLE_FINAL__) return;
+  window.__NSV_V32_STABLE_FINAL__ = true;
+
+  const VERSION = 'V32 STABLE';
+  const $ = (id) => document.getElementById(id);
+  const BAD = /[縺繧繝荳譁譛驥逕蟄謨蜷蠑遘髢雜譁ｹ蜉髦邨蛻隱螟莉蟆蛹鬮迯雋豁ｦ蝎螳霆譌謌隕邱莠蠢蛟蜀竭窶�□笘]/;
+  const hasBad = (t) => BAD.test(String(t || '')) || /\?\?/.test(String(t || ''));
+  const textOnly = (el, value) => { if (el && el.textContent !== value) el.textContent = value; };
+  const htmlOnly = (el, value) => { if (el && el.innerHTML !== value) el.innerHTML = value; };
+
+  const replacements = [
+    [/軽量モードド/g, '軽量モード'], [/自己ベス\?/g, '自己ベスト'], [/スコア\?\?コイン/g, 'スコア・コイン'],
+    [/ニックネームを\?れな\?ゲーム開始できません\?/g, 'ニックネームを入れないとゲームを開始できません'],
+    [/名前を\?れるとスタートできま\?/g, '名前を入れるとスタートできます'], [/データ引き継ぎ/g, 'データ引き継ぎ'],
+    [/スタートしました\?\?/g, 'スタートしました！'], [/軽量モードを使用/g, '軽量モードを使用'], [/ジョイスティック/g, 'ジョイスティック'],
+    [/攻\?/g, '攻撃'], [/防御\?/g, '防御'], [/移動\?/g, '移動'], [/回避\?/g, '回避'], [/強\?/g, '強い'], [/弱\?/g, '弱い'],
+    [/初\?攻/g, '初期攻撃'], [/初期攻ア\?\?/g, '初期攻撃アップ'], [/貫通チ\?\?/g, '貫通チップ'], [/連射\?\?/g, '連射強化'],
+    [/所持コイン\?\?/g, '所持コイン：'], [/所\?コイン\?\?/g, '所持コイン：'], [/チケ\?/g, 'チケット'], [/交\?/g, '交換'], [/報酬\s*[:：]?/g, '報酬: '],
+    [/ミッションを達成して、?\s*コイン・伝説武器・スキン・オーラを解放しよ.*/g, 'ミッションを達成して、コイン・伝説武器・スキン・オーラを解放しよう。'],
+    [/武器の名前や\?を確認できます\?/g, '武器の名前や性能を確認できます。'], [/武器図鑑を見る/g, '武器図鑑を見る'],
+    [/攻撃タイプ\?/g, '攻撃タイプ：'], [/強い場面\?/g, '強い場面：'], [/弱い場面\?/g, '弱い場面：'], [/入手\?進化条件\?\?/g, '入手・進化条件：'],
+    [/今日の大討\?/g, '今日の大討伐'], [/今日の討伐/g, '今日の討伐'], [/今日のスコアアタ\?/g, '今日のスコアアタック'], [/今日の10\?ャレンジ/g, '今日の10分チャレンジ'],
+    [/今日中に敵\?(\d+)体?/g, '今日中に敵を$1体倒す'], [/今日中に敵\?(\d+)菴[^\s]*/g, '今日中に敵を$1体倒す'], [/今日中に合\?(\d+)秒生きる/g, '今日中に合計$1秒生き残る'],
+    [/途中で戻っても、そこまでのスコア\?\?コインを保存します。?/g, '途中で戻っても、そこまでのスコアとコインを保存します。'],
+    [/7桁コー\?/g, '7桁コード'], [/一時停止中でもチートコードを入力できます\?/g, '一時停止中でもチートコードを入力できます。'],
+    [/笘\s*NEW RECORD\s*笘/g, '★ NEW RECORD ★'], [/NEW RECORD/g, 'NEW RECORD'],
+    [/ネオン・プロトランナ\?/g, 'ネオン・プロトランナー'], [/ネオンパルス・コア/g, 'ネオンパルス・コア'], [/ブルーグリ\?・トレイル/g, 'ブルーグリッド・トレイル'],
+    [/ホログラ\?・スキャン登場/g, 'ホログラム・スキャン登場'], [/ライトア\?\?・ポ\?ズ/g, 'ライトアップ・ポーズ'],
+    [/バトルパスチケット交換/g, 'バトルパスチケット交換'], [/自\?\?フレンドコー\?/g, '自分のフレンドコード'], [/コード部\?COPYを押すとコピ\?できます\?/g, 'コード部分かCOPYを押すとコピーできます。'],
+    [/\bV(13|14|20|21|24|25|27|30|31) STABLE\b/g, VERSION]
+  ];
+
+  const badWordMap = [
+    [/^初期攻.*/, '初期攻撃アップ'], [/^騾|^連射/, '連射強化'], [/^貫通|^貫.*/, '貫通チップ'], [/^蛻晄悄HP.*/, '初期HPアップ'], [/^遘ｻ|^移動速度.*/, '移動速度アップ'],
+    [/^邨|^経験値.*/, '経験値アップ'], [/^ネオン装.*/, 'ネオン装甲'], [/^ジェム|^繧ｸ.*/, 'ジェム磁力強化'],
+    [/^通常弾|^騾壼/, '通常弾'], [/^跳弾|^陦|^蜊倥/, '跳弾スナイパー'], [/^ファントム|^□孫/, 'ファントムダガー'], [/^ブラック|^深淵|^□帳/, 'ブラックホール'],
+    [/^無量|^□域/, '無量空処'], [/^雷|^□撃/, '雷撃'], [/^太陽|^螟ｪ/, '太陽神ヘリオス'], [/^王冠|^□帳/, '王冠ハロー'],
+    [/^蒼炎|^闥/, '蒼炎オーラ'], [/^猛毒|^迪/, '猛毒パルス'], [/^虚空|^陌/, '虚空マント'], [/^業火|^轤/, '業火マント']
+  ];
+
+  function cleanText(raw) {
+    let t = String(raw ?? '');
+    if (!t.trim()) return t;
+    for (const [a,b] of replacements) t = t.replace(a,b);
+    t = t
+      .replace(/[][^\s　]*/g, '')
+      .replace(/[竭][｡｢｣]?/g, '')
+      .replace(/[□�]+/g, '')
+      .replace(/\?\?/g, '：')
+      .replace(/\?([。、，,.！!：:）\)])/g, '$1')
+      .replace(/(\d+)蛟/g, '$1倍')
+      .replace(/(\d+)菴/g, '$1体')
+      .replace(/(\d+)蝗/g, '$1回')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    if (BAD.test(t)) {
+      for (const [a,b] of badWordMap) if (a.test(t)) return b;
+      t = t.replace(/[縺繧繝荳譁譛驥逕蟄謨蜷蠑遘髢雜譁ｹ蜉髦邨蛻隱螟莉蟆蛹鬮迯雋豁ｦ蝎螳霆譌謌隕邱莠蠢蛟蜀竭窶�□笘]+/g, '')
+           .replace(/\s{2,}/g, ' ')
+           .trim();
+    }
+    return t || String(raw ?? '');
+  }
+
+  function installCss() {
+    if ($('nsvV32Style')) return;
+    const style = document.createElement('style');
+    style.id = 'nsvV32Style';
+    style.textContent = `
+      :root{--nsv-vh:100svh;--nsv-safe-top:env(safe-area-inset-top,0px);--nsv-safe-bottom:env(safe-area-inset-bottom,0px)}
+      html,body{width:100%;height:100%;max-width:100%;overflow:hidden;background:#050505} body{position:fixed;inset:0;overscroll-behavior:none;-webkit-text-size-adjust:100%;touch-action:none}
+      #gameCanvas{position:fixed!important;inset:0!important;width:100vw!important;height:var(--nsv-vh)!important;z-index:0!important;touch-action:none!important}
+      #startScreen,#upgradeScreen,#missionsScreen,#collectionScreen,#weaponCodexScreen,#onlineRoleScreen,#battlePassScreen,#shopScreen,#bossCodexScreen,#rankingScreen,#settingsScreen,#saveScreen,#friendScreen,#adminContactScreen{height:var(--nsv-vh)!important;max-height:var(--nsv-vh)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;align-items:flex-start!important;justify-content:flex-start!important;padding:calc(10px + var(--nsv-safe-top)) 10px calc(80px + var(--nsv-safe-bottom))!important;box-sizing:border-box!important}
+      #pauseScreen,#gameOverScreen,#levelUpScreen{height:var(--nsv-vh)!important;max-height:var(--nsv-vh)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;align-items:center!important;justify-content:flex-start!important;padding:calc(18px + var(--nsv-safe-top)) 12px calc(90px + var(--nsv-safe-bottom))!important;box-sizing:border-box!important}
+      .menu-panel,.nsv-v22-panel,.nsv-v24-panel,.nsv-v25-panel,.nsv-pass-card,.nsv-shop-card,.tutorial-card{width:min(96vw,1180px)!important;max-width:1180px!important;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box!important;overflow-wrap:anywhere!important}
+      .menu-grid,.nsv-v16-menu-grid,.nsv-v22-grid,#missionsListContainer,#upgradeListContainer{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))!important;gap:12px!important}
+      button,[role=button],label,.cursor-pointer,.upgrade-card,.mission-card,.collection-card{min-height:44px;pointer-events:auto!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent;user-select:none}
+      #uiLayer{transition:opacity .12s ease} body.nsv-menu-visible #uiLayer,body.nsv-menu-visible #bossHpContainer,body.nsv-menu-visible #missionMiniHud{opacity:0!important;pointer-events:none!important;display:none!important} body.nsv-in-game #uiLayer{opacity:1!important;display:flex!important}
+      #bossHpContainer{max-width:min(92vw,640px)!important}.result-grid{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))!important}
+      .nsv-v13-badge,.nsv-v14-badge,.nsv-v20-badge,.nsv-v21-badge,.nsv-v24-badge,.nsv-v25-badge,.nsv-v27-badge,.nsv-v30-badge,.nsv-v31-badge,#nsvV30Badge,#nsvV31Badge{display:none!important}.nsv-v32-badge{position:fixed;left:10px;bottom:8px;z-index:1000;color:#67e8f9;background:rgba(0,0,0,.68);border:1px solid rgba(103,232,249,.55);border-radius:999px;padding:4px 10px;font:800 11px Orbitron,sans-serif;box-shadow:0 0 12px rgba(34,211,238,.35);pointer-events:none}
+      body.nsv-low-fps canvas{filter:saturate(.9) brightness(.93)} body.nsv-low-fps .neon-text,body.nsv-low-fps .btn-neon,body.nsv-low-fps .btn-gold,body.nsv-low-fps .btn-purple,body.nsv-low-fps .btn-green{box-shadow:none!important;text-shadow:none!important} body.nsv-low-fps .lava-bg,body.nsv-low-fps .shatter-glass{display:none!important}
+      @media(max-width:760px){.neon-title{font-size:clamp(2.5rem,13vw,4rem)!important}.solo-hero{min-height:82px!important}.menu-secondary{min-height:60px!important}h1,h2{line-height:1.05!important}.mission-card,.collection-card,.upgrade-card{padding:12px!important}.menu-panel{padding:16px!important}.btn-neon,.btn-gold,.btn-red,.btn-purple,.btn-green{font-size:clamp(.9rem,3.5vw,1.1rem)!important}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function setVh() {
+    document.documentElement.style.setProperty('--nsv-vh', `${window.innerHeight}px`);
+  }
+
+  function visible(el) {
+    if (!el || el.classList.contains('hidden')) return false;
+    const cs = getComputedStyle(el);
+    return cs.display !== 'none' && cs.visibility !== 'hidden' && cs.opacity !== '0';
+  }
+
+  function screenState() {
+    const ids = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','onlineRoleScreen','battlePassScreen','shopScreen','bossCodexScreen','rankingScreen','settingsScreen','saveScreen','friendScreen','adminContactScreen','pauseScreen','gameOverScreen','levelUpScreen','tutorialOverlay'];
+    const any = ids.some(id => visible($(id)));
+    document.body.classList.toggle('nsv-menu-visible', any);
+    document.body.classList.toggle('nsv-in-game', !any);
+  }
+
+  function patchVersion() {
+    document.querySelectorAll('.nsv-v13-badge,.nsv-v14-badge,.nsv-v20-badge,.nsv-v21-badge,.nsv-v24-badge,.nsv-v25-badge,.nsv-v27-badge,.nsv-v30-badge,.nsv-v31-badge,#nsvV30Badge,#nsvV31Badge').forEach(el => el.remove());
+    let badge = $('nsvV32Badge');
+    if (!badge) { badge = document.createElement('div'); badge.id = 'nsvV32Badge'; badge.className = 'nsv-v32-badge'; document.body.appendChild(badge); }
+    badge.textContent = VERSION;
+  }
+
+  function patchFixedLabels() {
+    const fixedText = {
+      nicknameWarn: 'ニックネームを入れないとゲームを開始できません',
+      currentBestDisplay: (($('currentBestDisplay')||{}).textContent || '0').replace(/[^0-9]/g,'') || '0',
+      newRecordText: '★ NEW RECORD ★'
+    };
+    Object.entries(fixedText).forEach(([id,val]) => { if ($(id)) textOnly($(id), val); });
+    if ($('nicknameInput')) $('nicknameInput').placeholder = 'ニックネーム';
+    const cheat = $('nsvV27PauseCheatInput') || document.querySelector('input[placeholder*="7"]');
+    if (cheat) cheat.placeholder = '7桁コード';
+    const html = {
+      startBtn: '<span class="beginner-badge">はじめてならここから</span>SOLO START<span class="solo-sub">1人で練習・ミッションを進める</span>',
+      onlineStartBtn: 'ONLINE BATTLE<br><span class="text-sm text-yellow-100 font-bold">友達と対戦</span>',
+      openWeaponCodexBtn: 'WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">武器図鑑を見る</span>',
+      openBossCodexBtn: 'BOSS CODEX<br><span class="text-xs font-bold">ボス図鑑</span>',
+      openBattlePassBtn: 'NEON PASS<br><span class="text-xs text-purple-100 font-bold">シーズン報酬</span>',
+      openShopBtn: 'SHOP<br><span class="text-xs text-yellow-100 font-bold">チケット交換</span>'
+    };
+    Object.entries(html).forEach(([id,val]) => { if ($(id)) htmlOnly($(id), val); });
+  }
+
+  function cleanDom(root = document.body) {
+    if (!root) return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const p = node.parentElement;
+        if (!p || ['SCRIPT','STYLE','TEXTAREA'].includes(p.tagName)) return NodeFilter.FILTER_REJECT;
+        return hasBad(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const n of nodes) {
+      const c = cleanText(n.nodeValue);
+      if (c !== n.nodeValue) n.nodeValue = c;
+    }
+    root.querySelectorAll('input[placeholder],textarea[placeholder],[title],button').forEach(el => {
+      if (el.placeholder && hasBad(el.placeholder)) el.placeholder = cleanText(el.placeholder);
+      if (el.title && hasBad(el.title)) el.title = cleanText(el.title);
+    });
+  }
+
+  function patchUpgradeCards() {
+    const data = [
+      ['初期HPアップ','開始時の最大HPが20増えます。'], ['初期攻撃アップ','開始時の弾ダメージが5増えます。'], ['移動速度アップ','開始時の移動速度が少し上がります。'], ['経験値アップ','経験値の取得量が20%増えます。'],
+      ['ネオン装甲','受けるダメージを少し減らします。'], ['ジェム磁力強化','経験値ジェムを遠くから吸い寄せます。'], ['連射強化','通常弾の発射間隔が短くなります。'], ['貫通チップ','通常弾の貫通力が上がります。']
+    ];
+    document.querySelectorAll('#upgradeListContainer .upgrade-card,#upgradeListContainer > div').forEach((card, i) => {
+      const d = data[i]; if (!d) return;
+      const title = card.querySelector('h3,.text-xl,.font-bold');
+      const desc = card.querySelector('p');
+      textOnly(title, d[0]); textOnly(desc, d[1]);
+    });
+  }
+
+  function patchMissionCards() {
+    document.querySelectorAll('#missionsListContainer .mission-card').forEach(card => {
+      const title = card.querySelector('h3,.text-xl,.font-bold');
+      const desc = card.querySelector('p.text-sm,p.text-gray-300');
+      const reward = Array.from(card.querySelectorAll('p,div,span')).find(el => /COINS|報酬|蜉/.test(el.textContent));
+      const progressText = (Array.from(card.querySelectorAll('*')).map(e=>e.textContent).find(t=>/\d+\s*\/\s*\d+/.test(t)) || '');
+      const nums = progressText.match(/(\d+)\s*\/\s*(\d+)/);
+      if (title && hasBad(title.textContent)) title.textContent = cleanText(title.textContent);
+      if (desc && hasBad(desc.textContent)) desc.textContent = cleanText(desc.textContent);
+      if (reward && hasBad(reward.textContent)) reward.textContent = cleanText(reward.textContent);
+      if (nums) {
+        const target = Number(nums[2]);
+        if ([80,180,360].includes(target)) { textOnly(title, `今日の討伐 ${target}体`); textOnly(desc, `今日中に敵を${target}体倒す`); }
+        if ([300,600].includes(target)) { textOnly(title, `今日の生存チャレンジ ${Math.round(target/60)}分`); textOnly(desc, `今日中に合計${target}秒生き残る`); }
+        if (target === 8000) { textOnly(title, '今日のスコアアタック'); textOnly(desc, '今日中にスコア8000を達成する'); }
+      }
+    });
+  }
+
+  function patchCodexCollection() {
+    document.querySelectorAll('#weaponCodexListContainer .collection-card,#collectionListContainer .collection-card').forEach((card, idx) => {
+      const icon = card.querySelector('.text-3xl,.text-4xl,.text-5xl');
+      if (icon && hasBad(icon.textContent)) icon.textContent = '◆';
+      card.querySelectorAll('h3,p,span,div,button').forEach(el => {
+        if (el.children.length) return;
+        if (hasBad(el.textContent)) el.textContent = cleanText(el.textContent);
+      });
+    });
+    if ($('weaponCodexSummary')) $('weaponCodexSummary').textContent = cleanText($('weaponCodexSummary').textContent).replace(/^使用済み/, '使用済み');
+  }
+
+  function patchPauseAndShop() {
+    const pauseText = document.querySelector('#pauseScreen p.text-gray-300');
+    if (pauseText) pauseText.textContent = '途中で戻っても、そこまでのスコアとコインを保存します。';
+    const mute = $('pauseMuteBtn'); if (mute && hasBad(mute.textContent)) mute.textContent = mute.textContent.includes('OFF') ? 'SOUND: OFF' : 'SOUND: ON';
+    document.querySelectorAll('#shopScreen,#battlePassScreen').forEach(root => cleanDom(root));
+  }
+
+  function enableButtons() {
+    const ids = ['startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn','openBossCodexBtn','openRankingBtn','openBattlePassBtn','openShopBtn','exportBtn','importBtn','closeUpgradeBtn','closeMissionsBtn','closeCollectionBtn','closeWeaponCodexBtn','closeOnlineRoleBtn','restartBtn','resumeBtn','titleFromPauseBtn','pauseBtn'];
+    ids.forEach(id => { const b = $(id); if (b) { b.disabled = false; b.style.pointerEvents = 'auto'; } });
+  }
+
+  function misTapGuard() {
+    if (window.__NSV_V32_MISTAP__) return;
+    window.__NSV_V32_MISTAP__ = true;
+    let sx=0, sy=0, moved=false;
+    document.addEventListener('touchstart', e => { const t=e.touches[0]; if(!t) return; sx=t.clientX; sy=t.clientY; moved=false; }, {passive:true, capture:true});
+    document.addEventListener('touchmove', e => { const t=e.touches[0]; if(!t) return; if(Math.abs(t.clientX-sx)+Math.abs(t.clientY-sy)>18) moved=true; }, {passive:true, capture:true});
+    document.addEventListener('click', e => { if(moved && e.target?.closest?.('button,[role=button],.cursor-pointer,label')) { e.preventDefault(); e.stopImmediatePropagation(); moved=false; } }, true);
+  }
+
+  function fpsGuard() {
+    if (window.__NSV_V32_FPS__) return;
+    window.__NSV_V32_FPS__ = true;
+    let last=performance.now(), bad=0, good=0;
+    const loop = (now) => {
+      const dt = now-last; last=now;
+      if (!document.body.classList.contains('nsv-menu-visible')) {
+        if (dt > 42) { bad++; good=0; } else if (dt < 25) { good++; bad=Math.max(0,bad-1); }
+        if (bad > 80) { document.body.classList.add('nsv-low-fps'); if (typeof window.toggleLightMode === 'function') try { window.toggleLightMode(true); } catch(e){} bad=0; }
+        if (good > 420) { document.body.classList.remove('nsv-low-fps'); good=0; }
+      }
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+
+  function run() {
+    installCss(); setVh(); patchVersion(); patchFixedLabels(); patchUpgradeCards(); patchMissionCards(); patchCodexCollection(); patchPauseAndShop(); cleanDom(); screenState(); enableButtons(); misTapGuard(); fpsGuard();
+  }
+
+  window.addEventListener('resize', () => { setVh(); screenState(); }, {passive:true});
+  window.addEventListener('orientationchange', () => setTimeout(run, 250), {passive:true});
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, {once:true}); else run();
+  let queued = false;
+  const observer = new MutationObserver(() => {
+    if (queued) return;
+    queued = true;
+    setTimeout(() => { queued = false; run(); }, 90);
+  });
+  observer.observe(document.documentElement, {childList:true, subtree:true, characterData:true});
+  setInterval(run, 1600);
 })();
 </script>
 
