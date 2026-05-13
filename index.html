@@ -8508,6 +8508,7 @@ window.NEON_FIREBASE_CONFIG = {
         }
 
         function nsvHomeMenuFinalRouterV89(e) {
+            if (window.nsvIsScrollingTap && window.nsvIsScrollingTap(e)) return;
             const target = e.target;
             const shop = target.closest?.('#openShopBtn');
             const ranking = target.closest?.('#openLeaderboardBtn');
@@ -8598,7 +8599,60 @@ window.NEON_FIREBASE_CONFIG = {
             try { showScreen(id); } catch(e) { console.error('showScreen failed:', id, e); }
         }
 
+
+        function nsvV921SafeRender(fnName) {
+            try {
+                const fn = (typeof window[fnName] === 'function') ? window[fnName] : (typeof eval === 'function' ? null : null);
+                if (fn) fn();
+            } catch(e) {}
+        }
+        function nsvV921ShowScreenStable(id) {
+            try { showScreen(id); } catch(e) {}
+            const menuIds = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','leaderboardScreen','eventModeScreen','onlineRoleScreen','shopScreen','levelUpScreen','gameOverScreen','pauseScreen','tutorialOverlay'];
+            menuIds.forEach(mid => {
+                const el = document.getElementById(mid);
+                if (!el) return;
+                if (mid === id) {
+                    el.classList.remove('hidden');
+                    el.style.setProperty('display','flex','important');
+                    el.style.setProperty('pointer-events','auto','important');
+                    el.style.setProperty('z-index', (id === 'startScreen' ? '60' : '80'), 'important');
+                } else if (id !== 'levelUpScreen' && id !== 'gameOverScreen' && id !== 'pauseScreen') {
+                    if (['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','leaderboardScreen','eventModeScreen','onlineRoleScreen','shopScreen'].includes(mid)) {
+                        el.classList.add('hidden');
+                        el.style.setProperty('display','none','important');
+                        el.style.setProperty('pointer-events','none','important');
+                    }
+                }
+            });
+        }
+        function nsvV921OpenUpgradeScreen() {
+            try { if (typeof renderUpgradeScreen === 'function') renderUpgradeScreen(); } catch(e) { console.warn('upgrade render skipped', e); }
+            nsvV921ShowScreenStable('upgradeScreen');
+        }
+        function nsvV921OpenWeaponCodexScreen() {
+            try { if (typeof renderWeaponCodexScreen === 'function') renderWeaponCodexScreen(); } catch(e) { console.warn('weapon codex render skipped', e); }
+            nsvV921ShowScreenStable('weaponCodexScreen');
+        }
+        function nsvV921OpenMissionScreen() {
+            try { if (typeof renderMissionScreen === 'function') renderMissionScreen(); } catch(e) { console.warn('mission render skipped', e); }
+            nsvV921ShowScreenStable('missionsScreen');
+        }
+        function nsvV921OpenCollectionScreen() {
+            try { if (typeof renderCollectionScreen === 'function') renderCollectionScreen(); } catch(e) { console.warn('collection render skipped', e); }
+            nsvV921ShowScreenStable('collectionScreen');
+        }
+        function nsvV921OpenShopScreen() {
+            try { if (typeof renderStableShop === 'function') renderStableShop(); } catch(e) { console.warn('shop render skipped', e); }
+            nsvV921ShowScreenStable('shopScreen');
+        }
+        function nsvV921OpenOnlineRoleScreen() {
+            try { if (typeof renderOnlineRoleScreen === 'function') renderOnlineRoleScreen(); } catch(e) { console.warn('online role render skipped', e); }
+            nsvV921ShowScreenStable('onlineRoleScreen');
+        }
+
         function nsvV90SafeButtonRouter(e) {
+            if (window.nsvIsScrollingTap && window.nsvIsScrollingTap(e)) return;
             const t = e.target?.closest?.('button, [role="button"]');
             if (!t || t.disabled) return;
             const id = t.id || '';
@@ -8607,11 +8661,11 @@ window.NEON_FIREBASE_CONFIG = {
                 openLeaderboardBtn: () => nsvV90OpenScreen('leaderboardScreen', window.renderStableRanking || renderStableRanking),
                 openDailyEventBtn: () => nsvV90OpenScreen('eventModeScreen', window.renderStableDailyEvent || renderStableDailyEvent),
                 homeDailyEventJoinBtn: () => (window.startStableDailyEventMatch || startStableDailyEventMatch)(),
-                openUpgradeBtn: () => { try { renderUpgrades?.(); } catch(_) {} showScreen('upgradeScreen'); },
-                openMissionBtn: () => { try { renderMissions?.(); } catch(_) {} showScreen('missionsScreen'); },
-                openCollectionBtn: () => { try { renderCollection?.(); } catch(_) {} showScreen('collectionScreen'); },
-                openWeaponCodexBtn: () => { try { renderWeaponCodex?.(); } catch(_) {} showScreen('weaponCodexScreen'); },
-                onlineStartBtn: () => { try { renderOnlineRoles?.(); } catch(_) {} showScreen('onlineRoleScreen'); },
+                openUpgradeBtn: () => nsvV921OpenUpgradeScreen(),
+                openMissionBtn: () => nsvV921OpenMissionScreen(),
+                openCollectionBtn: () => nsvV921OpenCollectionScreen(),
+                openWeaponCodexBtn: () => nsvV921OpenWeaponCodexScreen(),
+                onlineStartBtn: () => { if (typeof nsv915OpenOnlineRoleSelect === 'function') nsv915OpenOnlineRoleSelect(); else nsvV921OpenOnlineRoleScreen(); },
                 closeUpgradeBtn: () => showScreen('startScreen'),
                 closeMissionsBtn: () => showScreen('startScreen'),
                 closeCollectionBtn: () => showScreen('startScreen'),
@@ -8659,7 +8713,7 @@ window.NEON_FIREBASE_CONFIG = {
 
 
         /* ===== V91.5 MENU + ONLINE ROOM FIX / Firebase config untouched ===== */
-        const NSV_PATCH_VERSION_915 = 'V91.5 MENU ONLINE FIX';
+        const NSV_PATCH_VERSION_915 = 'V92.1 MENU SCROLL TOGGLE FIX';
 
         function nsv915InstallStyle() {
             if (document.getElementById('nsv915MenuOnlineFixStyle')) return;
@@ -8866,29 +8920,121 @@ window.NEON_FIREBASE_CONFIG = {
         window.initGame = initGame;
 
         document.addEventListener('click', function nsv915FinalMenuRouter(e) {
-            const target = e.target && e.target.closest ? e.target.closest('#openMissionBtn,#openShopBtn,#openCollectionBtn,#onlineStartBtn,#closeMissionsBtn,#closeShopBtn,#closeCollectionBtn') : null;
+            const target = e.target && e.target.closest ? e.target.closest('#openMissionBtn,#openShopBtn,#openCollectionBtn,#openUpgradeBtn,#openWeaponCodexBtn,#onlineStartBtn,#closeMissionsBtn,#closeShopBtn,#closeCollectionBtn,#closeUpgradeBtn,#closeWeaponCodexBtn') : null;
             if (!target) return;
+            if (window.nsvIsScrollingTap && window.nsvIsScrollingTap(e)) return;
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
             if (target.id === 'openMissionBtn') return nsv915OpenMissions();
-            if (target.id === 'openShopBtn') return nsv915OpenShop();
+            if (target.id === 'openShopBtn') return nsvV921OpenShopScreen();
             if (target.id === 'openCollectionBtn') return nsv915OpenCollection();
+            if (target.id === 'openUpgradeBtn') return nsvV921OpenUpgradeScreen();
+            if (target.id === 'openWeaponCodexBtn') return nsvV921OpenWeaponCodexScreen();
             if (target.id === 'onlineStartBtn') return nsv915OpenOnlineRoleSelect();
-            if (target.id === 'closeMissionsBtn' || target.id === 'closeShopBtn' || target.id === 'closeCollectionBtn') return showScreen('startScreen');
+            if (target.id === 'closeMissionsBtn' || target.id === 'closeShopBtn' || target.id === 'closeCollectionBtn' || target.id === 'closeUpgradeBtn' || target.id === 'closeWeaponCodexBtn') return showScreen('startScreen');
         }, true);
 
         document.addEventListener('pointerup', function nsv915FinalMenuPointerRouter(e) {
-            const target = e.target && e.target.closest ? e.target.closest('#openMissionBtn,#openShopBtn,#openCollectionBtn,#onlineStartBtn') : null;
+            if (window.nsvIsScrollingTap && window.nsvIsScrollingTap(e)) return;
+            const target = e.target && e.target.closest ? e.target.closest('#openMissionBtn,#openShopBtn,#openCollectionBtn,#openUpgradeBtn,#openWeaponCodexBtn,#onlineStartBtn') : null;
             if (!target) return;
+            if (window.nsvIsScrollingTap && window.nsvIsScrollingTap(e)) return;
             e.preventDefault();
-            target.click();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            if (target.id === 'openMissionBtn') return nsv915OpenMissions();
+            if (target.id === 'openShopBtn') return nsvV921OpenShopScreen();
+            if (target.id === 'openCollectionBtn') return nsv915OpenCollection();
+            if (target.id === 'openUpgradeBtn') return nsvV921OpenUpgradeScreen();
+            if (target.id === 'openWeaponCodexBtn') return nsvV921OpenWeaponCodexScreen();
+            if (target.id === 'openUpgradeBtn') return nsvV921OpenUpgradeScreen();
+            if (target.id === 'openWeaponCodexBtn') return nsvV921OpenWeaponCodexScreen();
+            if (target.id === 'onlineStartBtn') return nsv915OpenOnlineRoleSelect();
         }, { capture:true, passive:false });
+
+        
+        /* ===== V92.1 precise toggle + scroll safe menu fix ===== */
+        window.__nsvTapGuard = { downX:0, downY:0, moved:false, scrolling:false, lastScroll:0 };
+        function nsvV921MarkMoving(e) {
+            const g = window.__nsvTapGuard;
+            if (!g) return;
+            const p = e.touches && e.touches[0] ? e.touches[0] : e;
+            if (!p) return;
+            const dx = Math.abs((p.clientX || 0) - g.downX);
+            const dy = Math.abs((p.clientY || 0) - g.downY);
+            if (dx > 8 || dy > 8) g.moved = true;
+        }
+        function nsvIsScrollingTap(e) {
+            const g = window.__nsvTapGuard;
+            if (!g) return false;
+            if (e && e.type === 'click') return (Date.now() - g.lastScroll < 180) || g.moved;
+            return (Date.now() - g.lastScroll < 180) || g.moved;
+        }
+        window.nsvIsScrollingTap = nsvIsScrollingTap;
+        document.addEventListener('pointerdown', function(e){ const g=window.__nsvTapGuard; g.downX=e.clientX||0; g.downY=e.clientY||0; g.moved=false; }, {capture:true, passive:true});
+        document.addEventListener('pointermove', nsvV921MarkMoving, {capture:true, passive:true});
+        document.addEventListener('touchmove', nsvV921MarkMoving, {capture:true, passive:true});
+        document.addEventListener('scroll', function(e){ if (e.target && (e.target.closest?.('#startScreen,.menu-panel') || e.target.id === 'startScreen')) window.__nsvTapGuard.lastScroll = Date.now(); }, {capture:true, passive:true});
+
+        function nsvV921InstallToggleStyle() {
+            if (!document.getElementById('nsvV921ToggleScrollFixStyle')) {
+                const st = document.createElement('style');
+                st.id = 'nsvV921ToggleScrollFixStyle';
+                st.textContent = `
+                    #startScreen .nsv-toggle-wrap,#pauseScreen .nsv-toggle-wrap{position:relative!important;width:56px!important;height:32px!important;min-width:56px!important;max-width:56px!important;display:inline-block!important;overflow:hidden!important;border-radius:999px!important;vertical-align:middle!important;line-height:0!important;}
+                    #startScreen .nsv-toggle-wrap input,#pauseScreen .nsv-toggle-wrap input{position:absolute!important;opacity:0!important;width:1px!important;height:1px!important;left:0!important;top:0!important;margin:0!important;}
+                    #startScreen .nsv-toggle-wrap .block,#pauseScreen .nsv-toggle-wrap .block{position:absolute!important;left:0!important;top:0!important;width:56px!important;height:32px!important;border-radius:999px!important;background:#4b5563!important;transform:none!important;margin:0!important;}
+                    #startScreen .nsv-toggle-wrap .dot,#pauseScreen .nsv-toggle-wrap .dot{position:absolute!important;left:4px!important;top:4px!important;width:24px!important;height:24px!important;border-radius:999px!important;background:#fff!important;transform:translateX(0)!important;margin:0!important;transition:transform .2s ease!important;}
+                    #startScreen .nsv-toggle-wrap input:checked ~ .block,#pauseScreen .nsv-toggle-wrap input:checked ~ .block{background:#06b6d4!important;}
+                    #startScreen .nsv-toggle-wrap input:checked ~ .dot,#pauseScreen .nsv-toggle-wrap input:checked ~ .dot{transform:translateX(24px)!important;}
+                    #startScreen .menu-panel{touch-action:pan-y!important;}
+                    #startScreen .menu-panel button{touch-action:manipulation!important;}
+                    #upgradeScreen:not(.hidden),#weaponCodexScreen:not(.hidden),#shopScreen:not(.hidden){display:flex!important;pointer-events:auto!important;z-index:85!important;}
+                    #upgradeScreen:not(.hidden) *,#weaponCodexScreen:not(.hidden) *,#shopScreen:not(.hidden) *{pointer-events:auto;}
+                `;
+                document.head.appendChild(st);
+            }
+        }
+        function nsvV921FixToggleDots() {
+            document.querySelectorAll('#startScreen input[type="checkbox"].sr-only, #pauseScreen input[type="checkbox"].sr-only').forEach(input => {
+                const wrap = input.parentElement;
+                if (!wrap) return;
+                wrap.classList.add('nsv-toggle-wrap');
+                wrap.classList.remove('relative','shrink-0');
+                wrap.style.cssText += ';position:relative!important;width:56px!important;height:32px!important;min-width:56px!important;max-width:56px!important;display:inline-block!important;overflow:hidden!important;border-radius:999px!important;';
+                const track = Array.from(wrap.children).find(el => el !== input && el.classList.contains('block')) || wrap.querySelector('.block');
+                const dot = wrap.querySelector('.dot');
+                if (track) {
+                    track.classList.remove('w-14','h-8','transition-colors','duration-300');
+                    track.style.cssText += ';position:absolute!important;left:0!important;top:0!important;width:56px!important;height:32px!important;border-radius:999px!important;transform:none!important;margin:0!important;';
+                }
+                if (dot) {
+                    dot.classList.remove('left-1','top-1','w-6','h-6','transform','translate-x-0','translate-y-0','transition-transform','duration-300');
+                    dot.style.cssText += ';position:absolute!important;left:4px!important;top:4px!important;width:24px!important;height:24px!important;border-radius:999px!important;margin:0!important;';
+                    dot.style.setProperty('transform', input.checked ? 'translateX(24px)' : 'translateX(0)', 'important');
+                }
+            });
+        }
+        document.addEventListener('change', function(e){ if (e.target?.matches?.('input[type="checkbox"].sr-only')) nsvV921FixToggleDots(); }, true);
+
+        document.addEventListener('click', function nsvV921MenuRouter(e) {
+            if (window.nsvIsScrollingTap && window.nsvIsScrollingTap(e)) return;
+            const t = e.target?.closest?.('#openShopBtn,#openUpgradeBtn,#openWeaponCodexBtn,#closeShopBtn,#closeUpgradeBtn,#closeWeaponCodexBtn');
+            if (!t) return;
+            e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+            if (t.id === 'openShopBtn') return nsvV921OpenShopScreen();
+            if (t.id === 'openUpgradeBtn') return nsvV921OpenUpgradeScreen();
+            if (t.id === 'openWeaponCodexBtn') return nsvV921OpenWeaponCodexScreen();
+            return showScreen('startScreen');
+        }, true);
 
         function nsv915Boot() {
             nsv915InstallStyle();
             nsv915FixToggleMarkup();
             nsv915UpdateVersionBadge();
+            nsvV921InstallToggleStyle();
+            nsvV921FixToggleDots();
         }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', nsv915Boot, { once:true });
         else nsv915Boot();
