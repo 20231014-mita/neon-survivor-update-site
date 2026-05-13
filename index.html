@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- V81 DAILY EVENT / BUTTON ROUTER STABLE / no-preview build -->
+<!-- V84 STABLE / badge cleanup / no-preview build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -16450,17 +16450,149 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
   function unlockItem(item){const u=getUser();u.itemShop.owned[item.id]=true;u.itemShop.purchases[item.id]={id:item.id,cost:item.cost,day:new Date().toISOString().slice(0,10),at:Date.now()};u.cosmetics.unlocked[item.id]={id:item.id,type:item.type,icon:item.icon,name:item.name,desc:item.desc,cost:item.cost,source:'dailyShop'};if(item.type==='skin'){u.unlocks=u.unlocks||{};u.unlocks.skins=u.unlocks.skins||{};u.unlocks.skins[item.id]=true;}if(item.type==='aura'){u.unlocks=u.unlocks||{};u.unlocks.auras=u.unlocks.auras||{};u.unlocks.auras[item.id]=true;}if(item.type==='cape'){u.unlocks=u.unlocks||{};u.unlocks.capes=u.unlocks.capes||{};u.unlocks.capes[item.id]=true;}persist();}
   function buyItem(id){const item=dailyItems().find(x=>x.id===id); if(!item)return; const u=getUser(); if(u.itemShop.owned[item.id]||u.cosmetics.unlocked[item.id]){alert('購入済みです。COLLECTIONで確認できます。'); renderShop(); return;} if(num(u.coins)<num(item.cost)){alert('コインが足りません。'); return;} u.coins-=num(item.cost); unlockItem(item); alert(item.name+' を購入しました。'); renderShop();}
   function showScreen(id){const ids=['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','shopScreen','leaderboardScreen','eventModeScreen','removedRewardsScreen']; ids.forEach(s=>{const el=$(s);if(el&&s!==id)el.classList.add('hidden');}); const t=$(id); if(t){t.classList.remove('hidden');t.classList.add('flex');}}
-  function renderShop(){const u=getUser();let div=$('shopScreen'); if(!div){div=document.createElement('div');div.id='shopScreen';document.body.appendChild(div);} div.dataset.nsvV83='1'; div.className='fixed inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[58] p-3'; const items=dailyItems(); div.innerHTML=`<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">GAME SHOP</h2><p class="text-gray-300 text-sm mt-2">毎日5個だけ入れ替わる高額アイテムを購入できます。</p></div><button id="closeShopBtnV83" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div><div class="nsv-v83-status"><span>所持コイン 🪙 ${fmt(u.coins)}</span><span>今日のショップ ${new Date().toISOString().slice(0,10)}</span></div><div class="nsv-v83-daily-grid">${items.map(item=>{const owned=!!(u.itemShop.owned[item.id]||u.cosmetics.unlocked[item.id]);return `<div class="nsv-v83-item ${owned?'owned':''}"><div class="nsv-v83-icon">${esc(item.icon||iconType(item.type))}</div><div class="nsv-v83-name">${esc(item.name)}</div><div class="nsv-v83-meta">${esc(typeLabel(item.type))}<br>${esc(item.desc||'ショップアイテムです。')}</div><div class="nsv-v83-price">${owned?'購入済み':'必要コイン：'+fmt(item.cost)}</div><button class="${owned?'bg-gray-800 border border-green-500 text-green-200':'btn-gold'} px-4 py-3 rounded font-bold nsv-v83-buy" data-id="${esc(item.id)}">${owned?'コレクションに追加済み':'購入する'}</button></div>`}).join('')}</div></div>`; div.querySelector('#closeShopBtnV83')?.addEventListener('click',()=>showScreen('startScreen')); q('.nsv-v83-buy',div).forEach(b=>b.addEventListener('click',()=>buyItem(b.dataset.id))); }
+  function renderShop(){const u=getUser();let div=$('shopScreen'); if(!div){div=document.createElement('div');div.id='shopScreen';document.body.appendChild(div);} const keepOpen=(div.dataset.nsvV83==='1'&&!div.classList.contains('hidden')); div.dataset.nsvV83='1'; div.className=(keepOpen?'':'hidden ')+'fixed inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[58] p-3'; const items=dailyItems(); div.innerHTML=`<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family:Orbitron,sans-serif;text-shadow:0 0 15px #facc15;">GAME SHOP</h2><p class="text-gray-300 text-sm mt-2">毎日5個だけ入れ替わる高額アイテムを購入できます。</p></div><button id="closeShopBtnV83" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div><div class="nsv-v83-status"><span>所持コイン 🪙 ${fmt(u.coins)}</span><span>今日のショップ ${new Date().toISOString().slice(0,10)}</span></div><div class="nsv-v83-daily-grid">${items.map(item=>{const owned=!!(u.itemShop.owned[item.id]||u.cosmetics.unlocked[item.id]);return `<div class="nsv-v83-item ${owned?'owned':''}"><div class="nsv-v83-icon">${esc(item.icon||iconType(item.type))}</div><div class="nsv-v83-name">${esc(item.name)}</div><div class="nsv-v83-meta">${esc(typeLabel(item.type))}<br>${esc(item.desc||'ショップアイテムです。')}</div><div class="nsv-v83-price">${owned?'購入済み':'必要コイン：'+fmt(item.cost)}</div><button class="${owned?'bg-gray-800 border border-green-500 text-green-200':'btn-gold'} px-4 py-3 rounded font-bold nsv-v83-buy" data-id="${esc(item.id)}">${owned?'コレクションに追加済み':'購入する'}</button></div>`}).join('')}</div></div>`; div.querySelector('#closeShopBtnV83')?.addEventListener('click',()=>showScreen('startScreen')); q('.nsv-v83-buy',div).forEach(b=>b.addEventListener('click',()=>buyItem(b.dataset.id))); }
   function rebuildHome(){const start=$('startScreen');if(!start)return;start.dataset.nsvV83='1';const keep={startBtn:$('startBtn'),onlineStartBtn:$('onlineStartBtn'),openUpgradeBtn:$('openUpgradeBtn'),openMissionBtn:$('openMissionBtn'),openCollectionBtn:$('openCollectionBtn'),openWeaponCodexBtn:$('openWeaponCodexBtn'),openShopBtn:$('openShopBtn'),openLeaderboardBtn:$('openLeaderboardBtn'),openDailyEventBtn:$('openDailyEventBtn')||$('openEventModeBtn'),nicknameInput:$('nicknameInput'),exportBtn:$('exportBtn'),importBtn:$('importBtn'),best:$('currentBestDisplay')}; const cheat=$('nsvV13StartCheat')||document.querySelector('.nsv-v13-cheat-box'); const removed=$('removedRewardsBtn'); if(removed) removed.remove(); start.innerHTML=''; const wrap=document.createElement('div'); wrap.className='nsv-v83-wrap'; wrap.innerHTML=`<h1 class="nsv-v83-title">NEON<br>SURVIVOR</h1><div class="nsv-v83-row mt-4"><div class="nsv-v83-card" id="nsvV83Nick"></div><div class="nsv-v83-card" id="nsvV83Best"></div></div><div class="nsv-v83-grid mt-4" id="nsvV83Menu"></div><div class="nsv-v83-row mt-4"><div class="nsv-v83-card"><div class="nsv-v83-toggle-wrap"><span class="nsv-v83-toggle-name">ジョイスティック</span><label class="flex items-center cursor-pointer gap-3"><div class="relative"><input type="checkbox" id="joystickToggle" class="sr-only" checked><div class="block bg-gray-600 w-14 h-8 rounded-full transition-colors duration-300"></div><div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300 shadow"></div></div><span class="text-white select-none font-bold text-sm">使う</span></label></div></div><div class="nsv-v83-card"><div class="nsv-v83-toggle-wrap"><span class="nsv-v83-toggle-name">軽量モード</span><label class="flex items-center cursor-pointer gap-3"><div class="relative"><input type="checkbox" id="lightModeToggle" class="sr-only"><div class="block bg-gray-600 w-14 h-8 rounded-full transition-colors duration-300"></div><div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300 shadow"></div></div><span class="text-white select-none font-bold text-sm">ON</span></label></div></div></div><div class="nsv-v83-card mt-4" id="nsvV83Cheat"></div><div class="nsv-v83-card mt-3"><div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3"><div><div class="nsv-v83-label">データ引き継ぎ</div><div class="nsv-v83-sub">セーブコードで進行状況を保存・復元できます。</div></div><div class="nsv-v83-save-row" id="nsvV83Save"></div></div></div>`; start.appendChild(wrap);
-    const nick=$('nsvV83Nick'); nick.innerHTML='<label class="nsv-v83-label" for="nicknameInput">ニックネーム</label><div class="nsv-v83-sub">空欄なら PLAYER で始まります。</div>'; if(keep.nicknameInput){keep.nicknameInput.className='menu-input mt-3';keep.nicknameInput.placeholder='名前を入力';nick.appendChild(keep.nicknameInput);} const best=$('nsvV83Best'); best.innerHTML='<div class="nsv-v83-label">自己ベスト</div><div style="font-size:1.9rem;font-weight:900;color:#fde047;text-shadow:0 0 14px rgba(250,204,21,.4)">SCORE: <span id="currentBestDisplay">0</span></div><div class="nsv-v83-sub">倒す → 集める → 強くなる</div>'; if(keep.best){best.querySelector('#currentBestDisplay').replaceWith(keep.best);} const names={startBtn:'<span class="beginner-badge">🔰 はじめてならここ！</span>SOLO START<span class="solo-sub">1人で練習・ミッション進行</span>',onlineStartBtn:'ONLINE BATTLE<br><span class="text-xs text-yellow-100 font-bold">3桁コードで対戦</span>',openUpgradeBtn:'UPGRADE<br><span class="text-xs text-yellow-100 font-bold">コインで強化</span>',openMissionBtn:'MISSIONS<br><span class="text-xs text-purple-100 font-bold">ミッション報酬</span>',openCollectionBtn:'COLLECTION<br><span class="text-xs text-green-100 font-bold">装備ON / OFF</span>',openWeaponCodexBtn:'WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">武器図鑑を見る</span>',openShopBtn:'SHOP<br><span class="text-xs text-yellow-100 font-bold">日替わりアイテム</span>',openLeaderboardBtn:'RANKING<br><span class="text-xs text-cyan-100 font-bold">友達ランキング</span>'}; Object.entries(names).forEach(([id,html])=>{if(keep[id])keep[id].innerHTML=html;}); if(!keep.openDailyEventBtn){keep.openDailyEventBtn=document.createElement('button');keep.openDailyEventBtn.id='openDailyEventBtn';keep.openDailyEventBtn.className='btn-green menu-secondary px-6 py-3 font-bold rounded cursor-pointer';} keep.openDailyEventBtn.innerHTML='DAILY EVENT<br><span class="text-xs text-green-100 font-bold">1日5回・予定確認</span>'; const menu=$('nsvV83Menu'); ['startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn','openShopBtn','openLeaderboardBtn','openDailyEventBtn'].forEach(id=>{if(keep[id])menu.appendChild(keep[id]);}); const ch=$('nsvV83Cheat'); ch.innerHTML='<div class="nsv-v83-label" style="color:#fde047">チートコード</div><div class="nsv-v83-sub">7桁のコードを入力して適用します。</div>'; if(cheat){ch.appendChild(cheat); const inp=cheat.querySelector('input'); if(inp)inp.placeholder='7桁の数字'; const btn=cheat.querySelector('button'); if(btn)btn.textContent='適用';} const save=$('nsvV83Save'); if(keep.exportBtn){keep.exportBtn.textContent='SAVE CODE EXPORT';save.appendChild(keep.exportBtn);} if(keep.importBtn){keep.importBtn.textContent='SAVE CODE IMPORT';save.appendChild(keep.importBtn);} $('joystickToggle')?.addEventListener('change',e=>{try{window.toggleJoystickFromPause?.(e.target.checked)}catch(err){}}); $('lightModeToggle')?.addEventListener('change',e=>{try{window.toggleLightMode?.(e.target.checked)}catch(err){}});
+    const nick=$('nsvV83Nick'); nick.innerHTML='<label class="nsv-v83-label" for="nicknameInput">ニックネーム</label><div class="nsv-v83-sub">空欄なら PLAYER で始まります。</div>'; if(keep.nicknameInput){keep.nicknameInput.className='menu-input mt-3';keep.nicknameInput.placeholder='名前を入力';nick.appendChild(keep.nicknameInput);} const best=$('nsvV83Best'); best.innerHTML='<div class="nsv-v83-label">自己ベスト</div><div style="font-size:1.9rem;font-weight:900;color:#fde047;text-shadow:0 0 14px rgba(250,204,21,.4)">SCORE: <span id="currentBestDisplay">0</span></div><div class="nsv-v83-sub">倒す → 集める → 強くなる</div>'; if(keep.best){best.querySelector('#currentBestDisplay').replaceWith(keep.best);} const names={startBtn:'<span class="beginner-badge">🔰 はじめてならここ！</span>SOLO START<span class="solo-sub">1人で練習・ミッション進行</span>',onlineStartBtn:'ONLINE BATTLE<br><span class="text-xs text-yellow-100 font-bold">3桁コードで対戦</span>',openUpgradeBtn:'UPGRADE<br><span class="text-xs text-yellow-100 font-bold">コインで強化</span>',openMissionBtn:'MISSIONS<br><span class="text-xs text-purple-100 font-bold">ミッション報酬</span>',openCollectionBtn:'COLLECTION<br><span class="text-xs text-green-100 font-bold">装備ON / OFF</span>',openWeaponCodexBtn:'WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">武器図鑑を見る</span>',openShopBtn:'SHOP<br><span class="text-xs text-yellow-100 font-bold">スキン・オーラ・日替わり</span>',openLeaderboardBtn:'RANKING<br><span class="text-xs text-cyan-100 font-bold">友達ランキング</span>'}; Object.entries(names).forEach(([id,html])=>{if(keep[id])keep[id].innerHTML=html;}); if(!keep.openDailyEventBtn){keep.openDailyEventBtn=document.createElement('button');keep.openDailyEventBtn.id='openDailyEventBtn';keep.openDailyEventBtn.className='btn-green menu-secondary px-6 py-3 font-bold rounded cursor-pointer';} keep.openDailyEventBtn.innerHTML='DAILY EVENT<br><span class="text-xs text-green-100 font-bold">1日5回・予定確認</span>'; const menu=$('nsvV83Menu'); ['startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn','openShopBtn','openLeaderboardBtn','openDailyEventBtn'].forEach(id=>{if(keep[id])menu.appendChild(keep[id]);}); const ch=$('nsvV83Cheat'); ch.innerHTML='<div class="nsv-v83-label" style="color:#fde047">チートコード</div><div class="nsv-v83-sub">7桁のコードを入力して適用します。</div>'; if(cheat){ch.appendChild(cheat); const inp=cheat.querySelector('input'); if(inp)inp.placeholder='7桁の数字'; const btn=cheat.querySelector('button'); if(btn)btn.textContent='適用';} const save=$('nsvV83Save'); if(keep.exportBtn){keep.exportBtn.textContent='SAVE CODE EXPORT';save.appendChild(keep.exportBtn);} if(keep.importBtn){keep.importBtn.textContent='SAVE CODE IMPORT';save.appendChild(keep.importBtn);} $('joystickToggle')?.addEventListener('change',e=>{try{window.toggleJoystickFromPause?.(e.target.checked)}catch(err){}}); $('lightModeToggle')?.addEventListener('change',e=>{try{window.toggleLightMode?.(e.target.checked)}catch(err){}});
   }
   function exportSave(){const u=cleanObj(getUser()); const code='NS83.'+btoa(unescape(encodeURIComponent(JSON.stringify({v:83,build:BUILD,savedAt:Date.now(),userData:u})))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); try{navigator.clipboard?.writeText(code);}catch(e){} alert('セーブコードをコピーしました。\n\n'+code);}
   function importSave(){const code=prompt('セーブコードを入力してください'); if(!code)return; try{const body=String(code).trim().split('.').pop().replace(/-/g,'+').replace(/_/g,'/'); const parsed=JSON.parse(decodeURIComponent(escape(atob(body+'='.repeat((4-body.length%4)%4))))); const u=cleanObj(parsed.userData||parsed.u||parsed); Object.assign(getUser(),u); persist(); alert('セーブデータを読み込みました。'); boot();}catch(e){alert('セーブコードが正しくありません。');}}
   function hideRemoved(){['removedRewardsScreen','removedLaunchIntro','removedRewardsBtn','openRemovedRewardsBtn','closeRemovedRewardsBtn'].forEach(id=>{$(id)?.remove();}); q('[id*="RemovedRewards"],[id*="removedRewards"],[id*="removedLaunch"]').forEach(el=>el.remove()); q('button,a,div,span,p,h1,h2,h3').forEach(el=>{const t=el.textContent||''; if(/REMOVED REWARDS|Removed Rewards|Removed Season|REMOVED/.test(t)) el.remove();});}
   function route(ev){const btn=ev.target&&ev.target.closest&&ev.target.closest('button'); if(!btn)return; const id=btn.id; if(/removedRewards|RemovedRewards/i.test(id)){ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation&&ev.stopImmediatePropagation();showScreen('startScreen');return;} if(id==='openShopBtn'||id==='openShopHeroBtn'){ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation&&ev.stopImmediatePropagation();renderShop();showScreen('shopScreen');return;} if(id==='closeShopBtn'||id==='closeShopBtnV83'){ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation&&ev.stopImmediatePropagation();showScreen('startScreen');return;} if(id==='exportBtn'){ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation&&ev.stopImmediatePropagation();exportSave();return;} if(id==='importBtn'){ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation&&ev.stopImmediatePropagation();importSave();return;} }
   function badge(){let b=$('nsvV80BuildBadge')||$('nsvV81BuildBadge'); if(!b){b=document.createElement('div');b.id='nsvV80BuildBadge';document.body.appendChild(b);} b.textContent=BUILD; Object.assign(b.style,{position:'fixed',left:'10px',bottom:'10px',zIndex:'9999',padding:'6px 10px',border:'1px solid rgba(34,211,238,.55)',borderRadius:'999px',background:'rgba(2,6,23,.85)',color:'#67e8f9',fontFamily:'Orbitron,sans-serif',fontWeight:'900',fontSize:'12px',boxShadow:'0 0 14px rgba(34,211,238,.25)'});}
-  function boot(){purgeOldStorage();cleanObj(getUser());persist();hideRemoved();rebuildHome();renderShop();badge();window.exportSaveCode=exportSave;window.importSaveCode=importSave;try{window.NEON_SURVIVOR_V80_CLEAN_STABLE.renderShop=renderShop;window.NEON_SURVIVOR_V80_CLEAN_STABLE.showScreen=showScreen;}catch(e){}}
+  function boot(){purgeOldStorage();cleanObj(getUser());persist();hideRemoved();rebuildHome();const shop=$('shopScreen');if(shop)shop.classList.add('hidden');const start=$('startScreen');if(start)start.classList.remove('hidden');badge();window.exportSaveCode=exportSave;window.importSaveCode=importSave;try{window.NEON_SURVIVOR_V80_CLEAN_STABLE.renderShop=renderShop;window.NEON_SURVIVOR_V80_CLEAN_STABLE.showScreen=showScreen;}catch(e){}}
   if(!document.__nsvV83Route){document.__nsvV83Route=true;document.addEventListener('click',route,true);document.addEventListener('pointerup',route,true);} if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot(); window.addEventListener('load',boot,{passive:true}); window.addEventListener('pageshow',boot,{passive:true}); setTimeout(boot,300); setTimeout(boot,1200); setInterval(()=>{try{hideRemoved();badge();}catch(e){}},1500);
+})();
+</script>
+
+
+<!-- =========================================================
+     V84 STABLE: single version badge / no auto shop / safe cleanup
+     ========================================================= -->
+<style id="nsvV84StableStyle">
+  #nsvVersionBadge{
+    position:fixed;left:10px;bottom:10px;z-index:2147483000;
+    padding:6px 10px;border:1px solid rgba(34,211,238,.55);border-radius:999px;
+    background:rgba(2,6,23,.86);color:#67e8f9;
+    font:900 12px/1.2 Orbitron,'Noto Sans JP',sans-serif;letter-spacing:.08em;
+    box-shadow:0 0 14px rgba(34,211,238,.25);pointer-events:none;
+  }
+  #shopScreen.hidden,#startScreen.hidden,#upgradeScreen.hidden,#missionsScreen.hidden,#collectionScreen.hidden,#weaponCodexScreen.hidden,#leaderboardScreen.hidden,#eventModeScreen.hidden,#onlineRoleScreen.hidden,#levelUpScreen.hidden,#gameOverScreen.hidden,#pauseScreen.hidden{display:none!important;pointer-events:none!important;}
+  body{overflow-x:hidden!important;}
+</style>
+<script id="nsvV84StablePatch">
+(()=>{
+  'use strict';
+  const GAME_VERSION = 'V84 STABLE';
+  window.GAME_VERSION = GAME_VERSION;
+  const VALID_SCREENS = new Set(['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','shopScreen','leaderboardScreen','eventModeScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen']);
+  const $ = (id)=>document.getElementById(id);
+  const qa = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+  const OLD_BADGE_IDS = ['nsvV13Badge','nsvV30Badge','nsvV31Badge','nsvV33Badge','nsvV34Badge','nsvV35Badge','nsvV37Badge','nsvV59Badge','nsvV63Badge','nsvV70Badge','nsvV72Badge','nsvV73Badge','nsvV80BuildBadge','nsvV81BuildBadge','nsvV82BuildBadge','nsvV83BuildBadge'];
+
+  function removeOldBadges(){
+    OLD_BADGE_IDS.forEach(id=>{ const el=$(id); if(el) el.remove(); });
+    qa('[id*="Badge"],[id*="BuildBadge"],.nsv-v59-badge,.nsv-v63-badge,.nsv-v72-badge,.nsv-v80-badge,.nsv-v83-badge').forEach(el=>{
+      if(el.id !== 'nsvVersionBadge') el.remove();
+    });
+    qa('body > div').forEach(el=>{
+      if(el.id === 'nsvVersionBadge') return;
+      const txt=(el.textContent||'').trim();
+      const style=getComputedStyle(el);
+      const isFixedLowLeft = style.position === 'fixed' && (parseInt(style.left||'999',10) <= 30) && (parseInt(style.bottom||'999',10) <= 30);
+      const looksVersion = /^V\d+\b|STABLE|PATCH|DEBUG|CORE/i.test(txt);
+      if(isFixedLowLeft && looksVersion) el.remove();
+    });
+  }
+  function updateVersionBadge(){
+    removeOldBadges();
+    let badge=$('nsvVersionBadge');
+    if(!badge){ badge=document.createElement('div'); badge.id='nsvVersionBadge'; document.body.appendChild(badge); }
+    badge.textContent=GAME_VERSION;
+  }
+  function hideShopUnlessRequested(){
+    const shop=$('shopScreen');
+    if(shop && !window.__NSV84_SHOP_OPEN_REQUESTED) shop.classList.add('hidden');
+  }
+  function showScreenSafe(id){
+    const target = VALID_SCREENS.has(id) && $(id) ? id : 'startScreen';
+    VALID_SCREENS.forEach(sid=>{ const el=$(sid); if(el && sid!==target) el.classList.add('hidden'); });
+    const el=$(target);
+    if(el){ el.classList.remove('hidden'); el.style.pointerEvents='auto'; }
+    if(target!=='shopScreen') window.__NSV84_SHOP_OPEN_REQUESTED=false;
+    return el;
+  }
+  function cleanHomeLabels(){
+    const labels={
+      openShopBtn:'SHOP<br><span class="text-xs text-yellow-100 font-bold">スキン・オーラ・日替わり</span>',
+      openUpgradeBtn:'UPGRADE<br><span class="text-xs text-yellow-100 font-bold">コインで強化</span>',
+      openMissionBtn:'MISSIONS<br><span class="text-xs text-purple-100 font-bold">報酬をもらう</span>',
+      openCollectionBtn:'COLLECTION<br><span class="text-xs text-green-100 font-bold">スキン・オーラ装備</span>',
+      openWeaponCodexBtn:'WEAPON CODEX<br><span class="text-xs text-cyan-100 font-bold">武器図鑑を見る</span>',
+      openLeaderboardBtn:'RANKING<br><span class="text-xs text-cyan-100 font-bold">自己ベスト・友達</span>',
+      openDailyEventBtn:'DAILY EVENT<br><span class="text-xs text-green-100 font-bold">1日5回・予定確認</span>',
+      onlineStartBtn:'ONLINE BATTLE<br><span class="text-xs text-yellow-100 font-bold">友達と対戦</span>'
+    };
+    Object.entries(labels).forEach(([id,html])=>{ const el=$(id); if(el) el.innerHTML=html; });
+    qa('button,[role="button"]').forEach(btn=>{ btn.style.pointerEvents='auto'; btn.style.touchAction='manipulation'; if(!btn.type) btn.type='button'; });
+  }
+  function cleanPauseVersion(){
+    const mini=document.querySelector('#pausePanel .nsv-pause-mini');
+    if(mini) mini.textContent=GAME_VERSION;
+    qa('#pausePanel [class*="mini"],#pausePanel [id*="Badge"],#pausePanel [class*="badge"]').forEach(el=>{
+      if(el.classList.contains('nsv-pause-mini')) el.textContent=GAME_VERSION;
+    });
+  }
+  function routeButtons(ev){
+    const btn=ev.target && ev.target.closest && ev.target.closest('button');
+    if(!btn || !btn.id) return;
+    if(btn.id==='openShopBtn' || btn.id==='openShopHeroBtn'){
+      window.__NSV84_SHOP_OPEN_REQUESTED=true;
+      try{ window.NEON_SURVIVOR_V80_CLEAN_STABLE?.renderShop?.(); }catch(e){}
+      ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation&&ev.stopImmediatePropagation();
+      showScreenSafe('shopScreen');
+      return;
+    }
+    if(btn.id==='closeShopBtn' || btn.id==='closeShopBtnV83' || btn.id==='closeShopBtnV80'){
+      window.__NSV84_SHOP_OPEN_REQUESTED=false;
+      ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation&&ev.stopImmediatePropagation();
+      showScreenSafe('startScreen');
+      return;
+    }
+  }
+  function patchPublicHooks(){
+    const core=window.NEON_SURVIVOR_V80_CLEAN_STABLE;
+    if(core && !core.__nsv84Patched){
+      const oldShow=core.showScreen;
+      core.showScreen=function(id){ return showScreenSafe(id); };
+      if(typeof core.renderShop==='function'){
+        const oldRender=core.renderShop;
+        core.renderShop=function(){ const result=oldRender.apply(this,arguments); if(!window.__NSV84_SHOP_OPEN_REQUESTED) hideShopUnlessRequested(); return result; };
+      }
+      core.__nsv84Patched=true;
+    }
+    window.NEON_SURVIVOR_SHOW_SCREEN = showScreenSafe;
+    window.updateVersionBadge = updateVersionBadge;
+  }
+  function boot(){
+    patchPublicHooks();
+    cleanHomeLabels();
+    cleanPauseVersion();
+    updateVersionBadge();
+    hideShopUnlessRequested();
+    const start=$('startScreen');
+    const visibleMain = VALID_SCREENS.has('shopScreen') && $('shopScreen') && !$('shopScreen').classList.contains('hidden');
+    if(start && !visibleMain && !document.body.dataset.nsv84StartedPlaying){ start.classList.remove('hidden'); }
+  }
+  if(!document.__nsv84Router){
+    document.__nsv84Router=true;
+    document.addEventListener('click', routeButtons, true);
+    document.addEventListener('pointerup', routeButtons, true);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot,{once:true}); else boot();
+  window.addEventListener('load',boot,{passive:true});
+  window.addEventListener('pageshow',boot,{passive:true});
+  setTimeout(boot,200); setTimeout(boot,900); setTimeout(boot,1800);
+  setInterval(()=>{ try{ patchPublicHooks(); updateVersionBadge(); cleanPauseVersion(); if(!window.__NSV84_SHOP_OPEN_REQUESTED) hideShopUnlessRequested(); }catch(e){} },1500);
 })();
 </script>
 
