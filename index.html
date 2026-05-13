@@ -152,8 +152,10 @@
   html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important;background:#050505!important;overscroll-behavior:none;-webkit-text-size-adjust:100%;}
   body.nsv-stable-clean{touch-action:manipulation!important;}
   .hidden{display:none!important;pointer-events:none!important;}
-  #startScreen{position:fixed!important;inset:0!important;z-index:60!important;display:flex;pointer-events:auto!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;}
-  #upgradeScreen,#missionsScreen,#collectionScreen,#weaponCodexScreen,#leaderboardScreen,#eventModeScreen,#onlineRoleScreen,#shopScreen{position:fixed!important;inset:0!important;z-index:56!important;pointer-events:auto!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;}
+  #startScreen{position:fixed!important;inset:0!important;z-index:60!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;}
+  #startScreen:not(.hidden){display:flex!important;pointer-events:auto!important;}
+  #upgradeScreen,#missionsScreen,#collectionScreen,#weaponCodexScreen,#leaderboardScreen,#eventModeScreen,#onlineRoleScreen,#shopScreen{position:fixed!important;inset:0!important;z-index:56!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;}
+  #upgradeScreen:not(.hidden),#missionsScreen:not(.hidden),#collectionScreen:not(.hidden),#weaponCodexScreen:not(.hidden),#leaderboardScreen:not(.hidden),#eventModeScreen:not(.hidden),#onlineRoleScreen:not(.hidden),#shopScreen:not(.hidden){display:flex!important;pointer-events:auto!important;}
   #pauseScreen:not(.hidden){position:fixed!important;inset:0!important;z-index:70!important;display:flex!important;pointer-events:auto!important;}
   #uiLayer.hidden,#joystickZone.hidden,#levelUpScreen.hidden,#gameOverScreen.hidden,#tutorialOverlay.hidden,#bossWarning.hidden{display:none!important;pointer-events:none!important;}
   #gameCanvas{position:fixed;inset:0;z-index:1;max-width:100vw;max-height:100vh;}
@@ -162,6 +164,14 @@
   button,[role="button"],label,input,select,textarea{touch-action:manipulation!important;-webkit-tap-highlight-color:transparent;}
   button{min-height:44px;}
   .menu-panel{overflow-x:hidden!important;}
+
+  /* V90: button/toggle emergency fix */
+  #startScreen.hidden,#upgradeScreen.hidden,#missionsScreen.hidden,#collectionScreen.hidden,#weaponCodexScreen.hidden,#leaderboardScreen.hidden,#eventModeScreen.hidden,#onlineRoleScreen.hidden,#shopScreen.hidden,#pauseScreen.hidden,#levelUpScreen.hidden,#gameOverScreen.hidden,#tutorialOverlay.hidden{display:none!important;pointer-events:none!important;}
+  #startScreen:not(.hidden) button,#startScreen:not(.hidden) input,#startScreen:not(.hidden) label,#startScreen:not(.hidden) textarea{pointer-events:auto!important;position:relative!important;z-index:5!important;touch-action:manipulation!important;}
+  #gameCanvas{pointer-events:none!important;}
+  input[type="checkbox"].sr-only ~ .dot{position:absolute!important;left:4px!important;top:4px!important;width:24px!important;height:24px!important;transform:translateX(0)!important;transition:transform .22s ease!important;}
+  input[type="checkbox"].sr-only:checked ~ .dot{transform:translateX(24px)!important;}
+  input[type="checkbox"].sr-only ~ .block{position:relative!important;width:56px!important;height:32px!important;}
   @media(max-width:720px){.menu-panel{width:min(96vw,920px)!important;max-height:94vh!important;padding:16px!important}.menu-secondary{min-height:64px!important}.solo-hero{min-height:92px!important}}
 </style>
 
@@ -8126,7 +8136,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
 
 
         /* ===== V88 HOME EVENT BUTTON FINAL FIX: reliable open/join from title menu ===== */
-        function installStableMenuButtons() {
+        installStableMenuButtons = function installStableMenuButtonsHomeFinal() {
             const grid = document.querySelector('#startScreen .menu-grid');
             if (grid) {
                 // Remove old generated event buttons first. This avoids half-bound buttons after updates.
@@ -8170,7 +8180,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             bindFinal('openDailyEventBtn', (e) => { e.preventDefault(); e.stopPropagation(); renderStableDailyEvent(); showScreen('eventModeScreen'); });
             bindFinal('homeDailyEventJoinBtn', (e) => { e.preventDefault(); e.stopPropagation(); startStableDailyEventMatch(); });
             syncHomeDailyEventJoinButton();
-        }
+        };
 
         function handleHomeDailyEventPointer(e) {
             const openBtn = e.target.closest?.('[data-open-daily-event], #openDailyEventBtn');
@@ -8259,7 +8269,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             { id:'blackhole_escape', name:'ブラックホール脱出', type:'特殊', desc:'吸い込みギミックを意識して立ち回るスペシャルイベント。', rule:'位置取り重視 / 特殊練習', reward:'コイン +60%', bonus:{speed:1.12, hp:1.05, coins:1.60} }
         ];
 
-        function getStableDailyEventPick(offset = 0) {
+        getStableDailyEventPick = function getStableDailyEventPickV89(offset = 0) {
             const pool = NSV_DAILY_EVENT_POOL_V89;
             const day = nsvDayNumberV89(offset);
             const base = 3; // 8個のイベントと相性がよく、毎日違う種類になりやすい固定ステップ
@@ -8389,7 +8399,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             return `<div class="collection-card unlocked"><div class="text-yellow-300 font-bold text-lg mb-2">${title}</div><table class="w-full text-sm"><tbody>${rows}</tbody></table></div>`;
         }
 
-        function renderStableRanking() {
+        renderStableRanking = function renderStableRankingV89Friends() {
             nsvPublishFriendProfile();
             nsvRefreshAllFriendLive();
             const own = nsvOwnRankProfile();
@@ -8433,7 +8443,7 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
                 if (nsvAddFriendFromCode(value)) renderStableRanking();
             });
             el.querySelector('#refreshFriendRanksBtn')?.addEventListener('click', () => { nsvRefreshAllFriendLive(); renderStableRanking(); });
-        }
+        };
         window.renderStableRanking = renderStableRanking;
 
         renderStableDailyEvent = function renderStableDailyEventV89Distinct() {
@@ -8545,6 +8555,99 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
             } catch(e) { console.warn('V89 final boot skipped:', e); }
         }, 0);
 
+
+
+        /* ===== V90 BUTTON / TOGGLE RECOVERY PATCH ===== */
+        function nsvV90FixToggleDots() {
+            document.querySelectorAll('input[type="checkbox"].sr-only').forEach(input => {
+                const wrap = input.parentElement;
+                if (!wrap) return;
+                const dot = wrap.querySelector('.dot');
+                const track = Array.from(wrap.children).find(el => el !== input && el !== dot);
+                wrap.style.setProperty('position', 'relative', 'important');
+                wrap.style.setProperty('width', '56px', 'important');
+                wrap.style.setProperty('height', '32px', 'important');
+                if (track) {
+                    track.style.setProperty('width', '56px', 'important');
+                    track.style.setProperty('height', '32px', 'important');
+                    track.style.setProperty('border-radius', '9999px', 'important');
+                }
+                if (dot) {
+                    dot.style.setProperty('position', 'absolute', 'important');
+                    dot.style.setProperty('left', '4px', 'important');
+                    dot.style.setProperty('top', '4px', 'important');
+                    dot.style.setProperty('width', '24px', 'important');
+                    dot.style.setProperty('height', '24px', 'important');
+                    dot.style.setProperty('transform', input.checked ? 'translateX(24px)' : 'translateX(0)', 'important');
+                    dot.style.setProperty('transition', 'transform .22s ease', 'important');
+                }
+                input.onchange = input.onchange || (() => {});
+                input.addEventListener('change', () => nsvV90FixToggleDots(), { passive: true });
+            });
+        }
+
+        function nsvV90OpenScreen(id, renderFn) {
+            try { if (typeof renderFn === 'function') renderFn(); } catch(e) { console.warn('render skipped:', id, e); }
+            try { showScreen(id); } catch(e) { console.error('showScreen failed:', id, e); }
+        }
+
+        function nsvV90SafeButtonRouter(e) {
+            const t = e.target?.closest?.('button, [role="button"]');
+            if (!t || t.disabled) return;
+            const id = t.id || '';
+            const map = {
+                openShopBtn: () => nsvV90OpenScreen('shopScreen', window.renderStableShop || renderStableShop),
+                openLeaderboardBtn: () => nsvV90OpenScreen('leaderboardScreen', window.renderStableRanking || renderStableRanking),
+                openDailyEventBtn: () => nsvV90OpenScreen('eventModeScreen', window.renderStableDailyEvent || renderStableDailyEvent),
+                homeDailyEventJoinBtn: () => (window.startStableDailyEventMatch || startStableDailyEventMatch)(),
+                openUpgradeBtn: () => { try { renderUpgrades?.(); } catch(_) {} showScreen('upgradeScreen'); },
+                openMissionBtn: () => { try { renderMissions?.(); } catch(_) {} showScreen('missionsScreen'); },
+                openCollectionBtn: () => { try { renderCollection?.(); } catch(_) {} showScreen('collectionScreen'); },
+                openWeaponCodexBtn: () => { try { renderWeaponCodex?.(); } catch(_) {} showScreen('weaponCodexScreen'); },
+                onlineStartBtn: () => { try { renderOnlineRoles?.(); } catch(_) {} showScreen('onlineRoleScreen'); },
+                closeUpgradeBtn: () => showScreen('startScreen'),
+                closeMissionsBtn: () => showScreen('startScreen'),
+                closeCollectionBtn: () => showScreen('startScreen'),
+                closeWeaponCodexBtn: () => showScreen('startScreen'),
+                closeLeaderboardBtn: () => showScreen('startScreen'),
+                closeEventModeBtn: () => showScreen('startScreen'),
+                closeShopBtn: () => showScreen('startScreen'),
+                closeOnlineRoleBtn: () => showScreen('startScreen')
+            };
+            const fn = map[id];
+            if (!fn && !t.matches('[data-open-daily-event],[data-home-daily-event-join],[data-daily-event-join]')) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (t.dataset.nsvV90Busy === '1') return;
+            t.dataset.nsvV90Busy = '1';
+            try {
+                if (t.matches('[data-open-daily-event]')) nsvV90OpenScreen('eventModeScreen', window.renderStableDailyEvent || renderStableDailyEvent);
+                else if (t.matches('[data-home-daily-event-join],[data-daily-event-join]')) (window.startStableDailyEventMatch || startStableDailyEventMatch)();
+                else fn();
+            } catch(err) {
+                console.error('V90 button route failed:', id, err);
+            } finally {
+                setTimeout(() => { t.dataset.nsvV90Busy = '0'; }, 180);
+            }
+        }
+
+        function nsvV90RestoreHomeButtons() {
+            try {
+                document.querySelectorAll('#startScreen button,#startScreen input,#startScreen label,#startScreen textarea').forEach(el => {
+                    el.style.setProperty('pointer-events', 'auto', 'important');
+                    el.style.setProperty('touch-action', 'manipulation', 'important');
+                });
+                nsvV90FixToggleDots();
+            } catch(e) { console.warn('V90 home restore skipped:', e); }
+        }
+
+        if (!window.__NSV_V90_BUTTON_RECOVERY__) {
+            window.__NSV_V90_BUTTON_RECOVERY__ = true;
+            document.addEventListener('click', nsvV90SafeButtonRouter, true);
+            document.addEventListener('change', nsvV90FixToggleDots, true);
+            document.addEventListener('DOMContentLoaded', nsvV90RestoreHomeButtons, { once: true });
+            setTimeout(nsvV90RestoreHomeButtons, 0);
+        }
 
 
 </script>
