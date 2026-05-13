@@ -8247,6 +8247,51 @@ window.NEON_FIREBASE_CONFIG = window.NEON_FIREBASE_CONFIG || {
         };
         window.initGame = initGame;
 
+        /* ===== V88 LEVEL-UP RETURN HUD FIX: restore joystick and pause button after skill select ===== */
+        function nsvRestoreGameplayHudAfterOverlay() {
+            if (gameState !== 'playing') return;
+            const level = document.getElementById('levelUpScreen');
+            if (level) {
+                level.classList.add('hidden');
+                level.style.setProperty('display', 'none', 'important');
+                level.style.setProperty('pointer-events', 'none', 'important');
+            }
+            nsvSetGameplayHudVisible(true);
+            syncJoystickVisibility();
+            const pause = document.getElementById('pauseBtn');
+            if (pause) {
+                pause.classList.remove('hidden');
+                pause.style.setProperty('display', 'inline-flex', 'important');
+                pause.style.setProperty('visibility', 'visible', 'important');
+                pause.style.setProperty('opacity', '1', 'important');
+                pause.style.setProperty('pointer-events', 'auto', 'important');
+            }
+        }
+
+        const nsvCloseLevelUpBeforeHudFix = closeLevelUpScreen;
+        closeLevelUpScreen = function nsvCloseLevelUpScreenWithHudRestore() {
+            gameState = 'playing';
+            const level = document.getElementById('levelUpScreen');
+            if (level) {
+                level.classList.add('hidden');
+                level.style.setProperty('display', 'none', 'important');
+                level.style.setProperty('pointer-events', 'none', 'important');
+            }
+            try {
+                nsvCloseLevelUpBeforeHudFix();
+            } catch (e) {
+                console.warn('closeLevelUpScreen fallback:', e);
+                lastTime = performance.now();
+                if (animationId) cancelAnimationFrame(animationId);
+                animationId = requestAnimationFrame(gameLoop);
+            }
+            gameState = 'playing';
+            nsvRestoreGameplayHudAfterOverlay();
+            lastTime = performance.now();
+        };
+        window.closeLevelUpScreen = closeLevelUpScreen;
+
+
         window.toggleJoystickFromPause = function(enabled) {
             isJoystickEnabled = !!enabled;
             const jt = document.getElementById('joystickToggle');
