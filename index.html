@@ -10494,6 +10494,329 @@ window.NEON_FIREBASE_CONFIG = {
   setInterval(() => { refreshToggleVisuals(); if (gameplayHudVisible()) restoreGameplayHud(); }, 1000);
 })();
 
+/* ===== V98 FINAL RUNTIME VALIDATED / WEAPON SAFE PATCH =====
+   Purpose: keep every weapon/effect from stopping the game, keep HUD visible after level-up,
+   normalize toggles/buttons/screens, and keep sniper 2/3 speed + light homing.
+   Firebase config is intentionally untouched. */
+(function(){
+  'use strict';
+  const PATCH_VERSION = 'V98 FINAL RUNTIME SAFE';
+  const IMPORTANT_IDS = ['uiLayer','pauseBtn','scoreDisplay','timeDisplay','levelDisplay','hpBar','expBar','joystickZone'];
+  const MENU_IDS = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','shopScreen','leaderboardScreen','eventModeScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen','tutorialOverlay'];
+  const $ = (id) => document.getElementById(id);
+
+  // 1) Sniper: keep requested slower speed and light homing.
+  try {
+    if (typeof NSV_BALANCE_20260502 === 'object' && NSV_BALANCE_20260502) {
+      NSV_BALANCE_20260502.sniperSpeedMult = 4; // 2/3 of V96 speed 6
+      NSV_BALANCE_20260502.sniperHoming = Math.max(Number(NSV_BALANCE_20260502.sniperHoming || 0), 0.06);
+      NSV_BALANCE_20260502.ricochetSniperHoming = Math.max(Number(NSV_BALANCE_20260502.ricochetSniperHoming || 0), 0.04);
+    }
+  } catch(e) {}
+
+  function isPlaying(){ try { return gameState === 'playing'; } catch(e) { return false; } }
+  function isPaused(){ try { return gameState === 'paused'; } catch(e) { return false; } }
+  function shouldShowHud(){ return isPlaying() || isPaused(); }
+
+  // 2) Toggle final fix: force track/dot geometry by inline styles.
+  function fixToggle(input){
+    if (!input || input.type !== 'checkbox') return;
+    const wrap = input.parentElement;
+    if (!wrap) return;
+    const track = Array.from(wrap.children).find(el => el !== input && el.classList && el.classList.contains('block'));
+    const dot = wrap.querySelector('.dot');
+    wrap.classList.add('nsv-v98-toggle');
+    wrap.style.setProperty('position','relative','important');
+    wrap.style.setProperty('width','56px','important');
+    wrap.style.setProperty('height','32px','important');
+    wrap.style.setProperty('min-width','56px','important');
+    wrap.style.setProperty('max-width','56px','important');
+    wrap.style.setProperty('display','inline-block','important');
+    wrap.style.setProperty('overflow','hidden','important');
+    wrap.style.setProperty('border-radius','9999px','important');
+    wrap.style.setProperty('transform','none','important');
+    if (track) {
+      track.style.setProperty('position','absolute','important');
+      track.style.setProperty('left','0px','important');
+      track.style.setProperty('top','0px','important');
+      track.style.setProperty('width','56px','important');
+      track.style.setProperty('height','32px','important');
+      track.style.setProperty('border-radius','9999px','important');
+      track.style.setProperty('margin','0','important');
+      track.style.setProperty('transform','none','important');
+      track.style.setProperty('background', input.checked ? '#06b6d4' : '#4b5563', 'important');
+    }
+    if (dot) {
+      dot.style.setProperty('position','absolute','important');
+      dot.style.setProperty('left', input.checked ? '28px' : '4px', 'important');
+      dot.style.setProperty('top','4px','important');
+      dot.style.setProperty('width','24px','important');
+      dot.style.setProperty('height','24px','important');
+      dot.style.setProperty('border-radius','9999px','important');
+      dot.style.setProperty('background','#fff','important');
+      dot.style.setProperty('transform','none','important');
+      dot.style.setProperty('transition','left .18s ease','important');
+      dot.style.setProperty('box-shadow','0 2px 7px rgba(0,0,0,.38)','important');
+      dot.style.setProperty('margin','0','important');
+    }
+    input.style.setProperty('position','absolute','important');
+    input.style.setProperty('opacity','0','important');
+    input.style.setProperty('width','56px','important');
+    input.style.setProperty('height','32px','important');
+    input.style.setProperty('left','0','important');
+    input.style.setProperty('top','0','important');
+    input.style.setProperty('z-index','5','important');
+    input.style.setProperty('pointer-events','auto','important');
+    input.style.setProperty('margin','0','important');
+  }
+  function syncToggles(){
+    ['joystickToggle','lightModeToggle','pauseJoystickToggle','pauseLightModeToggle'].forEach(id => fixToggle($(id)));
+  }
+  window.nsvV98SyncToggles = syncToggles;
+
+  // 3) Robust screen/HUD manager.
+  function showOnly(screenId){
+    const requested = screenId && $(screenId) ? screenId : (screenId ? 'startScreen' : null);
+    for (const id of MENU_IDS) {
+      const el = $(id); if (!el) continue;
+      const show = id === requested;
+      el.classList.toggle('hidden', !show);
+      el.style.setProperty('pointer-events', show ? 'auto' : 'none', 'important');
+      if (show) {
+        el.style.setProperty('display','flex','important');
+        el.style.setProperty('z-index', id === 'pauseScreen' || id === 'tutorialOverlay' ? '90' : (id === 'startScreen' ? '80' : '85'), 'important');
+      } else {
+        el.style.removeProperty('display');
+      }
+    }
+    if (requested) hideHud(); else restoreHud();
+    syncToggles();
+  }
+  try { showScreen = showOnly; window.showScreen = showOnly; } catch(e) { window.showScreen = showOnly; }
+
+  function hideHud(){
+    ['uiLayer','joystickZone','bossWarning'].forEach(id => {
+      const el = $(id); if (!el) return;
+      el.classList.add('hidden');
+      el.style.removeProperty('display');
+      if (id !== 'uiLayer') el.style.setProperty('pointer-events','none','important');
+    });
+  }
+  function restoreHud(){
+    if (!shouldShowHud()) return;
+    const hud = $('uiLayer');
+    if (hud) {
+      hud.classList.remove('hidden');
+      hud.style.setProperty('display','flex','important');
+      hud.style.setProperty('pointer-events','none','important');
+      hud.style.setProperty('z-index','40','important');
+    }
+    const pause = $('pauseBtn');
+    if (pause) {
+      pause.classList.remove('hidden');
+      pause.style.setProperty('display','inline-flex','important');
+      pause.style.setProperty('pointer-events','auto','important');
+      pause.style.setProperty('z-index','70','important');
+    }
+    ['scoreDisplay','timeDisplay','levelDisplay','hpBar','expBar'].forEach(id => {
+      const el = $(id); if (el) el.classList.remove('hidden');
+    });
+    const joy = $('joystickZone');
+    if (joy) {
+      let enabled = true;
+      try { enabled = !!isJoystickEnabled; } catch(e) { enabled = $('joystickToggle')?.checked !== false; }
+      if (isPlaying() && enabled) {
+        joy.classList.remove('hidden');
+        joy.style.setProperty('display','flex','important');
+        joy.style.setProperty('pointer-events','auto','important');
+        joy.style.setProperty('z-index','100','important');
+      } else {
+        joy.classList.add('hidden');
+        joy.style.removeProperty('display');
+      }
+    }
+  }
+  window.nsvV98RestoreHud = restoreHud;
+
+  // 4) All screens/buttons/toggles: final safe router.
+  function safeRender(name){
+    try {
+      if (typeof window[name] === 'function') return window[name]();
+      if (name === 'renderUpgradeScreen' && typeof renderUpgradeScreen === 'function') return renderUpgradeScreen();
+      if (name === 'renderWeaponCodexScreen' && typeof renderWeaponCodexScreen === 'function') return renderWeaponCodexScreen();
+      if (name === 'renderCollectionScreen' && typeof renderCollectionScreen === 'function') return renderCollectionScreen();
+      if (name === 'renderMissionsScreen' && typeof renderMissionsScreen === 'function') return renderMissionsScreen();
+      if (name === 'renderStableShop' && typeof renderStableShop === 'function') return renderStableShop();
+      if (name === 'renderStableLeaderboard' && typeof renderStableLeaderboard === 'function') return renderStableLeaderboard();
+      if (name === 'renderDailyEventScreen' && typeof renderDailyEventScreen === 'function') return renderDailyEventScreen();
+    } catch(e) { console.warn('V98 render guard:', name, e); }
+  }
+  function ensureNickname(){
+    const input = $('nicknameInput');
+    const warn = $('nicknameWarn');
+    const name = (input?.value || '').trim();
+    if (!name) {
+      if (warn) { warn.textContent = 'ニックネームを入力してください。'; warn.classList.remove('hidden'); }
+      if (input) input.focus();
+      return false;
+    }
+    if (warn) warn.classList.add('hidden');
+    try { if (typeof userData === 'object' && userData) userData.nickname = name; if (typeof saveData === 'function') saveData(); } catch(e) {}
+    return true;
+  }
+  const routes = {
+    startBtn: () => { if (!ensureNickname()) return; try { initGame('solo'); } catch(e) { console.error(e); } setTimeout(restoreHud, 0); setTimeout(restoreHud, 120); },
+    onlineStartBtn: () => { if (!ensureNickname()) return; try { if (typeof nsv915OpenOnlineRoleSelect === 'function') return nsv915OpenOnlineRoleSelect(); } catch(e) {} showOnly('onlineRoleScreen'); },
+    openUpgradeBtn: () => { safeRender('renderUpgradeScreen'); showOnly('upgradeScreen'); },
+    openWeaponCodexBtn: () => { safeRender('renderWeaponCodexScreen'); showOnly('weaponCodexScreen'); },
+    openShopBtn: () => { safeRender('renderStableShop'); showOnly('shopScreen'); },
+    openMissionBtn: () => { safeRender('renderMissionsScreen'); showOnly('missionsScreen'); },
+    openCollectionBtn: () => { safeRender('renderCollectionScreen'); showOnly('collectionScreen'); },
+    openLeaderboardBtn: () => { safeRender('renderStableLeaderboard'); showOnly('leaderboardScreen'); },
+    openEventModeBtn: () => { safeRender('renderDailyEventScreen'); showOnly('eventModeScreen'); },
+    closeUpgradeBtn: () => showOnly('startScreen'),
+    closeWeaponCodexBtn: () => showOnly('startScreen'),
+    closeShopBtn: () => showOnly('startScreen'),
+    closeMissionsBtn: () => showOnly('startScreen'),
+    closeCollectionBtn: () => showOnly('startScreen'),
+    closeLeaderboardBtn: () => showOnly('startScreen'),
+    closeEventModeBtn: () => showOnly('startScreen'),
+    closeOnlineRoleBtn: () => showOnly('startScreen'),
+    pauseBtn: () => { try { gameState = 'paused'; } catch(e) {} showOnly('pauseScreen'); },
+    resumeBtn: () => { try { gameState = 'playing'; } catch(e) {} showOnly(null); restoreHud(); },
+    titleFromPauseBtn: () => { try { if (typeof endRunAndReturnToMenu === 'function') return endRunAndReturnToMenu(); } catch(e) {} try { gameState = 'start'; } catch(e) {} showOnly('startScreen'); },
+    restartBtn: () => { try { gameState = 'start'; } catch(e) {} showOnly('startScreen'); }
+  };
+
+  let down = {x:0,y:0,t:0};
+  let moving = false;
+  let lastScroll = 0;
+  document.addEventListener('pointerdown', e => { down = {x:e.clientX||0,y:e.clientY||0,t:Date.now()}; moving = false; }, true);
+  document.addEventListener('pointermove', e => { if (Math.hypot((e.clientX||0)-down.x, (e.clientY||0)-down.y) > 10) moving = true; }, true);
+  document.addEventListener('scroll', () => { lastScroll = Date.now(); }, true);
+  document.addEventListener('click', e => {
+    const input = e.target?.closest?.('input,textarea,select');
+    if (input) { setTimeout(syncToggles, 0); return; }
+    const btn = e.target?.closest?.('button,[role="button"]');
+    if (!btn || !routes[btn.id]) return;
+    if (moving || Date.now() - lastScroll < 180) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation?.(); return; }
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation?.();
+    try { routes[btn.id](); } catch(err) { console.error('V98 route error', btn.id, err); }
+    setTimeout(syncToggles, 0);
+  }, true);
+  document.addEventListener('change', e => {
+    const input = e.target;
+    if (!input || input.type !== 'checkbox') return;
+    try {
+      if (input.id === 'joystickToggle' || input.id === 'pauseJoystickToggle') window.toggleJoystickFromPause?.(input.checked);
+      if (input.id === 'lightModeToggle' || input.id === 'pauseLightModeToggle') window.toggleLightMode?.(input.checked);
+    } catch(err) { console.warn('V98 toggle change guard', err); }
+    setTimeout(syncToggles, 0);
+    setTimeout(restoreHud, 0);
+  }, true);
+
+  // 5) Runtime safety: if a weapon/effect update or draw throws, do not stop the whole run.
+  function cleanupArray(arr){
+    if (!Array.isArray(arr)) return;
+    for (let i = arr.length - 1; i >= 0; i--) {
+      const o = arr[i];
+      if (!o || o.markedForDeletion === true) { arr.splice(i,1); continue; }
+      if ('x' in o && !Number.isFinite(Number(o.x))) o.x = player?.x || 0;
+      if ('y' in o && !Number.isFinite(Number(o.y))) o.y = player?.y || 0;
+      if ('vx' in o && !Number.isFinite(Number(o.vx))) o.vx = 0;
+      if ('vy' in o && !Number.isFinite(Number(o.vy))) o.vy = 0;
+    }
+  }
+  function cleanupAllWeaponArrays(){
+    const groups = [
+      particles,floatingTexts,bullets,enemyBullets,enemies,gems,effects,ironBlasters,shields,voidTempests,hollowMurasakis,orbitalStrikes,
+      kamehamehas,infinitySnaps,infiniteBladeSwords,unibeams,keraunosStorms,vaderSkills,stormbreakers,disneyMagics,muryokushos,
+      hollowMurasakiCharges,infiniteBladeCharges,keraunosCharges,bounceBombs,poisonClouds,blackholes,divineSwords,sniperBullets,
+      phantomDaggers,gravityPulsars,mapBlackholes,bananaPeels,onlineLegendaryChests,astralJudgements,harisenNovas,overlordFlames,
+      cosmicSushiStorms,railgunZeros,blackholeGrenades,neonChains,plasmaMissiles,overdriveBlades
+    ];
+    for (const g of groups) cleanupArray(g);
+  }
+  try {
+    const prevUpdateLogic = updateLogic;
+    updateLogic = function nsvV98SafeUpdateLogic(){
+      try { cleanupAllWeaponArrays(); } catch(e) {}
+      try { return prevUpdateLogic.call(this); }
+      catch(err) {
+        console.warn('V98 guarded update error:', err?.message || err);
+        try { cleanupAllWeaponArrays(); restoreHud(); } catch(e) {}
+      }
+    };
+    window.updateLogic = updateLogic;
+  } catch(e) {}
+  try {
+    const prevDrawAll = drawAll;
+    drawAll = function nsvV98SafeDrawAll(){
+      try { return prevDrawAll.call(this); }
+      catch(err) {
+        console.warn('V98 guarded draw error:', err?.message || err);
+        try {
+          ctx.setTransform(1,0,0,1,0,0);
+          ctx.fillStyle = '#050505'; ctx.fillRect(0,0,width||800,height||600);
+          if (player && typeof player.draw === 'function') player.draw(ctx);
+          restoreHud();
+        } catch(e) {}
+      }
+    };
+    window.drawAll = drawAll;
+  } catch(e) {}
+  try {
+    const prevClose = closeLevelUpScreen;
+    closeLevelUpScreen = function nsvV98CloseLevelUp(){
+      try { prevClose.call(this); } catch(e) {}
+      try { gameState = 'playing'; } catch(e) {}
+      const lv = $('levelUpScreen');
+      if (lv) { lv.classList.add('hidden'); lv.style.removeProperty('display'); lv.style.setProperty('pointer-events','none','important'); }
+      showOnly(null); restoreHud();
+      setTimeout(restoreHud, 80); setTimeout(restoreHud, 240);
+    };
+    window.closeLevelUpScreen = closeLevelUpScreen;
+  } catch(e) {}
+
+  // 6) Global error guard: keep the loop alive and restore HUD instead of leaving a blank/hidden UI.
+  window.addEventListener('error', function(e){
+    try { console.warn('V98 global runtime guard:', e.message); cleanupAllWeaponArrays(); restoreHud(); } catch(_) {}
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    try { console.warn('V98 promise guard:', e.reason?.message || e.reason); restoreHud(); } catch(_) {}
+  });
+
+  // 7) Badge cleanup and final CSS.
+  function installStyle(){
+    if ($('nsvV98RuntimeSafeStyle')) return;
+    const st = document.createElement('style');
+    st.id = 'nsvV98RuntimeSafeStyle';
+    st.textContent = `
+      .hidden{display:none!important;pointer-events:none!important;}
+      #gameCanvas{pointer-events:none!important;}
+      button,[role="button"],label,input,select,textarea{touch-action:manipulation!important;-webkit-tap-highlight-color:transparent;}
+      .nsv-v98-toggle input:checked ~ .dot{transform:none!important;}
+      #uiLayer:not(.hidden){display:flex!important;pointer-events:none!important;z-index:40!important;}
+      #uiLayer:not(.hidden) #pauseBtn{display:inline-flex!important;pointer-events:auto!important;z-index:70!important;}
+      #joystickZone:not(.hidden){display:flex!important;pointer-events:auto!important;z-index:100!important;}
+      #startScreen:not(.hidden),#upgradeScreen:not(.hidden),#weaponCodexScreen:not(.hidden),#shopScreen:not(.hidden),#missionsScreen:not(.hidden),#collectionScreen:not(.hidden),#leaderboardScreen:not(.hidden),#eventModeScreen:not(.hidden),#onlineRoleScreen:not(.hidden){display:flex!important;pointer-events:auto!important;}
+      #nsvV98VersionBadge{position:fixed;left:10px;bottom:8px;z-index:9999;pointer-events:none;color:#fef9c3;background:rgba(2,6,23,.86);border:1px solid rgba(250,204,21,.74);border-radius:999px;padding:4px 9px;font:900 11px Orbitron,Noto Sans JP,sans-serif;letter-spacing:.08em;box-shadow:0 0 12px rgba(250,204,21,.30);}
+    `;
+    document.head.appendChild(st);
+  }
+  function installFinal(){
+    installStyle(); syncToggles();
+    document.querySelectorAll('[data-version-badge],#nsvStableBadge,#nsv94VersionBadge,#nsv95VersionBadge,#nsv96VersionBadge,#nsv97VersionBadge,#nsvV98VersionBadge').forEach(el => el.remove());
+    const b = document.createElement('div'); b.id='nsvV98VersionBadge'; b.dataset.versionBadge='1'; b.textContent = PATCH_VERSION; document.body.appendChild(b);
+    document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = PATCH_VERSION);
+    if (shouldShowHud()) restoreHud();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installFinal, {once:true}); else installFinal();
+  window.addEventListener('resize', () => { setTimeout(syncToggles,0); setTimeout(restoreHud,0); }, {passive:true});
+  setInterval(() => { syncToggles(); if (shouldShowHud()) restoreHud(); }, 1000);
+})();
+
+
 </script>
 
 </body>
