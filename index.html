@@ -10817,6 +10817,210 @@ window.NEON_FIREBASE_CONFIG = {
 })();
 
 
+
+/* ===== V99 LEVEL-UP RETURN HUD HARD FIX =====
+   Fixes: after selecting a level-up skill and returning to play, HUD / PAUSE / HP / EXP / joystick disappearing.
+   Firebase config is intentionally untouched. */
+(function(){
+  'use strict';
+  const PATCH_VERSION = 'V99 LEVELUP HUD FIX';
+  const $ = (id) => document.getElementById(id);
+  const MENU_IDS = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','shopScreen','leaderboardScreen','eventModeScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen','tutorialOverlay','bossWarning'];
+
+  function isPlayState(){
+    try { return gameState === 'playing'; } catch(_) { return false; }
+  }
+
+  function setImportant(el, prop, value){
+    if (el) el.style.setProperty(prop, value, 'important');
+  }
+
+  function hardHideLevelUpOnly(){
+    const lv = $('levelUpScreen');
+    if (!lv) return;
+    lv.classList.add('hidden');
+    setImportant(lv, 'display', 'none');
+    setImportant(lv, 'pointer-events', 'none');
+    setImportant(lv, 'visibility', 'hidden');
+    setImportant(lv, 'opacity', '0');
+  }
+
+  function hardShowGameplayHud(){
+    if (!isPlayState()) return;
+
+    // Hide only menu/overlay screens that can cover the gameplay after level-up.
+    for (const id of MENU_IDS) {
+      if (id === 'bossWarning') continue;
+      const el = $(id);
+      if (!el) continue;
+      el.classList.add('hidden');
+      setImportant(el, 'display', 'none');
+      setImportant(el, 'pointer-events', 'none');
+      if (id === 'levelUpScreen') {
+        setImportant(el, 'visibility', 'hidden');
+        setImportant(el, 'opacity', '0');
+      }
+    }
+
+    const hud = $('uiLayer');
+    if (hud) {
+      hud.classList.remove('hidden');
+      hud.classList.add('nsv-v99-force-hud');
+      setImportant(hud, 'display', 'flex');
+      setImportant(hud, 'visibility', 'visible');
+      setImportant(hud, 'opacity', '1');
+      setImportant(hud, 'pointer-events', 'none');
+      setImportant(hud, 'z-index', '60');
+    }
+
+    const pause = $('pauseBtn');
+    if (pause) {
+      pause.classList.remove('hidden');
+      setImportant(pause, 'display', 'inline-flex');
+      setImportant(pause, 'visibility', 'visible');
+      setImportant(pause, 'opacity', '1');
+      setImportant(pause, 'pointer-events', 'auto');
+      setImportant(pause, 'z-index', '120');
+    }
+
+    ['scoreDisplay','timeDisplay','levelDisplay','hpBar','expBar','bossHpContainer','onlineHud','missionMiniHud'].forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      if (id === 'bossHpContainer' || id === 'onlineHud' || id === 'missionMiniHud') return; // keep their own hidden rules
+      el.classList.remove('hidden');
+      setImportant(el, 'visibility', 'visible');
+      setImportant(el, 'opacity', '1');
+    });
+
+    // HP/EXP bar parents sometimes remain invisible because old patches touch containers.
+    ['hpBar','expBar'].forEach(id => {
+      let el = $(id);
+      for (let i = 0; el && i < 2; i++, el = el.parentElement) {
+        el.classList.remove('hidden');
+        setImportant(el, 'visibility', 'visible');
+        setImportant(el, 'opacity', '1');
+      }
+    });
+
+    const joy = $('joystickZone');
+    if (joy) {
+      let enabled = true;
+      try { enabled = !!isJoystickEnabled; } catch(_) { enabled = $('joystickToggle')?.checked !== false; }
+      if (enabled) {
+        joy.classList.remove('hidden');
+        setImportant(joy, 'display', 'flex');
+        setImportant(joy, 'visibility', 'visible');
+        setImportant(joy, 'opacity', '1');
+        setImportant(joy, 'pointer-events', 'auto');
+        setImportant(joy, 'z-index', '120');
+      } else {
+        joy.classList.add('hidden');
+        setImportant(joy, 'display', 'none');
+      }
+    }
+  }
+
+  window.nsvV99ForceGameplayHud = hardShowGameplayHud;
+
+  function restoreSoon(){
+    hardHideLevelUpOnly();
+    try { gameState = 'playing'; } catch(_) {}
+    hardShowGameplayHud();
+    [0, 30, 80, 160, 320, 650].forEach(ms => setTimeout(hardShowGameplayHud, ms));
+  }
+
+  // Re-wrap closeLevelUpScreen after all older wrappers.
+  try {
+    const prevClose = closeLevelUpScreen;
+    closeLevelUpScreen = function nsvV99CloseLevelUpScreen(){
+      try { if (typeof prevClose === 'function') prevClose.apply(this, arguments); } catch(e) { console.warn('V99 closeLevelUp guard:', e); }
+      restoreSoon();
+      try {
+        if (animationId) cancelAnimationFrame(animationId);
+        lastTime = performance.now();
+        animationId = requestAnimationFrame(gameLoop);
+      } catch(_) {}
+    };
+    window.closeLevelUpScreen = closeLevelUpScreen;
+  } catch(_) {}
+
+  // If any upgrade card is tapped, force HUD back after the original skill apply closes the screen.
+  document.addEventListener('click', function(e){
+    if (e.target && e.target.closest && e.target.closest('#levelUpScreen .upgrade-card,#upgradesContainer .upgrade-card')) {
+      setTimeout(restoreSoon, 20);
+      setTimeout(hardShowGameplayHud, 120);
+      setTimeout(hardShowGameplayHud, 360);
+    }
+  }, true);
+
+  document.addEventListener('pointerup', function(e){
+    if (e.target && e.target.closest && e.target.closest('#levelUpScreen .upgrade-card,#upgradesContainer .upgrade-card')) {
+      setTimeout(restoreSoon, 20);
+    }
+  }, true);
+
+  // Watch level-up overlay. When it closes while the run is playing, restore HUD immediately.
+  try {
+    const lv = $('levelUpScreen');
+    if (lv) {
+      new MutationObserver(function(){
+        if (isPlayState() && lv.classList.contains('hidden')) setTimeout(hardShowGameplayHud, 0);
+      }).observe(lv, { attributes:true, attributeFilter:['class','style'] });
+    }
+  } catch(_) {}
+
+  // If showScreen(null) is used to return to gameplay, restore HUD after it.
+  try {
+    const prevShow = window.showScreen || (typeof showScreen === 'function' ? showScreen : null);
+    const wrappedShow = function nsvV99ShowScreen(screenId){
+      const ret = typeof prevShow === 'function' ? prevShow.apply(this, arguments) : undefined;
+      if (!screenId) setTimeout(hardShowGameplayHud, 0);
+      return ret;
+    };
+    window.showScreen = wrappedShow;
+    try { showScreen = wrappedShow; } catch(_) {}
+  } catch(_) {}
+
+  // Last safety: during gameplay, if HUD is hidden, repair it without regenerating screens.
+  try {
+    const prevLoop = gameLoop;
+    gameLoop = function nsvV99GameLoop(currentTime){
+      if (isPlayState()) {
+        const hud = $('uiLayer');
+        if (!hud || hud.classList.contains('hidden') || getComputedStyle(hud).display === 'none') hardShowGameplayHud();
+      }
+      return prevLoop.apply(this, arguments);
+    };
+    window.gameLoop = gameLoop;
+  } catch(_) {}
+
+  function installV99(){
+    if (!$('nsvV99LevelupHudStyle')) {
+      const st = document.createElement('style');
+      st.id = 'nsvV99LevelupHudStyle';
+      st.textContent = `
+        #uiLayer.nsv-v99-force-hud{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:none!important;z-index:60!important;}
+        #uiLayer.nsv-v99-force-hud #pauseBtn{display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;z-index:120!important;}
+        #joystickZone:not(.hidden){display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;z-index:120!important;}
+        #levelUpScreen.hidden{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}
+        #nsvV99VersionBadge{position:fixed;left:10px;bottom:8px;z-index:9999;pointer-events:none;color:#fef9c3;background:rgba(2,6,23,.86);border:1px solid rgba(250,204,21,.74);border-radius:999px;padding:4px 9px;font:900 11px Orbitron,Noto Sans JP,sans-serif;letter-spacing:.08em;box-shadow:0 0 12px rgba(250,204,21,.30);}
+      `;
+      document.head.appendChild(st);
+    }
+    document.querySelectorAll('[data-version-badge],#nsvStableBadge,#nsv94VersionBadge,#nsv95VersionBadge,#nsv96VersionBadge,#nsv97VersionBadge,#nsvV98VersionBadge,#nsvV99VersionBadge').forEach(el => el.remove());
+    const b = document.createElement('div');
+    b.id = 'nsvV99VersionBadge';
+    b.dataset.versionBadge = '1';
+    b.textContent = PATCH_VERSION;
+    document.body.appendChild(b);
+    document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = PATCH_VERSION);
+    if (isPlayState()) hardShowGameplayHud();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installV99, {once:true}); else installV99();
+  setInterval(function(){ if (isPlayState()) hardShowGameplayHud(); }, 500);
+})();
+
 </script>
 
 </body>
