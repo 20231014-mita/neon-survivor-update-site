@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<!-- V100 CLEAN STABLE / unified-router / smooth-play build -->
+<!-- V101 60FPS HUD LOCK / adaptive-performance build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -240,7 +240,7 @@
                     <div class="text-yellow-300 font-bold text-xs tracking-[0.35em]">GAME MENU</div>
                     <h2 class="text-5xl md:text-6xl font-bold text-white tracking-widest neon-text" style="font-family: 'Orbitron', sans-serif;">PAUSED</h2>
                 </div>
-                <div class="nsv-pause-mini">V100 CLEAN STABLE</div>
+                <div class="nsv-pause-mini">V101 60FPS HUD LOCK</div>
             </div>
 
             <div class="nsv-pause-grid">
@@ -11373,6 +11373,206 @@ window.NEON_FIREBASE_CONFIG = {
   window.addEventListener('resize', () => { setTimeout(syncToggles,0); setTimeout(syncGameplayHud,0); }, {passive:true});
   setInterval(() => { clampRuntimeObjects(); syncToggles(); if (isPlaying() || isPaused()) syncGameplayHud(); }, 900);
 })();
+
+/* ===== V101 60FPS GUARD + HUD SAFE LOCK =====
+   Fixes: sudden HUD disappearance during play, long-session freezes, effect overload on mobile.
+   Rule: gameplay content stays the same; only runtime limits and screen safety are improved. */
+(function(){
+  'use strict';
+  const PATCH_VERSION = 'V101 60FPS HUD LOCK';
+  const $ = (id) => document.getElementById(id);
+  const state = {
+    level: 0, // 0=full, 1=soft, 2=mobile safe, 3=emergency
+    avg: 16.7,
+    goodFrames: 0,
+    badFrames: 0,
+    lastHudSync: 0,
+    lastClamp: 0,
+    lastDrawStarted: 0
+  };
+  window.__NSV_V101_PERF__ = state;
+
+  function isPlaying(){ try { return gameState === 'playing'; } catch(_) { return false; } }
+  function isPaused(){ try { return gameState === 'paused'; } catch(_) { return false; } }
+  function getLimit(full, soft, safe, emergency){ return [full, soft, safe, emergency][Math.max(0, Math.min(3, state.level))]; }
+  function clampArray(arr, max){ if (Array.isArray(arr) && arr.length > max) arr.splice(0, arr.length - max); }
+  function clampEnemies(max){
+    try {
+      if (!Array.isArray(enemies) || enemies.length <= max) return;
+      const bosses = enemies.filter(e => e && (e.isBoss || e.isMonkey || e.isMidBoss || e.isApeOverlord || e.isApeOverlordSecondPhase));
+      const normal = enemies.filter(e => !(e && (e.isBoss || e.isMonkey || e.isMidBoss || e.isApeOverlord || e.isApeOverlordSecondPhase)));
+      const keepNormal = Math.max(0, max - bosses.length);
+      enemies = normal.slice(-keepNormal).concat(bosses);
+      window.enemies = enemies;
+    } catch(_) {}
+  }
+  function emergencyStopHugeEffects(){
+    try {
+      if (state.level < 3) return;
+      whiteFlash = Math.min(whiteFlash || 0, 0.25);
+      purpleFlash = Math.min(purpleFlash || 0, 0.25);
+      blueFlash = Math.min(blueFlash || 0, 0.25);
+      redFlash = Math.min(redFlash || 0, 0.25);
+      if (Array.isArray(bgStars) && bgStars.length > 24) bgStars.splice(0, bgStars.length - 24);
+    } catch(_) {}
+  }
+  function v101ClampRuntime(){
+    const l = state.level;
+    try {
+      clampArray(particles, getLimit(360,180,80,28));
+      clampArray(floatingTexts, getLimit(110,70,36,18));
+      clampArray(effects, getLimit(130,65,30,12));
+      clampArray(bullets, getLimit(620,380,220,120));
+      clampArray(enemyBullets, getLimit(260,160,90,48));
+      clampArray(gems, getLimit(300,210,130,70));
+      clampEnemies(getLimit(260,190,125,75));
+      [sniperBullets,phantomDaggers,gravityPulsars,railgunZeros,blackholeGrenades,neonChains,plasmaMissiles,overdriveBlades,
+       hollowMurasakis,kamehamehas,infinitySnaps,infiniteBladeSwords,unibeams,keraunosStorms,stormbreakers,disneyMagics,muryokushos,
+       bounceBombs,poisonClouds,blackholes,divineSwords,mapBlackholes,bananaPeels,onlineLegendaryChests,astralJudgements,harisenNovas,overlordFlames,cosmicSushiStorms,
+       hollowMurasakiCharges,infiniteBladeCharges,keraunosCharges].forEach(a => clampArray(a, getLimit(56,34,20,10)));
+      if (Array.isArray(bgStars)) clampArray(bgStars, getLimit(120,72,42,24));
+      emergencyStopHugeEffects();
+    } catch(_) {}
+  }
+  window.nsvV101ClampRuntime = v101ClampRuntime;
+
+  function updatePerf(delta, drawCost){
+    const frame = Math.max(1, Number(delta) || 16.7);
+    state.avg = state.avg * 0.92 + frame * 0.08;
+    const tooSlow = frame > 21 || drawCost > 14 || state.avg > 19.2;
+    const verySlow = frame > 32 || drawCost > 24 || state.avg > 25;
+    if (verySlow) { state.badFrames += 3; state.goodFrames = 0; }
+    else if (tooSlow) { state.badFrames += 1; state.goodFrames = 0; }
+    else { state.goodFrames += 1; state.badFrames = Math.max(0, state.badFrames - 1); }
+    if (state.badFrames >= 8 && state.level < 3) { state.level++; state.badFrames = 0; document.body.dataset.nsvPerf = String(state.level); }
+    if (state.goodFrames >= 360 && state.level > 0) { state.level--; state.goodFrames = 0; document.body.dataset.nsvPerf = String(state.level); }
+  }
+
+  function forceGameplayHud(){
+    if (!isPlaying() && !isPaused()) return;
+    const ui = $('uiLayer'), pause = $('pauseBtn'), joy = $('joystickZone'), lvl = $('levelUpScreen'), over = $('gameOverScreen');
+    try {
+      if (ui && (!lvl || lvl.classList.contains('hidden')) && (!over || over.classList.contains('hidden'))) {
+        ui.classList.remove('hidden');
+        ui.style.display = 'flex'; ui.style.visibility = 'visible'; ui.style.opacity = '1'; ui.style.pointerEvents = 'none'; ui.style.zIndex = '60';
+      }
+      if (pause) { pause.style.display = 'inline-flex'; pause.style.visibility = 'visible'; pause.style.opacity = '1'; pause.style.pointerEvents = 'auto'; pause.style.zIndex = '140'; }
+      if (joy) {
+        let enabled = true; try { enabled = !!isJoystickEnabled; } catch(_) {}
+        if (enabled && isPlaying()) { joy.classList.remove('hidden'); joy.style.display = 'flex'; joy.style.visibility = 'visible'; joy.style.opacity = '1'; joy.style.pointerEvents = 'auto'; joy.style.zIndex = '135'; }
+      }
+      const canvasEl = $('gameCanvas');
+      if (canvasEl) { canvasEl.style.display = 'block'; canvasEl.style.visibility = 'visible'; canvasEl.style.opacity = '1'; }
+    } catch(_) {}
+  }
+  window.nsvV101ForceGameplayHud = forceGameplayHud;
+
+  try {
+    const oldCreateParticles = createParticles;
+    createParticles = function nsvV101CreateParticles(x, y, count = 8, color = '#0ff', size = 3){
+      const rate = [0.75, 0.42, 0.20, 0.07][Math.max(0, Math.min(3, state.level))];
+      const limit = getLimit(320,160,72,24);
+      const canAdd = Math.max(0, limit - (Array.isArray(particles) ? particles.length : 0));
+      const safeCount = Math.min(canAdd, Math.max(0, Math.ceil((Number(count)||0) * rate)));
+      if (safeCount <= 0) return;
+      return oldCreateParticles(x, y, safeCount, color, size);
+    };
+    window.createParticles = createParticles;
+  } catch(_) {}
+
+  try {
+    const oldUpdate = updateLogic;
+    updateLogic = function nsvV101UpdateLogic(){
+      const now = performance.now();
+      if (now - state.lastClamp > 80) { v101ClampRuntime(); state.lastClamp = now; }
+      try { return oldUpdate.apply(this, arguments); }
+      catch(e) { console.warn('V101 guarded update:', e); v101ClampRuntime(); forceGameplayHud(); }
+    };
+    window.updateLogic = updateLogic;
+  } catch(_) {}
+
+  try {
+    const oldDraw = drawAll;
+    drawAll = function nsvV101DrawAll(){
+      const t = performance.now();
+      state.lastDrawStarted = t;
+      if (state.level >= 2) v101ClampRuntime();
+      try { return oldDraw.apply(this, arguments); }
+      catch(e) {
+        console.warn('V101 guarded draw:', e);
+        try { ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle = '#050505'; ctx.fillRect(0,0,width||800,height||600); if (player && player.draw) player.draw(ctx); } catch(_) {}
+      }
+      finally { updatePerf(16.7, performance.now() - t); forceGameplayHud(); }
+    };
+    window.drawAll = drawAll;
+  } catch(_) {}
+
+  try {
+    gameLoop = function nsvV101GameLoop(currentTime){
+      if (gameState !== 'playing') { animationId = null; return; }
+      const now = currentTime || performance.now();
+      let deltaTime = now - lastTime;
+      if (!Number.isFinite(deltaTime) || deltaTime <= 0) deltaTime = 16.7;
+      lastTime = now;
+      if (deltaTime > 50) deltaTime = 50;
+      try { nsvTrackFrameV66(deltaTime); } catch(_) {}
+      updatePerf(deltaTime, 0);
+
+      const speed = Math.min(Number(gameSpeedMultiplier) || 1, state.level >= 2 ? 1.4 : (state.level >= 1 ? 1.8 : 2.2));
+      timeAccumulator += Math.min(deltaTime * speed, frameTime * (state.level >= 2 ? 1.15 : 2.0));
+      let steps = 0;
+      const maxSteps = state.level >= 1 ? 1 : 2;
+      while (timeAccumulator >= frameTime && steps < maxSteps) {
+        try { updateLogic(); } catch(e) { console.warn('V101 logic intercepted:', e); v101ClampRuntime(); }
+        timeAccumulator -= frameTime;
+        steps++;
+      }
+      if (steps >= maxSteps) timeAccumulator = 0;
+
+      const drawStart = performance.now();
+      try { drawAll(); } catch(e) { console.warn('V101 draw intercepted:', e); }
+      updatePerf(deltaTime, performance.now() - drawStart);
+
+      try {
+        if (player && player.pendingLevelUps > 0 && gameState === 'playing') {
+          player.pendingLevelUps--;
+          player.processLevelUp();
+        }
+      } catch(e) { console.warn('V101 level-up intercepted:', e); forceGameplayHud(); }
+
+      const t = performance.now();
+      if (t - state.lastHudSync > 180) { forceGameplayHud(); state.lastHudSync = t; }
+      if (gameState === 'playing') animationId = requestAnimationFrame(gameLoop);
+    };
+    window.gameLoop = gameLoop;
+  } catch(_) {}
+
+  function installStyle(){
+    if ($('nsvV101Style')) return;
+    const st = document.createElement('style');
+    st.id = 'nsvV101Style';
+    st.textContent = `
+      #uiLayer:not(.hidden){display:flex!important;visibility:visible!important;opacity:1!important;}
+      #uiLayer:not(.hidden) #pauseBtn{display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;}
+      #gameCanvas{display:block!important;visibility:visible!important;opacity:1!important;}
+      body[data-nsv-perf="2"] .cutin-base,body[data-nsv-perf="3"] .cutin-base{animation-duration:1.1s!important;filter:none!important;}
+      body[data-nsv-perf="3"] #lavaOverlay.active{opacity:.12!important;}
+      #nsvV100VersionBadge{font-size:0!important;}
+      #nsvV100VersionBadge::after{content:'${PATCH_VERSION}';font-size:11px!important;}
+    `;
+    document.head.appendChild(st);
+  }
+  function install(){
+    installStyle();
+    document.body.dataset.nsvPerf = '0';
+    document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = PATCH_VERSION);
+    const b = $('nsvV100VersionBadge'); if (b) b.textContent = PATCH_VERSION;
+    setInterval(() => { v101ClampRuntime(); forceGameplayHud(); }, 250);
+    window.addEventListener('visibilitychange', () => { if (!document.hidden && isPlaying()) { lastTime = performance.now(); forceGameplayHud(); } }, {passive:true});
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, {once:true}); else install();
+})();
+
 </script>
 
 </body>
