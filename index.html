@@ -1,5 +1,6 @@
+
 <!DOCTYPE html>
-<!-- V86 TRUE STABLE / cleanup-router / no-preview build -->
+<!-- V100 CLEAN STABLE / unified-router / smooth-play build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -239,7 +240,7 @@
                     <div class="text-yellow-300 font-bold text-xs tracking-[0.35em]">GAME MENU</div>
                     <h2 class="text-5xl md:text-6xl font-bold text-white tracking-widest neon-text" style="font-family: 'Orbitron', sans-serif;">PAUSED</h2>
                 </div>
-                <div class="nsv-pause-mini">V96 ONLINE WEAPON REWORK</div>
+                <div class="nsv-pause-mini">V100 CLEAN STABLE</div>
             </div>
 
             <div class="nsv-pause-grid">
@@ -446,6 +447,47 @@
         </div>
     </div>
 
+
+    <!-- V100: static containers prevent SHOP/RANKING/EVENT black screens even if JS rendering is delayed. -->
+    <div id="shopScreen" class="absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3">
+        <div class="menu-panel w-full flex flex-col gap-4">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+                <div>
+                    <h2 class="text-4xl md:text-5xl font-bold text-yellow-300" style="font-family: 'Orbitron', sans-serif; text-shadow:0 0 15px #facc15;">SHOP</h2>
+                    <p class="text-gray-300 text-sm mt-2">スキン・オーラ・日替わりアイテムを確認できます。</p>
+                </div>
+                <button id="closeShopBtn" class="btn-neon px-4 py-2 rounded font-bold">BACK</button>
+            </div>
+            <div id="shopListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto max-h-[72vh] pr-1"></div>
+        </div>
+    </div>
+
+    <div id="leaderboardScreen" class="absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3">
+        <div class="menu-panel w-full flex flex-col gap-4">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+                <div>
+                    <h2 class="text-4xl md:text-5xl font-bold text-cyan-300" style="font-family: 'Orbitron', sans-serif; text-shadow:0 0 15px #22d3ee;">RANKING</h2>
+                    <p class="text-gray-300 text-sm mt-2">自己ベスト・コイン・ランキング情報を確認できます。</p>
+                </div>
+                <button id="closeLeaderboardBtn" class="btn-neon px-4 py-2 rounded font-bold">BACK</button>
+            </div>
+            <div id="leaderboardListContainer" class="overflow-y-auto max-h-[72vh] pr-1 space-y-3"></div>
+        </div>
+    </div>
+
+    <div id="eventModeScreen" class="absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3">
+        <div class="menu-panel w-full flex flex-col gap-4">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+                <div>
+                    <h2 class="text-4xl md:text-5xl font-bold text-purple-300" style="font-family: 'Orbitron', sans-serif; text-shadow:0 0 15px #c084fc;">DAILY EVENT</h2>
+                    <p class="text-gray-300 text-sm mt-2">今日のイベントと参加状況を確認できます。</p>
+                </div>
+                <button id="closeEventModeBtn" class="btn-neon px-4 py-2 rounded font-bold">BACK</button>
+            </div>
+            <div id="eventModeListContainer" class="overflow-y-auto max-h-[72vh] pr-1 space-y-3"></div>
+        </div>
+    </div>
+
     <div id="levelUpScreen" class="absolute inset-0 bg-black/70 flex flex-col items-center justify-center backdrop-blur-md z-50 hidden">
         <h2 class="text-5xl font-bold mb-8 text-yellow-300 shadow-[0_0_15px_yellow] animate-pulse" style="font-family: 'Orbitron', sans-serif;">LEVEL UP!</h2>
         <p class="mb-6 text-2xl font-bold">スキルを1つ選んでください</p>
@@ -483,6 +525,21 @@ window.NEON_FIREBASE_CONFIG = {
 </script>
 
     <script type="module">
+        /* V100: prevent old document-level click routers from stacking. */
+        (function(){
+            const originalAdd = document.addEventListener.bind(document);
+            document.__nsvV100OriginalAddEventListener = originalAdd;
+            window.__NSV_V100_BLOCK_OLD_DOCUMENT_ROUTERS__ = true;
+            document.addEventListener = function(type, listener, options){
+                const blockedTypes = { click:1, pointerup:1, change:1 };
+                const allowed = listener && listener.__nsvV100Allow === true;
+                if (window.__NSV_V100_BLOCK_OLD_DOCUMENT_ROUTERS__ && blockedTypes[type] && !allowed) {
+                    return;
+                }
+                return originalAdd(type, listener, options);
+            };
+        })();
+
         let fbDoc = null, fbSetDoc = null, fbGetDoc = null, fbUpdateDoc = null, fbDeleteField = null;
 
         window.setGameSpeed = function(speed) { gameSpeedMultiplier = speed; };
@@ -11021,6 +11078,301 @@ window.NEON_FIREBASE_CONFIG = {
   setInterval(function(){ if (isPlayState()) hardShowGameplayHud(); }, 500);
 })();
 
+
+
+/* ===== V100 CLEAN STABLE: unified screen/router/effect limiter =====
+   Goal: one effective screen manager, one effective static button router, fixed static SHOP/RANKING/EVENT containers,
+   one visible version badge, safer HUD return, and smoother long-play performance. */
+(function(){
+  'use strict';
+  const PATCH_VERSION = 'V100 CLEAN STABLE';
+  const $ = (id) => document.getElementById(id);
+  const originalDocAdd = document.__nsvV100OriginalAddEventListener || document.addEventListener.bind(document);
+
+  const SCREEN_IDS = [
+    'startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','bossCodexScreen',
+    'shopScreen','leaderboardScreen','eventModeScreen','onlineRoleScreen','levelUpScreen','gameOverScreen',
+    'pauseScreen','tutorialOverlay','bossWarning'
+  ];
+  const STATIC_ROUTE_IDS = [
+    'startBtn','onlineStartBtn','openUpgradeBtn','openMissionBtn','openCollectionBtn','openWeaponCodexBtn',
+    'openShopBtn','openLeaderboardBtn','openDailyEventBtn','homeDailyEventJoinBtn',
+    'closeUpgradeBtn','closeMissionsBtn','closeCollectionBtn','closeWeaponCodexBtn','closeShopBtn',
+    'closeLeaderboardBtn','closeEventModeBtn','closeOnlineRoleBtn','tutorialStartBtn','tutorialSkipBtn',
+    'pauseBtn','resumeBtn','titleFromPauseBtn','restartBtn','exportBtn','importBtn','pauseMuteBtn','claimAllMissionsBtn'
+  ];
+
+  function call(fnName, ...args){
+    try {
+      const fn = window[fnName] || (typeof globalThis !== 'undefined' ? globalThis[fnName] : null);
+      if (typeof fn === 'function') return fn(...args);
+    } catch(e) { console.warn('V100 call failed:', fnName, e); }
+  }
+  function localCall(fn, ...args){ try { if (typeof fn === 'function') return fn(...args); } catch(e) { console.warn('V100 local call failed:', e); } }
+  function isPlaying(){ try { return gameState === 'playing'; } catch(_) { return false; } }
+  function isPaused(){ try { return gameState === 'paused'; } catch(_) { return false; } }
+  function important(el, prop, value){ if (el) el.style.setProperty(prop, value, 'important'); }
+
+  function ensureScreen(id, title, subtitle){
+    let el = $(id);
+    if (el) return el;
+    el = document.createElement('div');
+    el.id = id;
+    el.className = 'absolute inset-0 bg-black/92 flex flex-col items-center justify-center backdrop-blur-md z-[56] hidden p-3';
+    const closeId = id === 'shopScreen' ? 'closeShopBtn' : id === 'leaderboardScreen' ? 'closeLeaderboardBtn' : id === 'eventModeScreen' ? 'closeEventModeBtn' : 'closeGeneratedScreenBtn';
+    el.innerHTML = `<div class="menu-panel w-full flex flex-col gap-4"><div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3"><div><h2 class="text-4xl md:text-5xl font-bold text-cyan-300" style="font-family: Orbitron, sans-serif; text-shadow:0 0 15px #22d3ee;">${title}</h2><p class="text-gray-300 text-sm mt-2">${subtitle || ''}</p></div><button id="${closeId}" class="btn-neon px-4 py-2 rounded font-bold">BACK</button></div><div class="nsv-v100-generated-body overflow-y-auto max-h-[72vh] pr-1 space-y-3"></div></div>`;
+    const before = $('levelUpScreen') || document.body.firstChild;
+    document.body.insertBefore(el, before);
+    return el;
+  }
+
+  function syncGameplayHud(){
+    const hud = $('uiLayer');
+    const joy = $('joystickZone');
+    const show = isPlaying() || isPaused();
+    if (hud) {
+      hud.classList.toggle('hidden', !show);
+      if (show) { important(hud,'display','flex'); important(hud,'visibility','visible'); important(hud,'opacity','1'); important(hud,'pointer-events','none'); }
+      else { important(hud,'display','none'); }
+    }
+    const pause = $('pauseBtn');
+    if (pause && show) { important(pause,'display','inline-flex'); important(pause,'pointer-events','auto'); important(pause,'visibility','visible'); important(pause,'opacity','1'); }
+    let joystickEnabled = true;
+    try { joystickEnabled = !!isJoystickEnabled; } catch(_) { joystickEnabled = $('joystickToggle')?.checked !== false; }
+    if (joy) {
+      const joyShow = show && joystickEnabled;
+      joy.classList.toggle('hidden', !joyShow);
+      if (joyShow) { important(joy,'display','flex'); important(joy,'pointer-events','auto'); important(joy,'visibility','visible'); important(joy,'opacity','1'); }
+      else { important(joy,'display','none'); }
+    }
+  }
+
+  function v100ShowScreen(screenId){
+    if (screenId === 'shopScreen') ensureScreen('shopScreen','SHOP','スキン・オーラ・日替わりアイテムを確認できます。');
+    if (screenId === 'leaderboardScreen') ensureScreen('leaderboardScreen','RANKING','自己ベスト・コイン・ランキング情報を確認できます。');
+    if (screenId === 'eventModeScreen') ensureScreen('eventModeScreen','DAILY EVENT','今日のイベントと参加状況を確認できます。');
+    const requested = screenId && $(screenId) ? screenId : null;
+    SCREEN_IDS.forEach(id => {
+      const el = $(id); if (!el) return;
+      const visible = id === requested;
+      el.classList.toggle('hidden', !visible);
+      if (visible) { important(el,'display','flex'); important(el,'pointer-events','auto'); important(el,'visibility','visible'); important(el,'opacity','1'); }
+      else { important(el,'display','none'); important(el,'pointer-events','none'); }
+    });
+    if (!requested) syncGameplayHud();
+    else if (requested === 'pauseScreen') syncGameplayHud();
+    else {
+      const hud = $('uiLayer'); if (hud) { hud.classList.add('hidden'); important(hud,'display','none'); }
+      const joy = $('joystickZone'); if (joy) { joy.classList.add('hidden'); important(joy,'display','none'); }
+    }
+    return requested;
+  }
+  window.showScreen = v100ShowScreen;
+  try { showScreen = v100ShowScreen; } catch(_) {}
+  window.nsvV100ShowScreen = v100ShowScreen;
+
+  function normalizeToggle(id){
+    const input = $(id); if (!input) return;
+    const wrap = input.closest('.relative'); if (wrap) wrap.classList.add('nsv-v100-toggle');
+    const dot = wrap?.querySelector?.('.dot');
+    const track = wrap?.querySelector?.('.block');
+    if (track) { track.style.width='56px'; track.style.height='32px'; track.style.position='relative'; }
+    if (dot) { dot.style.left = input.checked ? '28px' : '4px'; dot.style.top='4px'; dot.style.transform='none'; }
+  }
+  function syncToggles(){ ['joystickToggle','pauseJoystickToggle','lightModeToggle','pauseLightModeToggle'].forEach(normalizeToggle); }
+
+  function ensureHomeEventButtons(){
+    const grid = document.querySelector('#startScreen .menu-grid');
+    if (!grid) return;
+    if (!$('openDailyEventBtn')) {
+      const btn = document.createElement('button');
+      btn.id = 'openDailyEventBtn'; btn.type = 'button';
+      btn.className = 'btn-purple menu-secondary px-6 py-3 font-bold rounded cursor-pointer';
+      btn.innerHTML = 'DAILY EVENT<br><span class="text-xs text-purple-100 font-bold">今日のイベントを見る</span>';
+      const anchor = $('openLeaderboardBtn')?.nextSibling || null;
+      grid.insertBefore(btn, anchor);
+    }
+    if (!$('homeDailyEventJoinBtn')) {
+      const btn = document.createElement('button');
+      btn.id = 'homeDailyEventJoinBtn'; btn.type = 'button'; btn.dataset.homeDailyEventJoin = '1';
+      btn.className = 'btn-gold menu-secondary px-6 py-3 font-bold rounded cursor-pointer';
+      btn.innerHTML = 'EVENT START<br><span class="text-xs text-yellow-100 font-bold">今日のイベントに参加</span>';
+      const anchor = $('openDailyEventBtn')?.nextSibling || $('openLeaderboardBtn')?.nextSibling || null;
+      grid.insertBefore(btn, anchor);
+    }
+  }
+
+  function renderV100ShopFallback(){
+    const el = ensureScreen('shopScreen','SHOP','スキン・オーラ・日替わりアイテムを確認できます。');
+    const body = $('shopListContainer') || el.querySelector('.nsv-v100-generated-body');
+    const coins = Number((typeof userData === 'object' && userData ? (userData.coins ?? userData.metaCoins) : 0) || 0);
+    if (body && !body.children.length) body.innerHTML = `<div class="collection-card unlocked"><b>COINS</b><br><span class="text-3xl text-yellow-300 font-bold">${coins.toLocaleString()}</span></div><p class="text-gray-300 text-sm">ショップデータを読み込み中です。表示されない場合でも黒画面にはなりません。</p>`;
+  }
+  function renderV100RankingFallback(){
+    const el = ensureScreen('leaderboardScreen','RANKING','自己ベスト・コイン・ランキング情報を確認できます。');
+    const body = $('leaderboardListContainer') || el.querySelector('.nsv-v100-generated-body');
+    const best = Number((typeof userData === 'object' && userData ? userData.score : 0) || 0);
+    const coins = Number((typeof userData === 'object' && userData ? (userData.coins ?? userData.metaCoins) : 0) || 0);
+    if (body) body.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-3"><div class="collection-card unlocked"><b>自己ベスト</b><br><span class="text-3xl text-yellow-300 font-bold">${best.toLocaleString()}</span> SCORE</div><div class="collection-card unlocked"><b>コイン</b><br><span class="text-3xl text-yellow-300 font-bold">${coins.toLocaleString()}</span></div></div>`;
+  }
+  function renderV100EventFallback(){
+    const el = ensureScreen('eventModeScreen','DAILY EVENT','今日のイベントと参加状況を確認できます。');
+    const body = $('eventModeListContainer') || el.querySelector('.nsv-v100-generated-body');
+    if (body && !body.children.length) body.innerHTML = `<div class="collection-card unlocked"><div class="text-yellow-300 font-bold text-2xl">NEON RUSH</div><p class="text-gray-300 mt-2">今日のイベントを読み込み中です。</p><button id="dailySoloStartBtn" class="btn-neon px-6 py-3 rounded font-bold mt-4">SOLO START</button></div>`;
+  }
+
+  function openShop(){ try { if (typeof renderStableShop === 'function') renderStableShop(); else renderV100ShopFallback(); } catch(e){ console.warn('V100 shop fallback', e); renderV100ShopFallback(); } v100ShowScreen('shopScreen'); }
+  function openRanking(){ try { if (typeof renderStableRanking === 'function') renderStableRanking(); else renderV100RankingFallback(); } catch(e){ console.warn('V100 ranking fallback', e); renderV100RankingFallback(); } v100ShowScreen('leaderboardScreen'); }
+  function openEvent(){ try { if (typeof renderStableDailyEvent === 'function') renderStableDailyEvent(); else renderV100EventFallback(); } catch(e){ console.warn('V100 event fallback', e); renderV100EventFallback(); } v100ShowScreen('eventModeScreen'); }
+  function startSolo(){ try { if ($('nicknameInput') && !$('nicknameInput').value.trim()) $('nicknameInput').value = 'PLAYER'; } catch(_) {} try { initGame('solo'); } catch(e) { console.error('V100 start failed:', e); } setTimeout(syncGameplayHud, 0); setTimeout(syncGameplayHud, 120); }
+  function startOnline(){ try { if ($('nicknameInput') && !$('nicknameInput').value.trim()) $('nicknameInput').value = 'PLAYER'; } catch(_) {} try { if (typeof nsv915OpenOnlineRoleSelect === 'function') nsv915OpenOnlineRoleSelect(); else if (typeof openOnlineRoleSelect === 'function') openOnlineRoleSelect(); else v100ShowScreen('onlineRoleScreen'); } catch(e) { console.warn('V100 online fallback:', e); v100ShowScreen('onlineRoleScreen'); } }
+  function pauseGame(){ try { gameState = 'paused'; } catch(_) {} v100ShowScreen('pauseScreen'); try { Sound?.stopBGM?.(); } catch(_) {} syncToggles(); }
+  function resumeGame(){ try { gameState = 'playing'; } catch(_) {} v100ShowScreen(null); try { lastTime = performance.now(); Sound?.startBGM?.(); if (animationId) cancelAnimationFrame(animationId); animationId = requestAnimationFrame(gameLoop); } catch(_) {} syncGameplayHud(); }
+  function returnTitle(){ try { if (typeof endRunAndReturnToMenu === 'function') return endRunAndReturnToMenu(); } catch(e) { console.warn('V100 title fallback:', e); } try { gameState='start'; stopOnlineMode?.(); } catch(_) {} v100ShowScreen('startScreen'); }
+
+  const ROUTES = {
+    startBtn:startSolo,
+    onlineStartBtn:startOnline,
+    openUpgradeBtn:()=>{ localCall(typeof renderUpgradeScreen !== 'undefined' ? renderUpgradeScreen : null); v100ShowScreen('upgradeScreen'); },
+    openMissionBtn:()=>{ localCall(typeof renderMissionScreen !== 'undefined' ? renderMissionScreen : null); v100ShowScreen('missionsScreen'); },
+    openCollectionBtn:()=>{ localCall(typeof renderCollectionScreen !== 'undefined' ? renderCollectionScreen : null); v100ShowScreen('collectionScreen'); },
+    openWeaponCodexBtn:()=>{ localCall(typeof renderWeaponCodexScreen !== 'undefined' ? renderWeaponCodexScreen : null); v100ShowScreen('weaponCodexScreen'); },
+    openShopBtn:openShop,
+    openLeaderboardBtn:openRanking,
+    openDailyEventBtn:openEvent,
+    homeDailyEventJoinBtn:()=>{ try { if (typeof startStableDailyEventMatch === 'function') startStableDailyEventMatch(); else startSolo(); } catch(e){ console.warn('V100 event start fallback', e); startSolo(); } },
+    closeUpgradeBtn:()=>v100ShowScreen('startScreen'), closeMissionsBtn:()=>v100ShowScreen('startScreen'), closeCollectionBtn:()=>v100ShowScreen('startScreen'),
+    closeWeaponCodexBtn:()=>v100ShowScreen('startScreen'), closeShopBtn:()=>v100ShowScreen('startScreen'), closeLeaderboardBtn:()=>v100ShowScreen('startScreen'),
+    closeEventModeBtn:()=>v100ShowScreen('startScreen'), closeOnlineRoleBtn:()=>v100ShowScreen('startScreen'),
+    tutorialStartBtn:()=>{ localCall(typeof closeTutorialOverlay !== 'undefined' ? closeTutorialOverlay : null); },
+    tutorialSkipBtn:()=>{ localCall(typeof closeTutorialOverlay !== 'undefined' ? closeTutorialOverlay : null); },
+    pauseBtn:pauseGame, resumeBtn:resumeGame, titleFromPauseBtn:returnTitle,
+    restartBtn:()=>{ try { gameState='start'; stopOnlineMode?.(); } catch(_) {} v100ShowScreen('startScreen'); call('loadData'); },
+    exportBtn:()=>localCall(typeof exportSaveCode !== 'undefined' ? exportSaveCode : null),
+    importBtn:()=>localCall(typeof importSaveCode !== 'undefined' ? importSaveCode : null),
+    pauseMuteBtn:(e)=>{ try { isMuted = !isMuted; e.currentTarget.textContent = isMuted ? '🔇 SOUND: OFF' : '🔊 SOUND: ON'; if (isMuted) Sound?.stopBGM?.(); else Sound?.startBGM?.(); } catch(_) {} },
+    claimAllMissionsBtn:()=>localCall(typeof claimAllMissions !== 'undefined' ? claimAllMissions : null)
+  };
+
+  function stripOldStaticButtonListeners(){
+    STATIC_ROUTE_IDS.forEach(id => {
+      const el = $(id);
+      if (!el || el.dataset.nsvV100Clean === '1') return;
+      const clone = el.cloneNode(true);
+      clone.dataset.nsvV100Clean = '1';
+      clone.onclick = null;
+      el.replaceWith(clone);
+    });
+  }
+
+  let downX = 0, downY = 0, moved = false, lastScrollAt = 0;
+  function routeClick(e){
+    const input = e.target?.closest?.('input,textarea,select');
+    if (input) { setTimeout(syncToggles, 0); return; }
+    const btn = e.target?.closest?.('button,[role="button"]');
+    if (!btn) return;
+    const route = ROUTES[btn.id];
+    if (!route) return;
+    if (moved || Date.now() - lastScrollAt < 160 || btn.disabled) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation?.(); return; }
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation?.();
+    try { route(e); } catch(err) { console.error('V100 route error:', btn.id, err); }
+    setTimeout(syncToggles, 0);
+  }
+  routeClick.__nsvV100Allow = true;
+  function pointerDown(e){ downX = e.clientX || 0; downY = e.clientY || 0; moved = false; }
+  function pointerMove(e){ if (Math.hypot((e.clientX||0)-downX, (e.clientY||0)-downY) > 12) moved = true; }
+  function changeRouter(e){
+    const input = e.target; if (!input || input.type !== 'checkbox') return;
+    try {
+      if (input.id === 'joystickToggle' || input.id === 'pauseJoystickToggle') window.toggleJoystickFromPause?.(input.checked);
+      if (input.id === 'lightModeToggle' || input.id === 'pauseLightModeToggle') window.toggleLightMode?.(input.checked);
+    } catch(err) { console.warn('V100 toggle error:', err); }
+    setTimeout(syncToggles, 0); setTimeout(syncGameplayHud, 0);
+  }
+  changeRouter.__nsvV100Allow = true;
+
+  function clampArray(arr, max){ if (Array.isArray(arr) && arr.length > max) arr.splice(0, arr.length - max); }
+  function clampRuntimeObjects(){
+    let light = false; try { light = !!isLightMode; } catch(_) {}
+    const pMax = light ? 260 : 520;
+    const fxMax = light ? 90 : 180;
+    const bulletMax = light ? 420 : 760;
+    try {
+      clampArray(particles, pMax); clampArray(floatingTexts, light ? 80 : 140); clampArray(effects, fxMax);
+      clampArray(bullets, bulletMax); clampArray(enemyBullets, light ? 180 : 300); clampArray(gems, light ? 220 : 360);
+      [sniperBullets,phantomDaggers,gravityPulsars,railgunZeros,blackholeGrenades,neonChains,plasmaMissiles,overdriveBlades,
+       hollowMurasakis,kamehamehas,infinitySnaps,infiniteBladeSwords,unibeams,keraunosStorms,stormbreakers,disneyMagics,muryokushos].forEach(a => clampArray(a, light ? 38 : 70));
+    } catch(_) {}
+  }
+  window.nsvV100ClampRuntimeObjects = clampRuntimeObjects;
+  try {
+    const prevUpdate = updateLogic;
+    updateLogic = function nsvV100UpdateLogic(){ clampRuntimeObjects(); try { return prevUpdate.apply(this, arguments); } catch(e) { console.warn('V100 guarded update:', e); clampRuntimeObjects(); syncGameplayHud(); } };
+    window.updateLogic = updateLogic;
+  } catch(_) {}
+  try {
+    const prevDraw = drawAll;
+    drawAll = function nsvV100DrawAll(){ try { return prevDraw.apply(this, arguments); } catch(e) { console.warn('V100 guarded draw:', e); try { ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle = '#050505'; ctx.fillRect(0,0,width||800,height||600); if (player?.draw) player.draw(ctx); } catch(_) {} syncGameplayHud(); } };
+    window.drawAll = drawAll;
+  } catch(_) {}
+  try {
+    const prevClose = closeLevelUpScreen;
+    closeLevelUpScreen = function nsvV100CloseLevelUpScreen(){ try { if (typeof prevClose === 'function') prevClose.apply(this, arguments); } catch(e) { console.warn('V100 close level-up:', e); } try { gameState = 'playing'; } catch(_) {} v100ShowScreen(null); syncGameplayHud(); setTimeout(syncGameplayHud,80); setTimeout(syncGameplayHud,240); };
+    window.closeLevelUpScreen = closeLevelUpScreen;
+  } catch(_) {}
+
+  function installStyle(){
+    if ($('nsvV100CleanStableStyle')) return;
+    const st = document.createElement('style'); st.id = 'nsvV100CleanStableStyle';
+    st.textContent = `
+      body.nsv-v100-clean button,body.nsv-v100-clean [role="button"]{pointer-events:auto!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent;}
+      body.nsv-v100-clean #gameCanvas{pointer-events:none!important;}
+      body.nsv-v100-clean .hidden{display:none!important;pointer-events:none!important;}
+      .nsv-v100-toggle{position:relative!important;width:56px!important;height:32px!important;min-width:56px!important;display:inline-block!important;overflow:hidden!important;border-radius:9999px!important;}
+      .nsv-v100-toggle .block{position:absolute!important;left:0!important;top:0!important;width:56px!important;height:32px!important;border-radius:9999px!important;}
+      .nsv-v100-toggle .dot{position:absolute!important;top:4px!important;width:24px!important;height:24px!important;border-radius:9999px!important;background:#fff!important;transition:left .18s ease!important;transform:none!important;}
+      .nsv-v100-toggle input:checked ~ .dot{transform:none!important;}
+      #uiLayer:not(.hidden){display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:none!important;z-index:60!important;}
+      #uiLayer:not(.hidden) #pauseBtn{display:inline-flex!important;pointer-events:auto!important;z-index:130!important;}
+      #joystickZone:not(.hidden){display:flex!important;pointer-events:auto!important;z-index:130!important;}
+      #startScreen:not(.hidden),#upgradeScreen:not(.hidden),#missionsScreen:not(.hidden),#collectionScreen:not(.hidden),#weaponCodexScreen:not(.hidden),#shopScreen:not(.hidden),#leaderboardScreen:not(.hidden),#eventModeScreen:not(.hidden),#onlineRoleScreen:not(.hidden),#pauseScreen:not(.hidden),#levelUpScreen:not(.hidden),#gameOverScreen:not(.hidden),#tutorialOverlay:not(.hidden){display:flex!important;pointer-events:auto!important;}
+      #nsvV100VersionBadge{position:fixed;left:10px;bottom:8px;z-index:9999;pointer-events:none;color:#fef9c3;background:rgba(2,6,23,.86);border:1px solid rgba(250,204,21,.74);border-radius:999px;padding:4px 9px;font:900 11px Orbitron,Noto Sans JP,sans-serif;letter-spacing:.08em;box-shadow:0 0 12px rgba(250,204,21,.30);}
+    `;
+    document.head.appendChild(st);
+  }
+  function installBadge(){
+    document.querySelectorAll('[data-version-badge],#nsvStableBadge,#nsv94VersionBadge,#nsv93VersionBadge,#nsv95VersionBadge,#nsv96VersionBadge,#nsv97VersionBadge,#nsvV98VersionBadge,#nsvV99VersionBadge,#nsvV100VersionBadge').forEach(el => el.remove());
+    const b = document.createElement('div'); b.id = 'nsvV100VersionBadge'; b.dataset.versionBadge = '1'; b.textContent = PATCH_VERSION; document.body.appendChild(b);
+    document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = PATCH_VERSION);
+  }
+  function install(){
+    document.body.classList.add('nsv-v100-clean');
+    ensureScreen('shopScreen','SHOP','スキン・オーラ・日替わりアイテムを確認できます。');
+    ensureScreen('leaderboardScreen','RANKING','自己ベスト・コイン・ランキング情報を確認できます。');
+    ensureScreen('eventModeScreen','DAILY EVENT','今日のイベントと参加状況を確認できます。');
+    ensureHomeEventButtons();
+    stripOldStaticButtonListeners();
+    installStyle(); installBadge(); syncToggles();
+    originalDocAdd('pointerdown', pointerDown, {capture:true, passive:true});
+    originalDocAdd('pointermove', pointerMove, {capture:true, passive:true});
+    originalDocAdd('scroll', () => { lastScrollAt = Date.now(); }, {capture:true, passive:true});
+    originalDocAdd('click', routeClick, true);
+    originalDocAdd('change', changeRouter, true);
+    if (!$('startScreen')?.classList.contains('hidden')) v100ShowScreen('startScreen');
+    else syncGameplayHud();
+  }
+  function lateClean(){
+    ensureHomeEventButtons();
+    stripOldStaticButtonListeners();
+    installBadge();
+    syncToggles();
+    if (!$('startScreen')?.classList.contains('hidden')) v100ShowScreen('startScreen');
+    else syncGameplayHud();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { install(); setTimeout(lateClean,0); setTimeout(lateClean,300); setTimeout(lateClean,900); }, {once:true}); else { install(); setTimeout(lateClean,0); setTimeout(lateClean,300); setTimeout(lateClean,900); }
+  window.addEventListener('resize', () => { setTimeout(syncToggles,0); setTimeout(syncGameplayHud,0); }, {passive:true});
+  setInterval(() => { clampRuntimeObjects(); syncToggles(); if (isPlaying() || isPaused()) syncGameplayHud(); }, 900);
+})();
 </script>
 
 </body>
