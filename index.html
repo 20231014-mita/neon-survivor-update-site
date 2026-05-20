@@ -11751,6 +11751,218 @@ window.NEON_FIREBASE_CONFIG = {
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installV102, {once:true}); else installV102();
 })();
+
+
+/* ===== V103 ONLINE LEVEL-UP RETURN FIX =====
+   Fixes: in ONLINE BATTLE, after selecting a level-up weapon, HUD/canvas/input can disappear and gameplay can stop.
+   This patch does not change weapon balance or Firebase settings. */
+(function(){
+  'use strict';
+  const PATCH_VERSION = 'V103 ONLINE LEVELUP RETURN FIX';
+  const $ = (id) => document.getElementById(id);
+  const MENU_IDS = ['startScreen','upgradeScreen','missionsScreen','collectionScreen','weaponCodexScreen','shopScreen','leaderboardScreen','eventModeScreen','onlineRoleScreen','levelUpScreen','gameOverScreen','pauseScreen','tutorialOverlay'];
+  let lastOnlineLevelPickAt = 0;
+  let repairing = false;
+
+  function important(el, prop, value){ if (el) el.style.setProperty(prop, value, 'important'); }
+  function isOnline(){ try { return !!isOnlineMode; } catch(_) { return false; } }
+  function isPlayingLike(){ try { return gameState === 'playing' || gameState === 'levelup'; } catch(_) { return false; } }
+  function isJoystickOn(){
+    try { return !!isJoystickEnabled; } catch(_) {}
+    const jt = $('joystickToggle');
+    return !jt || jt.checked !== false;
+  }
+
+  function hideLevelUpOverlay(){
+    const lv = $('levelUpScreen');
+    if (!lv) return;
+    lv.classList.add('hidden');
+    important(lv, 'display', 'none');
+    important(lv, 'visibility', 'hidden');
+    important(lv, 'opacity', '0');
+    important(lv, 'pointer-events', 'none');
+  }
+
+  function showGameplayLayers(){
+    const canvas = $('gameCanvas');
+    if (canvas) {
+      important(canvas, 'display', 'block');
+      important(canvas, 'visibility', 'visible');
+      important(canvas, 'opacity', '1');
+      important(canvas, 'pointer-events', 'none');
+    }
+
+    const ui = $('uiLayer');
+    if (ui) {
+      ui.classList.remove('hidden');
+      important(ui, 'display', 'flex');
+      important(ui, 'visibility', 'visible');
+      important(ui, 'opacity', '1');
+      important(ui, 'pointer-events', 'none');
+      important(ui, 'z-index', '60');
+    }
+
+    const pause = $('pauseBtn');
+    if (pause) {
+      pause.classList.remove('hidden');
+      important(pause, 'display', 'inline-flex');
+      important(pause, 'visibility', 'visible');
+      important(pause, 'opacity', '1');
+      important(pause, 'pointer-events', 'auto');
+      important(pause, 'z-index', '150');
+    }
+
+    const onlineHud = $('onlineHud');
+    if (onlineHud && isOnline()) {
+      onlineHud.classList.remove('hidden');
+      important(onlineHud, 'display', 'block');
+      important(onlineHud, 'visibility', 'visible');
+      important(onlineHud, 'opacity', '1');
+    }
+
+    ['scoreDisplay','timeDisplay','levelDisplay','hpBar','expBar'].forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      el.classList.remove('hidden');
+      important(el, 'visibility', 'visible');
+      important(el, 'opacity', '1');
+      for (let p = el.parentElement, i = 0; p && i < 2; p = p.parentElement, i++) {
+        p.classList.remove('hidden');
+        important(p, 'visibility', 'visible');
+        important(p, 'opacity', '1');
+      }
+    });
+
+    const joy = $('joystickZone');
+    if (joy) {
+      if (isJoystickOn()) {
+        joy.classList.remove('hidden');
+        important(joy, 'display', 'flex');
+        important(joy, 'visibility', 'visible');
+        important(joy, 'opacity', '1');
+        important(joy, 'pointer-events', 'auto');
+        important(joy, 'z-index', '145');
+      } else {
+        joy.classList.add('hidden');
+        important(joy, 'display', 'none');
+      }
+    }
+  }
+
+  function hideBlockingMenus(){
+    for (const id of MENU_IDS) {
+      if (id === 'levelUpScreen') continue;
+      const el = $(id);
+      if (!el) continue;
+      el.classList.add('hidden');
+      important(el, 'display', 'none');
+      important(el, 'pointer-events', 'none');
+      important(el, 'visibility', 'hidden');
+      important(el, 'opacity', '0');
+    }
+  }
+
+  function resumeGameLoop(){
+    try { lastTime = performance.now(); } catch(_) {}
+    try {
+      if (typeof gameLoop === 'function') {
+        if (animationId) cancelAnimationFrame(animationId);
+        animationId = requestAnimationFrame(gameLoop);
+      }
+    } catch(e) { console.warn('V103 gameLoop resume failed:', e); }
+  }
+
+  function repairOnlineReturn(reason){
+    if (repairing) return;
+    repairing = true;
+    try {
+      hideLevelUpOverlay();
+      hideBlockingMenus();
+      try { gameState = 'playing'; } catch(_) {}
+      try { isTimeStopped = false; } catch(_) {}
+      try { if (typeof timeAccumulator !== 'undefined') timeAccumulator = 0; } catch(_) {}
+      showGameplayLayers();
+      try { if (typeof updateUI === 'function') updateUI(); } catch(_) {}
+      resumeGameLoop();
+    } finally {
+      repairing = false;
+    }
+  }
+  window.nsvV103RepairOnlineLevelUpReturn = repairOnlineReturn;
+
+  function repairSoon(){
+    [0, 30, 90, 180, 360, 720].forEach(ms => setTimeout(() => repairOnlineReturn('scheduled'), ms));
+  }
+
+  try {
+    const prevClose = closeLevelUpScreen;
+    closeLevelUpScreen = function nsvV103CloseLevelUpScreen(){
+      try { if (typeof prevClose === 'function') prevClose.apply(this, arguments); } catch(e) { console.warn('V103 previous closeLevelUp failed:', e); }
+      if (isOnline() || Date.now() - lastOnlineLevelPickAt < 1500) repairSoon();
+    };
+    window.closeLevelUpScreen = closeLevelUpScreen;
+  } catch(_) {}
+
+  // When an online upgrade card is chosen, force the return after the original card handler applies the weapon.
+  function onLevelCardChosen(e){
+    const card = e.target && e.target.closest && e.target.closest('#levelUpScreen .upgrade-card,#upgradesContainer .upgrade-card');
+    if (!card) return;
+    if (!isOnline()) return;
+    lastOnlineLevelPickAt = Date.now();
+    setTimeout(repairSoon, 0);
+  }
+  document.addEventListener('click', onLevelCardChosen, true);
+  document.addEventListener('pointerup', onLevelCardChosen, true);
+  document.addEventListener('touchend', onLevelCardChosen, true);
+
+  // If the overlay disappears while online but the HUD/canvas is still hidden, recover immediately.
+  try {
+    const lv = $('levelUpScreen');
+    if (lv) {
+      new MutationObserver(() => {
+        if (!isOnline()) return;
+        if (lv.classList.contains('hidden') && Date.now() - lastOnlineLevelPickAt < 3000) repairSoon();
+      }).observe(lv, { attributes:true, attributeFilter:['class','style'] });
+    }
+  } catch(_) {}
+
+  function installV103(){
+    try {
+      if (!$('nsvV103OnlineLevelupStyle')) {
+        const st = document.createElement('style');
+        st.id = 'nsvV103OnlineLevelupStyle';
+        st.textContent = `
+          body.nsv-v103-online-return #gameCanvas{display:block!important;visibility:visible!important;opacity:1!important;}
+          body.nsv-v103-online-return #uiLayer:not(.hidden){display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:none!important;z-index:60!important;}
+          body.nsv-v103-online-return #uiLayer:not(.hidden) #pauseBtn{display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;z-index:150!important;}
+          body.nsv-v103-online-return #onlineHud:not(.hidden){display:block!important;visibility:visible!important;opacity:1!important;}
+          body.nsv-v103-online-return #levelUpScreen.hidden{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}
+          #nsvV100VersionBadge{font-size:0!important;}
+          #nsvV100VersionBadge::after{content:'${PATCH_VERSION}';font-size:11px!important;}
+        `;
+        document.head.appendChild(st);
+      }
+      document.body.classList.add('nsv-v103-online-return');
+      document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = PATCH_VERSION);
+      const badge = $('nsvV100VersionBadge');
+      if (badge) badge.textContent = PATCH_VERSION;
+    } catch(_) {}
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installV103, {once:true}); else installV103();
+
+  // Lightweight watchdog: only repairs after an online level-up choice, so it does not fight normal menus.
+  setInterval(() => {
+    if (!isOnline()) return;
+    if (Date.now() - lastOnlineLevelPickAt > 4000) return;
+    const ui = $('uiLayer');
+    const canvas = $('gameCanvas');
+    const badUi = !ui || ui.classList.contains('hidden') || getComputedStyle(ui).display === 'none';
+    const badCanvas = !canvas || getComputedStyle(canvas).display === 'none' || getComputedStyle(canvas).visibility === 'hidden';
+    if (badUi || badCanvas || !isPlayingLike()) repairOnlineReturn('watchdog');
+  }, 220);
+})();
+
 </script>
 
 </body>
