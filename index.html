@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<!-- V101 60FPS HUD LOCK / adaptive-performance build -->
+<!-- V102 RARITY COLLECTION / adaptive-performance build -->
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -240,7 +240,7 @@
                     <div class="text-yellow-300 font-bold text-xs tracking-[0.35em]">GAME MENU</div>
                     <h2 class="text-5xl md:text-6xl font-bold text-white tracking-widest neon-text" style="font-family: 'Orbitron', sans-serif;">PAUSED</h2>
                 </div>
-                <div class="nsv-pause-mini">V101 60FPS HUD LOCK</div>
+                <div class="nsv-pause-mini">V102 RARITY COLLECTION</div>
             </div>
 
             <div class="nsv-pause-grid">
@@ -11573,6 +11573,184 @@ window.NEON_FIREBASE_CONFIG = {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, {once:true}); else install();
 })();
 
+
+
+/* ===== V102 RARITY COLLECTION: weapons/items/skins/auras/capes rarity display ===== */
+(function(){
+  const PATCH_VERSION = 'V102 RARITY COLLECTION';
+  const RARITY_ORDER = ['COMMON','RARE','EPIC','LEGENDARY','MYTHIC','SECRET'];
+  const RARITY_META = {
+    COMMON:    { label:'COMMON',    jp:'コモン',      icon:'⚪', cls:'bg-slate-800 text-slate-200 border border-slate-400/45', sort:0 },
+    RARE:      { label:'RARE',      jp:'レア',        icon:'🔵', cls:'bg-blue-950/80 text-blue-200 border border-blue-400/55', sort:1 },
+    EPIC:      { label:'EPIC',      jp:'エピック',    icon:'🟣', cls:'bg-purple-950/80 text-purple-200 border border-purple-400/55', sort:2 },
+    LEGENDARY: { label:'LEGENDARY', jp:'レジェンド',  icon:'🟡', cls:'bg-yellow-950/80 text-yellow-200 border border-yellow-400/65', sort:3 },
+    MYTHIC:    { label:'MYTHIC',    jp:'ミシック',    icon:'🔴', cls:'bg-red-950/80 text-red-200 border border-red-400/65', sort:4 },
+    SECRET:    { label:'SECRET',    jp:'シークレット',icon:'🌈', cls:'bg-cyan-950/80 text-cyan-100 border border-cyan-300/70', sort:5 }
+  };
+  const ITEM_RARITY = {
+    classic:'COMMON', none:'COMMON', ruby:'RARE', gold:'RARE', void:'EPIC', emerald:'EPIC', sapphire:'RARE',
+    angel:'LEGENDARY', obsidian:'EPIC', solar:'LEGENDARY', phantomSkin:'EPIC', infernoSkin:'EPIC', galaxyKnight:'LEGENDARY', monkeySlayer:'LEGENDARY', blackholeCore:'MYTHIC',
+    cyanFlame:'RARE', goldSpark:'RARE', voidMist:'EPIC', toxicPulse:'EPIC', royalHalo:'LEGENDARY', solarFlare:'EPIC', stormKing:'LEGENDARY', crownBurst:'MYTHIC', galaxyTrail:'LEGENDARY', infernoRing:'EPIC', phantomAfterimage:'EPIC', blackholeAura:'MYTHIC', thunderCrown:'LEGENDARY',
+    crimson:'RARE', royal:'EPIC', voidCape:'EPIC', stormCape:'LEGENDARY', phantom:'EPIC', galaxy:'LEGENDARY', inferno:'EPIC', monarch:'MYTHIC'
+  };
+  const WEAPON_NAME_RARITY = {
+    '通常弾':'COMMON','円環の刃界':'RARE','破滅の雷域':'RARE','追尾ミサイル':'RARE','反射弾':'RARE','レーザー':'EPIC','火炎放射':'EPIC','氷結フィールド':'EPIC','プラズマ爆弾':'EPIC',
+    '虚式「茈」':'MYTHIC','龍星・崩命破':'MYTHIC','無量空処':'MYTHIC','終焉の指弾':'MYTHIC','無限の剣陣':'MYTHIC','星砕きの流星群':'LEGENDARY','創世の光芒':'LEGENDARY','星夢の輪舞曲':'LEGENDARY','深淵の重力刃':'LEGENDARY','雷霆砕破・轟':'LEGENDARY',
+    'スナイパー':'EPIC','跳弾ボム':'RARE','毒雲':'RARE','重力パルサー':'EPIC','ファントムダガー':'EPIC','ブラックホールグレネード':'LEGENDARY','レールガン・ゼロ':'MYTHIC','ネオンチェーン':'EPIC','プラズマミサイル':'EPIC','オーバードライブブレード':'LEGENDARY'
+  };
+  const LEGENDARY_ID_RARITY = {
+    neonLance:'LEGENDARY', phoenixCore:'LEGENDARY', starfallCrown:'LEGENDARY', voidCollector:'LEGENDARY',
+    railCannon:'MYTHIC', blackholeEmperor:'MYTHIC', thunderAegis:'MYTHIC', solarDrill:'MYTHIC', chronoLotus:'MYTHIC',
+    phantomStep:'EPIC', hollowMurasaki:'MYTHIC', kamehameha:'MYTHIC', vader:'LEGENDARY', thor:'LEGENDARY', muryoku:'MYTHIC', funnel:'LEGENDARY', ironBlaster:'LEGENDARY', disneyMagic:'LEGENDARY', infinitySnap:'MYTHIC', infiniteBlade:'MYTHIC'
+  };
+  function normalizeRarity(r){ return RARITY_META[r] ? r : 'COMMON'; }
+  function rarityMeta(r){ return RARITY_META[normalizeRarity(r)] || RARITY_META.COMMON; }
+  function getWeaponRarity(w){
+    try {
+      if (!w) return 'COMMON';
+      if (w.rarity) return normalizeRarity(w.rarity);
+      if (w.id && LEGENDARY_ID_RARITY[w.id]) return LEGENDARY_ID_RARITY[w.id];
+      if (w.name && WEAPON_NAME_RARITY[w.name]) return WEAPON_NAME_RARITY[w.name];
+      const type = String(w.type || '').toUpperCase();
+      if (type === 'MYTHIC' || type === 'EVOLUTION') return 'MYTHIC';
+      if (type === 'LEGENDARY' || type === 'ULTIMATE') return 'LEGENDARY';
+      if (type === 'ONLINE') return 'EPIC';
+      if (String(w.name || '').includes('神話')) return 'MYTHIC';
+      if (String(w.name || '').includes('伝説')) return 'LEGENDARY';
+      if (String(w.name || '').includes('解放武器')) return 'EPIC';
+    } catch(_) {}
+    return 'COMMON';
+  }
+  function getItemRarity(item, fallback='COMMON'){
+    try { return normalizeRarity(item.rarity || ITEM_RARITY[item.id] || fallback); } catch(_) { return fallback; }
+  }
+  function rarityBadge(r){ const m = rarityMeta(r); return `<span class="inline-flex items-center gap-1 text-[11px] font-black px-2 py-1 rounded-full ${m.cls}">${m.icon} ${m.label}<span class="text-[10px] opacity-80">${m.jp}</span></span>`; }
+  function raritySort(a,b){ return rarityMeta(getWeaponRarity(b)).sort - rarityMeta(getWeaponRarity(a)).sort || String(a.name||'').localeCompare(String(b.name||''),'ja'); }
+  function itemSort(a,b){ return rarityMeta(getItemRarity(b)).sort - rarityMeta(getItemRarity(a)).sort || String(a.name||'').localeCompare(String(b.name||''),'ja'); }
+  function safeSave(){ try { saveData(); } catch(_) {} }
+
+  try {
+    if (Array.isArray(WEAPON_CODEX_DEFS)) WEAPON_CODEX_DEFS.forEach(w => { if (w && !w.rarity) w.rarity = getWeaponRarity(w); });
+    if (Array.isArray(LEGENDARY_WEAPON_DEFS)) LEGENDARY_WEAPON_DEFS.forEach(w => { if (w && !w.rarity) w.rarity = getWeaponRarity(w); });
+    if (Array.isArray(SKIN_DEFS)) SKIN_DEFS.forEach(x => { if (x && !x.rarity) x.rarity = getItemRarity(x); });
+    if (Array.isArray(AURA_DEFS)) AURA_DEFS.forEach(x => { if (x && !x.rarity) x.rarity = getItemRarity(x); });
+    if (Array.isArray(CAPE_DEFS)) CAPE_DEFS.forEach(x => { if (x && !x.rarity) x.rarity = getItemRarity(x); });
+  } catch(_) {}
+
+  try {
+    makeWeaponCodexCard = function nsvV102MakeWeaponCodexCard(w) {
+      ensureProgressionData();
+      ensureWeaponSpawnSettings20260504();
+      if (!w.rarity) w.rarity = getWeaponRarity(w);
+      const used = isWeaponCodexUsed(w.id);
+      const isMissionWeapon = isMissionWeaponCodexItem(w) || MISSION_LOCKED_WEAPON_IDS_20260504.has(w.id);
+      const unlockedMissionWeapon = !isMissionWeapon || !!(userData.unlocks.legendaryWeapons || {})[w.id];
+      const locked = isWeaponMissionLocked20260504(w.id);
+      const enabled = isWeaponSpawnEnabled20260504(w.id);
+      const toggleHtml = `
+        <div class="mt-3 border-t border-slate-700 pt-3">
+          ${locked ? `<p class="text-xs text-gray-500">ミッション未達成なので、まだ出現しません。</p>` : `
+          <label class="flex items-center justify-between gap-3 cursor-pointer">
+            <span class="text-xs font-bold ${enabled?'text-green-300':'text-red-300'}">出現：${enabled?'ON':'OFF'}</span>
+            <input type="checkbox" class="weapon-spawn-toggle w-5 h-5" data-id="${w.id}" ${enabled?'checked':''}>
+          </label>
+          <p class="text-[11px] text-gray-300 mt-2 leading-relaxed">${enabled ? 'ON：この武器がレベルアップ候補に出ます。' : 'OFF：この武器は候補に出ません。重い武器を外す時にも使えます。'}</p>`}
+        </div>`;
+      return `<div class="collection-card ${used || unlockedMissionWeapon ? 'unlocked':''}">
+        <div class="flex items-start justify-between gap-2">
+          <div class="text-3xl">${w.icon || '❔'}</div>
+          <div class="flex flex-col items-end gap-1">
+            ${rarityBadge(w.rarity)}
+            <span class="text-[11px] font-bold px-2 py-1 rounded ${locked?'bg-red-950/80 text-red-200 border border-red-400/50':used?'bg-green-900/70 text-green-200 border border-green-400/50':'bg-slate-800 text-gray-300 border border-gray-500/40'}">${locked?'未解放':used?'使用済み':'未使用'}</span>
+          </div>
+        </div>
+        <h3 class="font-bold text-white mt-1">${w.name}</h3>
+        <p class="text-xs text-purple-200 font-bold mt-1">${w.type || 'WEAPON'}</p>
+        <p class="text-sm text-gray-300 mt-1">${w.desc || ''}</p>
+        <div class="text-xs text-gray-300 mt-3 space-y-1">
+          <p>レア度：${rarityMeta(w.rarity).jp} / ${rarityMeta(w.rarity).label}</p>
+          <p>攻撃タイプ：${w.attackType || '特殊'}</p>
+          <p>強い場面：${w.strong || '状況次第'}</p>
+          <p>弱い場面：${w.weak || '使い方次第'}</p>
+          <p>入手・進化条件：${w.unlock || 'ゲーム中に入手'}</p>
+        </div>
+        ${toggleHtml}
+      </div>`;
+    };
+  } catch(e) { console.warn('V102 weapon card patch failed:', e); }
+
+  function makeCosmeticCard(kind, item, unlocked, equipped){
+    const r = getItemRarity(item);
+    const ability = kind === 'skin' ? `<p class="text-xs text-cyan-200 mt-2">能力: ${getSkinAbilityText(item.id)}</p>` : '';
+    const btnCls = kind === 'skin' ? 'btn-neon' : kind === 'aura' ? 'btn-gold' : 'btn-red';
+    const clsName = kind === 'skin' ? 'equip-skin' : kind === 'aura' ? 'equip-aura' : 'equip-cape';
+    return `<div class="collection-card ${unlocked?'unlocked':''}">
+      <div class="flex items-start justify-between gap-2"><div class="text-3xl">${item.icon}</div>${rarityBadge(r)}</div>
+      <h3 class="font-bold text-white mt-1" style="color:${unlocked?item.color:'#9ca3af'}">${item.name}</h3>
+      <p class="text-sm text-gray-300">${item.desc}</p>
+      <p class="text-xs text-purple-200 font-bold mt-2">レア度：${rarityMeta(r).jp} / ${rarityMeta(r).label}</p>
+      ${ability}
+      <button class="${clsName} mt-2 px-3 py-1 rounded text-sm font-bold ${unlocked?btnCls:'bg-gray-700 text-gray-500 cursor-not-allowed'}" data-id="${item.id}" ${unlocked?'':'disabled'}>${equipped?'EQUIPPED':'EQUIP'}</button>
+    </div>`;
+  }
+
+  try {
+    renderCollectionScreen = function nsvV102RenderCollectionScreen() {
+      ensureProgressionData();
+      const container = document.getElementById('collectionListContainer');
+      if (!container) return;
+      const allCodex = getAllWeaponCodexDefs().map(w => { w.rarity = getWeaponRarity(w); return w; });
+      const legendaryWeapons = [...LEGENDARY_WEAPON_DEFS].map(w => { w.rarity = getWeaponRarity(w); return w; }).sort(raritySort);
+      const usedCount = allCodex.filter(w => isWeaponCodexUsed(w.id)).length;
+      const counts = RARITY_ORDER.map(r => `${rarityMeta(r).icon}${rarityMeta(r).label}: ${allCodex.filter(w => getWeaponRarity(w) === r).length}`).join('　');
+      const weaponHtml = legendaryWeapons.map(w => {
+        const on = !!userData.unlocks.legendaryWeapons[w.id];
+        return `<div class="collection-card ${on?'unlocked':''}">
+          <div class="flex items-start justify-between gap-2"><div class="text-3xl">${w.icon}</div>${rarityBadge(w.rarity)}</div>
+          <h3 class="font-bold text-white mt-1">${w.name}</h3>
+          <p class="text-sm text-gray-300">${w.desc}</p>
+          <p class="text-xs text-purple-200 font-bold mt-2">レア度：${rarityMeta(w.rarity).jp} / ${rarityMeta(w.rarity).label}</p>
+          <p class="text-xs text-cyan-200 mt-2">解放条件: ${w.hint || 'ミッション報酬'}</p>
+          <p class="mt-2 text-sm ${on?'text-green-300':'text-gray-500'}">${on?'解放済み':'未解放'}</p>
+        </div>`;
+      }).join('');
+      const codexHtml = [...allCodex].sort(raritySort).map(makeWeaponCodexCard).join('');
+      const skinHtml = [...SKIN_DEFS].sort(itemSort).map(sk => makeCosmeticCard('skin', sk, !!userData.unlocks.skins[sk.id], userData.equippedSkin === sk.id)).join('');
+      const auraHtml = [...AURA_DEFS].sort(itemSort).map(a => makeCosmeticCard('aura', a, !!userData.unlocks.auras[a.id], userData.equippedAura === a.id)).join('');
+      const capeHtml = [...CAPE_DEFS].sort(itemSort).map(c => makeCosmeticCard('cape', c, !!userData.unlocks.capes[c.id], userData.equippedCape === c.id)).join('');
+      container.innerHTML = `
+        <section class="collection-rarity-summary"><h3 class="text-2xl font-bold text-yellow-300 mb-2">RARITY SUMMARY</h3><div class="collection-card unlocked"><p class="text-sm text-gray-200">武器・アイテム・スキン・オーラ・マントにレア度を追加しました。</p><p class="text-xs text-gray-300 mt-2">${counts}</p><p class="text-xs text-cyan-200 mt-2">表示順：レア度が高いものから表示されます。</p></div></section>
+        <section><h3 class="text-2xl font-bold text-yellow-300 mb-2">LEGENDARY / MYTHIC WEAPONS</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${weaponHtml}</div></section>
+        <section><h3 class="text-2xl font-bold text-purple-300 mb-2">ALL WEAPONS / ITEMS</h3><p class="text-xs text-gray-300 mb-2">ゲーム中に出る武器・進化武器・オンライン武器の図鑑です。使用済み：${usedCount}/${allCodex.length}</p><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${codexHtml}</div></section>
+        <section><h3 class="text-2xl font-bold text-cyan-300 mb-2">SKINS</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${skinHtml}</div></section>
+        <section><h3 class="text-2xl font-bold text-green-300 mb-2">AURAS</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${auraHtml}</div></section>
+        <section><h3 class="text-2xl font-bold text-red-300 mb-2">CAPES</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-3">${capeHtml}</div></section>`;
+      container.querySelectorAll('.weapon-spawn-toggle').forEach(t => t.addEventListener('change', () => setWeaponSpawnEnabled20260504(t.dataset.id, t.checked)));
+      container.querySelectorAll('.equip-skin').forEach(btn => btn.addEventListener('click', () => { userData.equippedSkin = btn.dataset.id; safeSave(); renderCollectionScreen(); }));
+      container.querySelectorAll('.equip-aura').forEach(btn => btn.addEventListener('click', () => { userData.equippedAura = btn.dataset.id; safeSave(); renderCollectionScreen(); }));
+      container.querySelectorAll('.equip-cape').forEach(btn => btn.addEventListener('click', () => { userData.equippedCape = btn.dataset.id; safeSave(); renderCollectionScreen(); }));
+    };
+  } catch(e) { console.warn('V102 collection patch failed:', e); }
+
+  function installV102(){
+    try { document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = PATCH_VERSION); } catch(_) {}
+    try { const b = document.getElementById('nsvV100VersionBadge'); if (b) b.textContent = PATCH_VERSION; } catch(_) {}
+    try {
+      if (!document.getElementById('nsvV102RarityStyle')) {
+        const st = document.createElement('style');
+        st.id = 'nsvV102RarityStyle';
+        st.textContent = `
+          #nsvV100VersionBadge{font-size:0!important;}
+          #nsvV100VersionBadge::after{content:'${PATCH_VERSION}';font-size:11px!important;}
+          .collection-card .inline-flex{vertical-align:middle;}
+          .collection-rarity-summary .collection-card{box-shadow:0 0 18px rgba(250,204,21,.18);}
+        `;
+        document.head.appendChild(st);
+      }
+    } catch(_) {}
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installV102, {once:true}); else installV102();
+})();
 </script>
 
 </body>
