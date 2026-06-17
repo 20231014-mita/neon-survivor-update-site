@@ -1,5 +1,5 @@
 <!DOCTYPE html>  
-<!-- V5 BALANCED WEAPON RATES COMPLETE / UTF-8 SAFE + BREAKABLE ENEMY PROJECTILES -->
+<!-- V9 GAMEPLAY REFORGE / NO MAP BLACKHOLE / ADAPTIVE RECOVERY / NON-OVERLAP UI -->
 <!-- ENCODING: UTF-8 with BOM. Keep this file saved as UTF-8 when editing. -->  
 <html lang="ja">  
 <head>
@@ -7,7 +7,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="Content-Language" content="ja">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  
-    <title>Neon Survivor V5 BALANCED WEAPON RATES COMPLETE</title>  
+    <title>Neon Survivor V9 GAMEPLAY REFORGE COMPLETE</title>  
     <script src="https://cdn.tailwindcss.com" async onerror="document.documentElement.dataset.tailwind='off'"></script>  
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">  
     <style>  
@@ -3898,7 +3898,7 @@ window.NEON_FIREBASE_CONFIG = {
                 pool.push({ name: '\u5929\u5E1D\u306E\u88C1\u754C\u30FB\u9739\u9742 \u5F37\u5316', desc: '\u843D\u96F7\u306E\u6570\u3068\u30C0\u30E1\u30FC\u30B8\u304C\u5897\u52A0', color: '#06b6d4', icon: '\u26A1', apply: () => { player.keraunosLevel += 1; } });  
             }  
   
-            let isLowHp = (player && player.hp / player.maxHp <= 0.3);   
+            let isLowHp = (player && Number(player.hp) <= 30); // V8: 比率ではなく現在HPが30以下   
             if (player && player.recoveryMasteryLevel === 0) {  
                 if (Math.random() < (isLowHp ? 0.5 : 0.1)) ultimateSkills.push({ name: '\u3010\u79D8\u4F1D\u3011\u56DE\u5FA9\u306E\u6975\u610F', desc: '\u81EA\u52D5\u56DE\u5FA9\u306E\u30B9\u30D4\u30FC\u30C9\u304C3\u500D\u306B\u306A\u308B', color: '#10b981', icon: '\uD83D\uDC96', apply: () => { player.recoveryMasteryLevel = 1; player.regenRate = Math.floor(player.regenRate / 3); } });  
             } else if (player) {  
@@ -3928,7 +3928,7 @@ window.NEON_FIREBASE_CONFIG = {
             pool = filterSpawnEnabledItems20260504(pool);  
   
             let selected = [];
-            if (isLowHp && Math.random() < 0.8) selected.push(healSkill); else pool.push(healSkill);
+            if (isLowHp && Math.random() < 0.88) selected.push(healSkill); else pool.push(healSkill); // V8: HP30以下は88%で1枠確定。通常時は重み半減。
 
             // V4: all unlocked weapon candidates use the administrator-only source table.
             // The player cannot change these values from the game UI or saved data.
@@ -7217,17 +7217,27 @@ window.NEON_FIREBASE_CONFIG = {
                     case 2:   
                         this.radius = 20; this.color = '#c0f'; this.speed = MathUtils.random(0.5, 1.0);   
                         this.hp = 80 * timeMultiplier * 1.5; this.damage = 25 * 1.5; this.expValue = 5; break;  
-                    case 3:   
-                        this.radius = 45; this.color = '#ff0044'; this.speed = 1.2 + (timeMultiplier * 0.05);   
-                        this.hp = 1500 * Math.max(1, Math.floor(player.level / 3)) * 1.5; this.damage = 40 * 1.5;   
-                        this.expValue = 25; this.isBoss = true;  
-                        this.bossPattern = ['VOID BOSS','THUNDER BOSS','FIRE BOSS','MIRROR BOSS'][Math.floor(Math.random() * 4)];  
+                    case 3: {  
+                        const beginnerBoss = !!(player && Number(player.level) <= 6);  
+                        this.radius = beginnerBoss ? 40 : 45; this.color = beginnerBoss ? '#fb7185' : '#ff0044';  
+                        this.speed = beginnerBoss ? 0.78 : (1.2 + (timeMultiplier * 0.05));  
+                        this.hp = beginnerBoss ? (520 + Math.max(1, Number(player.level) || 1) * 105) : (1500 * Math.max(1, Math.floor(player.level / 3)) * 1.5);  
+                        this.damage = beginnerBoss ? 16 : (40 * 1.5);  
+                        this.expValue = beginnerBoss ? 35 : 25; this.isBoss = true; this.isBeginnerBoss = beginnerBoss;  
+                        this.bossPattern = beginnerBoss ? 'BEGINNER BOSS' : ['VOID BOSS','THUNDER BOSS','FIRE BOSS','MIRROR BOSS'][Math.floor(Math.random() * 4)];  
                         this.patternTimer = 0;  
                         break;  
-                    case 4:   
-                        this.radius = 30; this.color = '#ff6600'; this.speed = 1.4 + (timeMultiplier * 0.05);   
-                        this.hp = 250 * Math.max(1, player.level) * 1.5; this.damage = 30 * 1.5;  
-                        this.expValue = 15; this.isMidBoss = true; break;  
+                    }  
+                    case 4: {  
+                        const beginnerBoss = !!(player && Number(player.level) <= 6);  
+                        this.radius = beginnerBoss ? 26 : 30; this.color = beginnerBoss ? '#f97316' : '#ff6600';  
+                        this.speed = beginnerBoss ? 0.92 : (1.4 + (timeMultiplier * 0.05));  
+                        this.hp = beginnerBoss ? (260 + Math.max(1, Number(player.level) || 1) * 70) : (250 * Math.max(1, player.level) * 1.5);  
+                        this.damage = beginnerBoss ? 12 : (30 * 1.5);  
+                        this.expValue = beginnerBoss ? 22 : 15; this.isMidBoss = true; this.isBeginnerBoss = beginnerBoss;  
+                        this.bossPattern = beginnerBoss ? 'BEGINNER MINI BOSS' : this.bossPattern;  
+                        break;  
+                    }  
                     case 5:   
                         this.radius = 14; this.color = '#10b981'; this.speed = 1.0;   
                         this.hp = 15 * timeMultiplier * 1.5; this.damage = 5 * 1.5; this.expValue = 3; this.fireTimer = 0; break;  
@@ -7308,7 +7318,7 @@ window.NEON_FIREBASE_CONFIG = {
                     const d = MathUtils.distance(this.x, this.y, player.x, player.y);  
                     this.x += Math.cos(angle) * this.speed; this.y += Math.sin(angle) * this.speed;  
                     this.patternTimer = (this.patternTimer || 0) + 1;  
-                    if (this.patternTimer >= 180) {  
+                    if (!this.isBeginnerBoss && this.patternTimer >= 180) {  
                         this.patternTimer = 0;  
                         const ptn = this.bossPattern || 'BOSS';  
                         if (ptn.includes('VOID')) {  
@@ -7802,6 +7812,7 @@ window.NEON_FIREBASE_CONFIG = {
   
         function triggerAdvancedBossPattern(boss) {  
             if (!boss || !player || boss.markedForDeletion || !(boss.isBoss || boss.isMidBoss || boss.isMonkey)) return;  
+            if (boss.isBeginnerBoss || Number(player.level) <= 6) return; // V8: 序盤6レベルは特殊攻撃なし  
             boss.nsvBossPatternTimer = (boss.nsvBossPatternTimer || MathUtils.randomInt(0, 90)) + 1;  
             const interval = boss.isMonkey ? 150 : boss.isMidBoss ? 210 : 180;  
             if (boss.nsvBossPatternTimer < interval) return;  
@@ -8495,9 +8506,8 @@ window.NEON_FIREBASE_CONFIG = {
             railgunZeros = []; blackholeGrenades = []; neonChains = []; plasmaMissiles = []; overdriveBlades = [];  
               
             bgStars = [];  
-            const bhAngle = Math.random() * Math.PI * 2;  
-            const bhDist = MathUtils.random(1300, 2600);  
-            mapBlackholes.push(new RealisticMapBlackHole(spawn.x + Math.cos(bhAngle) * bhDist, spawn.y + Math.sin(bhAngle) * bhDist));  
+            // V8: マップ常設ブラックホールは完全撤去。武器として発生するブラックホールは残す。  
+            mapBlackholes.length = 0;  
             if (isOnlineMode) {  
                 for (let i = 0; i < 2; i++) {  
                     if (Math.random() > 0.38) continue;  
@@ -10332,6 +10342,11 @@ window.NEON_FIREBASE_CONFIG = {
     ];  
     function nsv93AssignBossType(boss){  
         if (!boss || boss.nsv93BossType) return;  
+        if ((player && Number(player.level) <= 6) || boss.isBeginnerBoss) {  
+            boss.isBeginnerBoss = true; boss.nsv93BossType = 'beginner'; boss.nsv93BossName = '初心者ボス';  
+            boss.nsv93BossColor = '#fb7185'; boss.bossPattern = boss.isMidBoss ? 'BEGINNER MINI BOSS' : 'BEGINNER BOSS';  
+            boss.nsv93SkillTimer = 0; return;  
+        }  
         const idx = Math.abs(Math.floor((boss.x + boss.y + gameTime * 17) % NSV93_BOSS_TYPES.length));  
         const t = NSV93_BOSS_TYPES[idx];  
         boss.nsv93BossType = t.id;  
@@ -10344,18 +10359,19 @@ window.NEON_FIREBASE_CONFIG = {
     }  
     const nsv93OldEnemyTakeDamage = Enemy.prototype.takeDamage;  
     Enemy.prototype.takeDamage = function(amount, source = null){  
-        if ((this.isBoss || this.isMidBoss || this.isMonkey) && this.nsv93ShieldTimer > 0 && amount < 999999) {  
+        if ((this.isBoss || this.isMidBoss || this.isMonkey) && !this.isBeginnerBoss && this.nsv93ShieldTimer > 0 && amount < 999999) {  
             if ((frameCount || 0) % 12 === 0) floatingTexts.push(new FloatingText(this.x, this.y - this.radius - 22, '無敵中', '#fde047', 15));  
             createParticles(this.x, this.y, 2, '#fde047', 2);  
             return;  
         }  
         return nsv93OldEnemyTakeDamage.call(this, amount, source);  
     };  
-    function nsv93BossUpdate(){  
+    function nsv93BossUpdate(){ if (window.NSV_V9_SUPPRESS_OLD_BOSS) return;  
         if (gameState !== 'playing' || !player) return;  
         for (const boss of enemies) {  
             if (!boss || boss.markedForDeletion || !(boss.isBoss || boss.isMidBoss || boss.isMonkey)) continue;  
             nsv93AssignBossType(boss);  
+            if (boss.isBeginnerBoss || Number(player.level) <= 6) { boss.nsv93ShieldTimer = 0; continue; }  
             boss.nsv93SkillTimer = (boss.nsv93SkillTimer || 0) + 1;  
             if (boss.nsv93ShieldTimer > 0) boss.nsv93ShieldTimer--;  
             const a = MathUtils.angle(boss.x, boss.y, player.x, player.y);  
@@ -12829,7 +12845,11 @@ window.NEON_FIREBASE_CONFIG = {
     if(!player) return null;
     const a=Math.random()*Math.PI*2; const d=Math.max(width,height)*.62+180;
     const e=new Enemy(player.x+Math.cos(a)*d,player.y+Math.sin(a)*d,type,power);
-    e.bossPattern=name; e.nsvV2SpecialName=name; e.isMidBoss=e.isMidBoss||type===4; e.maxHp=e.hp; enemies.push(e); triggerBossWarning();
+    if(Number(player.level)<=6){
+      e.isBeginnerBoss=true;e.bossPattern=type===4?'BEGINNER MINI BOSS':'BEGINNER BOSS';e.nsvV2SpecialName=e.bossPattern;
+      e.hp=Math.max(180,e.hp*.72);e.damage=Math.max(8,e.damage*.72);e.speed=Math.min(e.speed,0.95);
+    }else{e.bossPattern=name;e.nsvV2SpecialName=name;}
+    e.isMidBoss=e.isMidBoss||type===4; e.maxHp=e.hp; enemies.push(e); triggerBossWarning();
     return e;
   }
   function grantFirstRare(){
@@ -13157,7 +13177,7 @@ window.NEON_FIREBASE_CONFIG = {
   window.syncOnlinePresence=syncOnlinePresence;
 
   function applyV2Version(){
-    document.title='Neon Survivor V2 Retention Complete';
+    document.title='Neon Survivor V9 Gameplay & HUD Reforge Complete';
     document.querySelectorAll('.nsv-pause-mini').forEach(el=>el.textContent=V2_VERSION);
     const badge=$('nsvStableBadge')||$('nsvV100VersionBadge');if(badge)badge.textContent=V2_VERSION;
   }
@@ -13500,7 +13520,7 @@ window.NEON_FIREBASE_CONFIG = {
   }
 
   function applyVersion(){
-    document.title='Neon Survivor V4 Complete';
+    document.title='Neon Survivor V9 Gameplay & HUD Reforge Complete';
     document.querySelectorAll('.nsv-pause-mini').forEach(el=>el.textContent=UI_VERSION);
     const badge=$('nsvStableBadge')||$('nsvV100VersionBadge');if(badge)badge.textContent=UI_VERSION;
   }
@@ -13531,7 +13551,7 @@ window.NEON_FIREBASE_CONFIG = {
    ★ この設定はゲーム画面・セーブデータ・IMPORTコードには保存されません。
    ★ プレイヤー側には変更UIを表示せず、変更用関数も無効化しています。
 
-   数値は、全45武器を合計100.00%にした管理者設定です。
+   数値は、全45武器を合計100.00%にした管理者設定です。V8では基本8武器を以前より出やすく再配分しています。
    強さ・攻撃範囲・追尾・防御・ボス性能を比較して調整済みです。
 
    ※ 候補外の武器、最大レベルの武器、モード制限中の武器は抽選から除外されます。
@@ -13540,51 +13560,51 @@ window.NEON_FIREBASE_CONFIG = {
    ※ ゲーム画面・保存データ・セーブコードから、この設定を変更することはできません。
    ======================================================================== */
         const NSV_ADMIN_WEAPON_APPEARANCE_RATES_V4 = Object.freeze({
-            "通常弾": 5.69,
-            "円環の刃界": 5.17,
-            "破滅の雷域": 4.96,
-            "虚空次元の暴風": 4.34,
-            "ファントムステップ": 3.31,
-            "深淵の重力刃": 1.65,
-            "雷霆砕破・轟": 1.86,
-            "龍星・崩命破": 1.45,
-            "創世の光芒": 1.55,
-            "星砕きの流星群": 2.07,
-            "星夢の輪舞曲": 0.52,
-            "無量空処": 0.83,
-            "絶対防壁の反響": 2.28,
-            "虚式「茈」": 0.72,
-            "終焉の指弾": 0.62,
-            "無限の剣陣": 1.03,
-            "天帝の裁界・霹靂": 0.62,
-            "ネオンランス": 1.65,
-            "フェニックスコア": 0.83,
-            "星落としの王冠": 1.34,
-            "虚空コレクター": 0.93,
-            "レールキャノン": 0.72,
-            "ブラックホールエンペラー": 0.47,
-            "サンダーイージス": 0.78,
-            "ソーラードリル": 0.57,
-            "クロノロータス": 0.57,
-            "スナイパー": 4.14,
-            "跳弾ボム": 4.65,
-            "重力パルサー": 3.93,
-            "蒼盾アイギス": 3.93,
-            "アストラル・ジャッジメント": 2.90,
-            "レールガン・ゼロ": 1.65,
-            "ブラックホール・グレネード": 2.59,
-            "ネオンチェーン": 3.10,
-            "プラズマ・ミサイル": 2.48,
-            "オーバードライブ・ブレード": 2.07,
-            "ブラックホール・ノヴァ": 2.38,
-            "超重力・崩命破": 2.48,
-            "雷鳴の剣域": 3.10,
-            "星核レールバースト": 1.65,
-            "終焉ブラックホール": 1.45,
-            "跳弾スナイパー": 2.79,
-            "猛毒アイギス": 2.90,
-            "重力追尾刃グラビトン・ダガー": 2.59,
-            "特異点ボム・メテオ": 2.69
+            "通常弾": 7.72,
+            "円環の刃界": 6.98,
+            "破滅の雷域": 6.70,
+            "虚空次元の暴風": 5.86,
+            "ファントムステップ": 2.64,
+            "深淵の重力刃": 1.31,
+            "雷霆砕破・轟": 1.48,
+            "龍星・崩命破": 1.15,
+            "創世の光芒": 1.23,
+            "星砕きの流星群": 1.65,
+            "星夢の輪舞曲": 0.41,
+            "無量空処": 0.66,
+            "絶対防壁の反響": 1.82,
+            "虚式「茈」": 0.57,
+            "終焉の指弾": 0.49,
+            "無限の剣陣": 0.82,
+            "天帝の裁界・霹靂": 0.49,
+            "ネオンランス": 1.31,
+            "フェニックスコア": 0.66,
+            "星落としの王冠": 1.07,
+            "虚空コレクター": 0.74,
+            "レールキャノン": 0.57,
+            "ブラックホールエンペラー": 0.37,
+            "サンダーイージス": 0.62,
+            "ソーラードリル": 0.45,
+            "クロノロータス": 0.45,
+            "スナイパー": 5.59,
+            "跳弾ボム": 6.28,
+            "重力パルサー": 5.31,
+            "蒼盾アイギス": 5.31,
+            "アストラル・ジャッジメント": 2.31,
+            "レールガン・ゼロ": 1.31,
+            "ブラックホール・グレネード": 2.06,
+            "ネオンチェーン": 2.47,
+            "プラズマ・ミサイル": 1.97,
+            "オーバードライブ・ブレード": 1.65,
+            "ブラックホール・ノヴァ": 1.89,
+            "超重力・崩命破": 1.97,
+            "雷鳴の剣域": 2.47,
+            "星核レールバースト": 1.31,
+            "終焉ブラックホール": 1.15,
+            "跳弾スナイパー": 2.22,
+            "猛毒アイギス": 2.31,
+            "重力追尾刃グラビトン・ダガー": 2.06,
+            "特異点ボム・メテオ": 2.14
         });
         const NSV_ADMIN_WEAPON_RATE_TOTAL_V5 = Number(
             Object.values(NSV_ADMIN_WEAPON_APPEARANCE_RATES_V4)
@@ -13594,7 +13614,7 @@ window.NEON_FIREBASE_CONFIG = {
         if (NSV_ADMIN_WEAPON_RATE_TOTAL_V5 !== 100) {
             console.error('[NSV V5] 管理者用の武器出現確率が合計100%ではありません:', NSV_ADMIN_WEAPON_RATE_TOTAL_V5);
         }
-        const NSV_ADMIN_NON_WEAPON_APPEARANCE_RATE_V4 = 100;
+        const NSV_ADMIN_NON_WEAPON_APPEARANCE_RATE_V4 = 12; // V8: 通常の能力UPカード基準。武器候補が十分に出るよう調整。
 
         const NSV_ENEMY_PROJECTILE_DURABILITY_V4 = Object.freeze({
             normalBaseHp: 34,
@@ -13623,6 +13643,10 @@ window.NEON_FIREBASE_CONFIG = {
 
         function getAdminWeaponRateV4(nameOrUpgrade) {
             const raw = typeof nameOrUpgrade === 'string' ? nameOrUpgrade : String(nameOrUpgrade?.name || '');
+            // V8: 回復＋最大HPは、通常時は標準能力カードの半分、現在HP30以下では高確率。
+            if (/最大HPUP|最大HP|回復/.test(raw)) {
+                return (player && Number(player.hp) <= 30) ? 72 : (NSV_ADMIN_NON_WEAPON_APPEARANCE_RATE_V4 * 0.5);
+            }
             const key = normalizeWeaponRateKeyV4(raw);
             if (!key) return NSV_ADMIN_NON_WEAPON_APPEARANCE_RATE_V4;
             const match = NSV_ADMIN_WEAPON_RATE_ENTRIES_V4.find(entry => entry.key && (key.includes(entry.key) || entry.key.includes(key)));
@@ -13908,7 +13932,7 @@ window.NEON_FIREBASE_CONFIG = {
             applyAllWeaponUnlocksV4(userData);
             removePlayerWeaponRateControlsV4(document);
             try { saveData(); } catch (_) {}
-            document.title = 'Neon Survivor V4 Complete';
+            document.title = 'Neon Survivor V9 Gameplay & HUD Reforge Complete';
             document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = 'V4 COMPLETE');
             const versionBadge = document.getElementById('nsvStableBadge') || document.getElementById('nsvV100VersionBadge');
             if (versionBadge) versionBadge.textContent = 'V4 COMPLETE';
@@ -13926,7 +13950,7 @@ window.NEON_FIREBASE_CONFIG = {
            ===================================================================== */
         (function(){
             'use strict';
-            const PATCH_VERSION = 'V7 60FPS ONLINE SYNC';
+            const PATCH_VERSION = 'V9 GAMEPLAY REFORGE COMPLETE';
             const ALLOWED_SPEEDS = [1, 2, 3, 5];
             const STEP_MS = 1000 / 60;
             const $ = (id) => document.getElementById(id);
@@ -14893,7 +14917,7 @@ window.NEON_FIREBASE_CONFIG = {
                     const fps = document.createElement('div'); fps.id = 'nsvV7FpsHud'; fps.textContent = '60 FPS  x1.0'; document.body.appendChild(fps);
                 }
                 installSpeedUI();
-                document.title = 'Neon Survivor V7 60FPS Online Sync Complete';
+                document.title = 'Neon Survivor V9 Gameplay HUD Reforge Complete';
                 document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = PATCH_VERSION);
                 const badge = $('nsvStableBadge') || $('nsvV100VersionBadge'); if (badge) badge.textContent = PATCH_VERSION;
             }
@@ -14930,6 +14954,427 @@ window.NEON_FIREBASE_CONFIG = {
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installV7StyleAndHud, { once:true });
             else installV7StyleAndHud();
         })();
+
+
+/* =====================================================================
+   V9 GAMEPLAY & HUD REFORGE COMPLETE
+   - Non-overlap HUD / weapon status / edge notifications
+   - Weapon synergies / two-route evolution
+   - Enemy roles / elites / safe map events
+   - Fully telegraphed phased bosses / boss reward choice
+   - 10-minute stage changes / random temporary rules
+   - Progress result / joystick customization / controlled auto collect
+   ===================================================================== */
+(function(){
+  'use strict';
+  window.NSV_V9_SUPPRESS_OLD_BOSS = true;
+  const V9_VERSION = 'V9 GAMEPLAY & HUD REFORGE';
+  const $ = (id) => document.getElementById(id);
+  const clampV9 = (v,a,b) => Math.max(a, Math.min(b, Number(v)||0));
+  const escV9 = (s) => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const randV9 = (arr) => arr && arr.length ? arr[Math.floor(Math.random()*arr.length)] : null;
+  const uniqueV9 = (arr) => Array.from(new Set(arr));
+
+  const V9 = {
+    lastHudUpdate: 0,
+    lastWeaponSignature: '',
+    notificationMap: new Map(),
+    mapEvents: [],
+    hazards: [],
+    lastMapEventAt: 0,
+    dangerTimer: 0,
+    powerTimer: 0,
+    powerBaseDamage: 0,
+    stage: -1,
+    stageApplied: new Set(),
+    rule: null,
+    nextRuleAt: 170,
+    autoReadyAt: 0,
+    lastAutoSweep: 0,
+    pendingBossRewards: 0,
+    runSnapshot: null,
+    runMetrics: { autoCollected:0, elites:0, mapEvents:0, synergies:new Set(), newAchievements:[] },
+    joystick: { side:'right', size:128, opacity:.72, mode:'fixed' },
+    dynamicPointer: null,
+    bossTelegraphs: [],
+    bossRewardOpen: false,
+    exchangeOpen: false,
+    lastBossPhaseText: '',
+    coinMultiplier: 1,
+    v9Frame: 0
+  };
+
+  const V9_WEAPONS = [
+    {id:'basic',name:'通常弾',icon:'●',level:p=>p?.nsvV9BasicBulletLevel||1,timer:p=>p?.fireTimer||0,cd:p=>p?.fireRate||60,max:5,desc:'自動射撃する基本武器。高速型か貫通型へ分岐進化。',evo:p=>(p?.nsvV9BasicBranch?'進化済み':((p?.nsvV9BasicBulletLevel||1)>=5?'進化可能':''))},
+    {id:'blade',name:'円環の刃界',icon:'◉',prop:'bladeRingLevel',timer:()=>0,cd:()=>1,max:5,desc:'周囲を回転する刃。雷域と組み合わせると帯電する。',evo:p=>p?.evoThunderBlade?'雷鳴の剣域':((p?.bladeRingLevel||0)>=3&&(p?.electricFieldLevel||0)>=3?'進化可能':'')},
+    {id:'thunder',name:'破滅の雷域',icon:'⚡',prop:'electricFieldLevel',timer:p=>p?.electricFieldTimer||0,cd:p=>Math.max(30,120-(p?.electricFieldLevel||0)*15),max:5,desc:'周囲へ定期的に雷撃。円環の刃界と相性が良い。',evo:p=>p?.evoThunderBlade?'雷鳴の剣域':((p?.bladeRingLevel||0)>=3&&(p?.electricFieldLevel||0)>=3?'進化可能':'')},
+    {id:'void',name:'虚空次元の暴風',icon:'✦',prop:'voidTempestLevel',timer:p=>p?.voidTempestTimer||0,cd:p=>Math.max(120,360-(p?.voidTempestLevel||0)*40),max:5,desc:'敵を巻き込む暴風。跳弾ボムを吸い込み連続爆発させる。',evo:p=>p?.evoBlackhole?'ブラックホール・ノヴァ':((p?.voidTempestLevel||0)>=3&&(p?.hollowMurasakiLevel||0)>=3?'進化可能':'')},
+    {id:'murasaki',name:'虚式「茈」',icon:'🟣',prop:'hollowMurasakiLevel',timer:p=>p?.hollowMurasakiTimer||0,cd:()=>1200,max:5,desc:'直線上を消し飛ばす超高火力攻撃。',evo:p=>p?.evoBlackhole?'ブラックホール・ノヴァ':''},
+    {id:'orbital',name:'星落としの王冠',icon:'✨',prop:'orbitalStrikeLevel',timer:p=>p?.orbitalStrikeTimer||0,cd:p=>Math.max(90,240-(p?.orbitalStrikeLevel||0)*30),max:5,desc:'敵が密集する場所へ軌道攻撃を落とす。',evo:p=>p?.evoDivineSword?'雷鳴の剣域':''},
+    {id:'dragon',name:'龍星・崩命破',icon:'🌊',prop:'kamehamehaLevel',timer:p=>p?.kamehamehaTimer||0,cd:p=>Math.max(900,1200-((p?.kamehamehaLevel||1)-1)*60),max:5,desc:'前方へ極太ビームを放つ。',evo:p=>p?.evoGravityBeam?'超重力・崩命破':((p?.vaderLevel||0)>=3&&(p?.kamehamehaLevel||0)>=3?'進化可能':'')},
+    {id:'snap',name:'終焉の指弾',icon:'🫰',prop:'infinitySnapLevel',timer:p=>p?.infinitySnapTimer||0,cd:p=>Math.max(480,600-((p?.infinitySnapLevel||1)-1)*30),max:5,desc:'広範囲の敵をまとめて消し去る。'},
+    {id:'swords',name:'無限の剣陣',icon:'🗡️',prop:'infiniteBladeLevel',timer:p=>p?.infiniteBladeTimer||0,cd:p=>Math.max(480,600-((p?.infiniteBladeLevel||1)-1)*30),max:5,desc:'多数の剣を連続射出する。'},
+    {id:'iron',name:'創世の光芒',icon:'🤖',prop:'ironmanSuitLevel',timer:p=>p?.unibeamTimer||0,cd:()=>600,max:5,desc:'装甲とビームを組み合わせた万能武器。'},
+    {id:'keraunos',name:'天帝の裁界・霹靂',icon:'⚡',prop:'keraunosLevel',timer:p=>p?.keraunosTimer||0,cd:()=>900,max:5,desc:'画面全体へ雷を落とす神雷。'},
+    {id:'funnel',name:'星砕きの流星群',icon:'🛰️',prop:'funnelLevel',timer:p=>p?.funnelTimer||0,cd:()=>900,max:5,desc:'多数の追尾弾を一斉に放つ。'},
+    {id:'vader',name:'深淵の重力刃',icon:'⚔️',prop:'vaderLevel',timer:p=>p?.vaderTimer||0,cd:()=>900,max:5,desc:'重力と防壁を使う近接・範囲武器。',evo:p=>p?.evoGravityBeam?'超重力・崩命破':''},
+    {id:'thor',name:'雷霆砕破・轟',icon:'🪓',prop:'thorLevel',timer:p=>p?.thorTimer||0,cd:()=>900,max:5,desc:'投げた武器が敵を貫き戻ってくる。'},
+    {id:'disney',name:'星夢の輪舞曲',icon:'🪄',prop:'disneyMagicLevel',timer:p=>p?.disneyMagicTimer||0,cd:()=>3600,max:5,desc:'敵を味方に変える特殊魔法。'},
+    {id:'muryoku',name:'無量空処',icon:'∞',prop:'muryokuLevel',timer:p=>p?.muryokuTimer||0,cd:()=>1200,max:5,desc:'敵の動きを止めて大ダメージを与える。'},
+    {id:'shield',name:'蒼盾アイギス',icon:'🛡️',prop:'onlineShieldLevel',timer:()=>0,cd:()=>1,max:5,desc:'受けるダメージを軽減。通常弾と組み合わせると盾が射撃する。',evo:p=>p?.evoToxicAegis?'猛毒アイギス':''},
+    {id:'sniper',name:'スナイパー',icon:'🎯',prop:'onlineSniperLevel',timer:p=>p?.onlineSniperTimer||0,cd:p=>Math.max(60,120-(p?.onlineSniperLevel||0)*15),max:5,desc:'高威力の貫通射撃。一撃型か連射型へ分岐進化。',evo:p=>(p?.nsvV9SniperBranch?'進化済み':((p?.onlineSniperLevel||0)>=5?'進化可能':(p?.evoRicochetSniper?'跳弾スナイパー':'')))},
+    {id:'bounce',name:'跳弾ボム',icon:'💣',prop:'onlineBounceBombLevel',timer:p=>p?.onlineBounceTimer||0,cd:p=>Math.max(120,240-(p?.onlineBounceBombLevel||0)*20),max:5,desc:'跳ねながら爆発する爆弾。暴風と組み合わせると連鎖爆発。',evo:p=>p?.evoSingularityBomb?'特異点ボム・メテオ':''},
+    {id:'gravity',name:'重力パルサー',icon:'🌌',prop:'onlineGravityLevel',timer:p=>p?.onlineGravityTimer||0,cd:()=>300,max:5,desc:'敵を引き寄せる重力波。スナイパーの貫通力を高める。'},
+    {id:'phantom',name:'ファントムステップ',icon:'👻',prop:'phantomStepLevel',timer:p=>p?.phantomStepTimer||0,cd:p=>Math.max(isOnlineMode?170:120,(isOnlineMode?310:250)-(p?.phantomStepLevel||0)*(isOnlineMode?22:26)),max:5,desc:'短時間の高速移動と回避。'},
+    {id:'railzero',name:'レールガン・ゼロ',icon:'🔭',prop:'onlineRailgunZeroLevel',timer:p=>p?.onlineRailgunZeroTimer||0,cd:()=>360,max:5,desc:'直線上へ超高速の高威力射撃。'},
+    {id:'blackgrenade',name:'ブラックホール・グレネード',icon:'⚫',prop:'onlineBlackholeGrenadeLevel',timer:p=>p?.onlineBlackholeGrenadeTimer||0,cd:()=>420,max:5,desc:'敵を引き寄せる投射型グレネード。'},
+    {id:'chain',name:'ネオンチェーン',icon:'⛓️',prop:'onlineNeonChainLevel',timer:p=>p?.onlineNeonChainTimer||0,cd:()=>260,max:5,desc:'複数の敵へ電撃が連鎖する。'},
+    {id:'missile',name:'プラズマ・ミサイル',icon:'🚀',prop:'onlinePlasmaMissileLevel',timer:p=>p?.onlinePlasmaMissileTimer||0,cd:()=>300,max:5,desc:'敵を自動追尾するミサイル。'},
+    {id:'blade2',name:'オーバードライブ・ブレード',icon:'⚔',prop:'onlineOverdriveBladeLevel',timer:p=>p?.onlineOverdriveBladeTimer||0,cd:()=>220,max:5,desc:'近距離を高速で切り裂く。'},
+    {id:'rail',name:'レールキャノン',icon:'🔭',prop:'legendaryRailCannonLevel',timer:p=>p?.fireTimer||0,cd:p=>p?.fireRate||60,max:5,desc:'通常弾を高威力・高貫通へ強化。',evo:p=>p?.evoRailBurst?'星核レールバースト':''},
+    {id:'blackemperor',name:'ブラックホールエンペラー',icon:'⚫',prop:'legendaryBlackholeEmperorLevel',timer:p=>p?.blackholeEmperorTimer||0,cd:p=>Math.max(150,520-(p?.legendaryBlackholeEmperorLevel||0)*65),max:5,desc:'広範囲の吸引と継続ダメージ。',evo:p=>p?.evoEndBlackhole?'終焉ブラックホール':''},
+    {id:'thunderaegis',name:'サンダーイージス',icon:'🛡⚡',prop:'legendaryThunderAegisLevel',timer:p=>p?.thunderAegisTimer||0,cd:p=>Math.max(90,360-(p?.legendaryThunderAegisLevel||0)*45),max:5,desc:'防御しながら周囲へ雷撃。'},
+    {id:'solar',name:'ソーラードリル',icon:'☀️',prop:'legendarySolarDrillLevel',timer:p=>p?.solarDrillTimer||0,cd:p=>Math.max(120,420-(p?.legendarySolarDrillLevel||0)*55),max:5,desc:'密集地点へ高火力の太陽攻撃。'},
+    {id:'chrono',name:'クロノロータス',icon:'🪷',prop:'legendaryChronoLotusLevel',timer:p=>p?.chronoLotusTimer||0,cd:p=>Math.max(150,480-(p?.legendaryChronoLotusLevel||0)*60),max:5,desc:'広範囲攻撃と時間減速を行う。'}
+  ];
+
+  const V9_EXCHANGE_WEAPONS = V9_WEAPONS.filter(w=>w.prop && !['onlineShieldLevel'].includes(w.prop));
+
+  function v9LoadControls(){
+    try { Object.assign(V9.joystick, JSON.parse(localStorage.getItem('nsv_v9_controls')||'{}')); } catch(_) {}
+    V9.joystick.side = V9.joystick.side === 'left' ? 'left' : 'right';
+    V9.joystick.mode = V9.joystick.mode === 'dynamic' ? 'dynamic' : 'fixed';
+    V9.joystick.size = clampV9(V9.joystick.size,90,170)||128;
+    V9.joystick.opacity = clampV9(V9.joystick.opacity,.3,1)||.72;
+  }
+  function v9SaveControls(){ try { localStorage.setItem('nsv_v9_controls',JSON.stringify(V9.joystick)); } catch(_){} }
+
+  function v9InstallStyle(){
+    if ($('nsvV9Style')) return;
+    const s=document.createElement('style'); s.id='nsvV9Style'; s.textContent=`
+      :root{--nsv-v9-stick-size:128px;--nsv-v9-stick-opacity:.72}
+      #uiLayer>.flex.justify-between.items-start{position:fixed!important;left:max(8px,var(--ui-safe-left,0px))!important;right:max(8px,var(--ui-safe-right,0px))!important;top:max(8px,var(--ui-safe-top,0px))!important;display:grid!important;grid-template-columns:minmax(150px,1fr) minmax(88px,auto)!important;z-index:145!important;pointer-events:none!important}
+      #uiLayer>.flex.justify-between.items-start>div:first-child{justify-self:start!important;background:rgba(2,6,23,.58)!important;border:1px solid rgba(34,211,238,.24)!important;border-radius:13px!important;padding:7px 9px!important;backdrop-filter:blur(5px)!important;max-width:min(48vw,330px)!important}
+      #uiLayer>.flex.justify-between.items-start>div:last-child{justify-self:end!important;pointer-events:auto!important;background:rgba(2,6,23,.54)!important;border:1px solid rgba(34,211,238,.22)!important;border-radius:13px!important;padding:5px!important;max-width:150px!important}
+      #scoreDisplay,#timeDisplay,#levelDisplay{font-variant-numeric:tabular-nums}
+      #bossHpContainer{top:max(64px,calc(var(--ui-safe-top,0px) + 64px))!important;width:min(720px,calc(100vw - 260px))!important;z-index:150!important;transition:transform .2s ease,opacity .2s ease!important}
+      #bossHpContainer:not(.hidden){transform:translateX(-50%) scale(1.04)!important}
+      #bossHpContainer .h-4{height:18px!important}
+      #uiLayer>.w-full.max-w-2xl{position:fixed!important;left:max(10px,var(--ui-safe-left,0px))!important;right:calc(max(10px,var(--ui-safe-right,0px)) + var(--nsv-v9-stick-size) + 20px)!important;bottom:max(8px,var(--ui-safe-bottom,0px))!important;width:auto!important;max-width:none!important;margin:0!important;padding:7px 10px!important;border:1px solid rgba(148,163,184,.24)!important;border-radius:13px!important;background:rgba(2,6,23,.48)!important;backdrop-filter:blur(4px)!important;z-index:145!important}
+      #uiLayer>.w-full.max-w-2xl.nsv-v9-low-hp{animation:nsvV9LowHp .62s ease-in-out infinite alternate!important;border-color:#ef4444!important;box-shadow:0 0 20px rgba(239,68,68,.52)!important}
+      #uiLayer>.w-full.max-w-2xl.nsv-v9-exp-ready #expBar{animation:nsvV9ExpGlow .5s ease-in-out infinite alternate!important}
+      @keyframes nsvV9LowHp{to{background:rgba(127,29,29,.68);transform:scale(1.01)}}
+      @keyframes nsvV9ExpGlow{to{filter:brightness(2);box-shadow:0 0 16px #facc15}}
+      #joystickZone{width:var(--nsv-v9-stick-size)!important;height:var(--nsv-v9-stick-size)!important;opacity:var(--nsv-v9-stick-opacity)!important;z-index:170!important;transition:opacity .18s ease!important}
+      body.nsv-v9-stick-left #joystickZone{left:calc(max(8px,var(--ui-safe-left,0px)) + 8px)!important;right:auto!important}
+      body.nsv-v9-stick-right #joystickZone{right:calc(max(8px,var(--ui-safe-right,0px)) + 8px)!important;left:auto!important}
+      #nsvV9WeaponDock{position:fixed;left:82px;right:calc(var(--nsv-v9-stick-size) + 34px);bottom:72px;z-index:146;display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding:5px;border-radius:14px;background:rgba(2,6,23,.5);border:1px solid rgba(34,211,238,.22);backdrop-filter:blur(5px);pointer-events:auto;scrollbar-width:thin;max-height:68px}
+      .nsv-v9-weapon-card{flex:0 0 auto;min-width:58px;max-width:92px;height:56px;padding:4px 6px;border-radius:10px;border:1px solid rgba(103,232,249,.38);background:rgba(15,23,42,.82);color:#fff;text-align:center;cursor:pointer;position:relative;overflow:hidden;font:700 10px 'Noto Sans JP',sans-serif}
+      .nsv-v9-weapon-card b{display:block;font-size:18px;line-height:20px}.nsv-v9-weapon-card span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nsv-v9-weapon-card small{color:#a5f3fc}.nsv-v9-weapon-card.ready{border-color:#facc15;box-shadow:0 0 10px rgba(250,204,21,.38)}
+      #nsvV9SynergyBar{position:fixed;left:max(8px,var(--ui-safe-left,0px));bottom:145px;z-index:145;display:flex;gap:5px;flex-wrap:wrap;max-width:45vw;pointer-events:none}.nsv-v9-synergy{padding:4px 7px;border-radius:999px;background:rgba(88,28,135,.78);border:1px solid #c084fc;color:#f3e8ff;font:800 10px sans-serif;box-shadow:0 0 10px rgba(192,132,252,.3)}
+      #nsvV9AutoCollect{position:fixed;left:max(10px,var(--ui-safe-left,0px));bottom:78px;z-index:155;width:64px;height:58px;min-height:58px;border-radius:14px;border:1px solid #67e8f9;background:rgba(8,47,73,.82);color:#cffafe;font:900 10px sans-serif;box-shadow:0 0 12px rgba(34,211,238,.25);pointer-events:auto}
+      #nsvV9AutoCollect:disabled{opacity:.42;filter:grayscale(.7)}
+      .nsv-v9-notify-host{position:fixed;z-index:310;display:flex;flex-direction:column;gap:7px;width:min(330px,calc(100vw - 24px));pointer-events:none}
+      #nsvV9NotifyAchievement{left:max(10px,var(--ui-safe-left,0px));top:34%}#nsvV9NotifyMission{right:max(10px,var(--ui-safe-right,0px));top:34%;align-items:flex-end}#nsvV9NotifyWarning{left:50%;top:max(76px,calc(var(--ui-safe-top,0px) + 76px));transform:translateX(-50%);align-items:center}#nsvV9NotifyItem{left:50%;bottom:245px;transform:translateX(-50%);align-items:center}
+      .nsv-v9-toast{width:max-content;max-width:100%;padding:9px 12px;border-radius:12px;border:1px solid var(--toast-color,#22d3ee);background:rgba(2,6,23,.88);box-shadow:0 0 17px color-mix(in srgb,var(--toast-color,#22d3ee) 32%,transparent);animation:nsvV9Toast 3.2s ease forwards;color:#fff;font:700 12px 'Noto Sans JP',sans-serif}.nsv-v9-toast b{display:block;color:var(--toast-color,#22d3ee);font-size:13px}.nsv-v9-toast span{display:block;color:#e2e8f0;margin-top:2px}
+      @keyframes nsvV9Toast{0%{opacity:0;transform:translateY(-8px) scale(.96)}10%,82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-8px) scale(.98)}}
+      #nsvV9RuleHud{position:static!important;z-index:150;max-width:100%;margin-top:4px;padding:6px 8px;border-radius:9px;border:1px solid #c084fc;background:rgba(59,7,100,.78);color:#f3e8ff;font:800 9px sans-serif;text-align:center;pointer-events:none;line-height:1.2}
+      #nsvV9MapHint{position:fixed;left:50%;bottom:190px;transform:translateX(-50%);z-index:145;padding:5px 9px;border-radius:999px;background:rgba(2,6,23,.65);border:1px solid rgba(134,239,172,.48);color:#bbf7d0;font:800 10px sans-serif;pointer-events:none}
+      .nsv-v9-modal{position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px)}.nsv-v9-modal.hidden{display:none!important}.nsv-v9-modal-panel{width:min(720px,96vw);max-height:92vh;overflow:auto;padding:22px;border-radius:22px;background:linear-gradient(180deg,rgba(2,6,23,.98),rgba(15,23,42,.96));border:2px solid #facc15;box-shadow:0 0 35px rgba(250,204,21,.3);color:#fff;text-align:center}.nsv-v9-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}.nsv-v9-choice{min-height:132px;padding:14px;border-radius:16px;border:1px solid #22d3ee;background:rgba(8,47,73,.54);color:#fff;font:700 13px sans-serif}.nsv-v9-choice b{display:block;color:#facc15;font-size:16px;margin-bottom:8px}.nsv-v9-choice:hover{background:rgba(14,116,144,.48);transform:translateY(-2px)}
+      #nsvV9ProgressSummary{width:min(92vw,680px);max-height:190px;overflow:auto;margin:0 auto 12px;padding:12px;border-radius:15px;background:rgba(2,6,23,.68);border:1px solid rgba(34,211,238,.34);font-size:12px;text-align:left}.nsv-v9-progress-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.nsv-v9-progress-item{padding:7px;border-radius:9px;background:rgba(15,23,42,.76)}
+      #nsvV9ControlPanel{width:100%;padding:14px;border-radius:18px;border:1px solid rgba(34,211,238,.42);background:rgba(15,23,42,.82)}#nsvV9ControlPanel .row{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;margin:9px 0;text-align:left}#nsvV9ControlPanel select,#nsvV9ControlPanel input[type=range]{width:100%;min-height:36px;background:#0f172a;color:#fff;border:1px solid #06b6d4;border-radius:9px;padding:6px}
+      body.nsv-v9-stage-night canvas{filter:brightness(.82) saturate(.9)}body.nsv-v9-stage-underworld canvas{filter:hue-rotate(35deg) saturate(1.25) brightness(.86)}
+      @media(max-width:760px){
+        #bossHpContainer{width:calc(100vw - 170px)!important;top:70px!important}.nsv-v9-choice-grid{grid-template-columns:1fr}.nsv-v9-modal-panel{padding:15px}
+        #nsvV9WeaponDock{left:76px;right:calc(var(--nsv-v9-stick-size) + 20px);bottom:70px;max-height:62px}.nsv-v9-weapon-card{height:50px;min-width:52px;font-size:9px}.nsv-v9-weapon-card b{font-size:16px}
+        #nsvV9SynergyBar{bottom:137px;max-width:54vw}#nsvV9RuleHud{max-width:100%;font-size:8px}
+        #nsvV9NotifyAchievement,#nsvV9NotifyMission{top:28%;width:min(260px,44vw)}#nsvV9NotifyItem{bottom:220px}
+        #uiLayer>.flex.justify-between.items-start>div:first-child{font-size:.72rem!important;max-width:47vw!important}#uiLayer>.flex.justify-between.items-start>div:last-child{max-width:104px!important}
+      }
+      @media(max-width:430px){#bossHpContainer{width:calc(100vw - 124px)!important;top:67px!important}#nsvV9WeaponDock{right:118px;left:72px}.nsv-v9-weapon-card{min-width:49px}#nsvV9MapHint{bottom:180px;max-width:72vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+    `; document.head.appendChild(s);
+  }
+
+  function v9EnsureUi(){
+    v9InstallStyle();
+    const body=document.body;
+    const hosts=[['nsvV9NotifyAchievement'],['nsvV9NotifyMission'],['nsvV9NotifyWarning'],['nsvV9NotifyItem']];
+    for(const [id] of hosts){ if(!$(id)){const el=document.createElement('div');el.id=id;el.className='nsv-v9-notify-host';body.appendChild(el);} }
+    if(!$('nsvV9WeaponDock')){const el=document.createElement('div');el.id='nsvV9WeaponDock';el.className='hidden';body.appendChild(el);}
+    if(!$('nsvV9SynergyBar')){const el=document.createElement('div');el.id='nsvV9SynergyBar';el.className='hidden';body.appendChild(el);}
+    if(!$('nsvV9RuleHud')){const el=document.createElement('div');el.id='nsvV9RuleHud';el.className='hidden';const rightHud=$('uiLayer')?.querySelector(':scope > .flex.justify-between.items-start > div:last-child');(rightHud||body).appendChild(el);}
+    if(!$('nsvV9MapHint')){const el=document.createElement('div');el.id='nsvV9MapHint';el.className='hidden';body.appendChild(el);}
+    if(!$('nsvV9AutoCollect')){const b=document.createElement('button');b.id='nsvV9AutoCollect';b.className='hidden';b.innerHTML='AUTO<br><span>READY</span>';b.addEventListener('click',()=>{if(gameState!=='playing'||!player)return;const now=Number(gameTime||0);if(now<V9.autoReadyAt)return;const n=v9CollectGems(90,true);V9.autoReadyAt=now+30;v9Notify('item','AUTO COLLECT',`${n}個のジェムを回収`,'auto-collect','#67e8f9');});body.appendChild(b);}
+    if(!$('nsvV9BossReward')){const m=document.createElement('div');m.id='nsvV9BossReward';m.className='nsv-v9-modal hidden';m.innerHTML='<div class="nsv-v9-modal-panel"><div style="color:#facc15;font-weight:900;letter-spacing:.18em">BOSS CLEAR REWARD</div><h2 style="font-size:clamp(1.7rem,5vw,3rem);margin:7px 0">報酬を1つ選択</h2><p style="color:#cbd5e1">選択後に戦闘を再開します。</p><div id="nsvV9BossChoices" class="nsv-v9-choice-grid"></div></div>';body.appendChild(m);}
+    if(!$('nsvV9ExchangeModal')){const m=document.createElement('div');m.id='nsvV9ExchangeModal';m.className='nsv-v9-modal hidden';m.innerHTML='<div class="nsv-v9-modal-panel"><div style="color:#67e8f9;font-weight:900">WEAPON EXCHANGE</div><h2 style="font-size:2rem;margin:7px 0">武器交換装置</h2><p style="color:#cbd5e1">所持武器1つを、未所持のランダム武器へ交換します。</p><div class="nsv-v9-choice-grid"><button id="nsvV9ExchangeYes" class="nsv-v9-choice"><b>交換する</b>現在の武器構成を変える</button><button id="nsvV9ExchangeNo" class="nsv-v9-choice"><b>今回は使わない</b>装置を閉じる</button></div></div>';body.appendChild(m);$('nsvV9ExchangeYes').addEventListener('click',()=>v9ExchangeWeapon(true));$('nsvV9ExchangeNo').addEventListener('click',()=>v9ExchangeWeapon(false));}
+    v9EnsureControlPanel();
+    v9ApplyControls();
+  }
+
+  function v9EnsureControlPanel(){
+    let panel=$('nsvV9ControlPanel');
+    if(!panel){panel=document.createElement('div');panel.id='nsvV9ControlPanel';panel.innerHTML=`<h3 style="color:#67e8f9;font-weight:900;margin:0 0 8px">JOYSTICK SETTINGS</h3><div class="row"><label>位置</label><select id="nsvV9JoySide"><option value="right">右下</option><option value="left">左下</option></select></div><div class="row"><label>方式</label><select id="nsvV9JoyMode"><option value="fixed">固定式</option><option value="dynamic">触った位置に表示</option></select></div><div class="row"><label>大きさ</label><input id="nsvV9JoySize" type="range" min="90" max="170" step="2"></div><div class="row"><label>透明度</label><input id="nsvV9JoyOpacity" type="range" min="0.3" max="1" step="0.05"></div>`;const area=$('pauseExtraArea')||$('pausePanel');area?.appendChild(panel);
+      const bind=(id,key,parse)=>$(id)?.addEventListener('input',e=>{V9.joystick[key]=parse(e.target.value);v9SaveControls();v9ApplyControls();});
+      bind('nsvV9JoySide','side',String);bind('nsvV9JoyMode','mode',String);bind('nsvV9JoySize','size',Number);bind('nsvV9JoyOpacity','opacity',Number);
+    }
+    if($('nsvV9JoySide'))$('nsvV9JoySide').value=V9.joystick.side;if($('nsvV9JoyMode'))$('nsvV9JoyMode').value=V9.joystick.mode;if($('nsvV9JoySize'))$('nsvV9JoySize').value=V9.joystick.size;if($('nsvV9JoyOpacity'))$('nsvV9JoyOpacity').value=V9.joystick.opacity;
+  }
+
+  function v9ApplyControls(){
+    document.documentElement.style.setProperty('--nsv-v9-stick-size',`${V9.joystick.size}px`);document.documentElement.style.setProperty('--nsv-v9-stick-opacity',String(V9.joystick.opacity));
+    document.body.classList.toggle('nsv-v9-stick-left',V9.joystick.side==='left');document.body.classList.toggle('nsv-v9-stick-right',V9.joystick.side!=='left');
+    if(joystickZone && V9.joystick.mode==='fixed'){joystickZone.style.removeProperty('top');joystickZone.style.removeProperty('bottom');joystickZone.style.removeProperty('left');joystickZone.style.removeProperty('right');joystickZone.style.bottom=`calc(max(8px,var(--ui-safe-bottom,0px)) + 8px)`;if(V9.joystick.side==='left'){joystickZone.style.left='16px';joystickZone.style.right='auto';}else{joystickZone.style.right='16px';joystickZone.style.left='auto';}}
+  }
+
+  function v9Notify(channel,title,body='',key='',color='#22d3ee'){
+    v9EnsureUi(); const hostMap={achievement:'nsvV9NotifyAchievement',mission:'nsvV9NotifyMission',warning:'nsvV9NotifyWarning',item:'nsvV9NotifyItem'};const host=$(hostMap[channel]||hostMap.item);if(!host)return;
+    const mapKey=`${channel}:${key||title}`;let entry=V9.notificationMap.get(mapKey);if(entry&&entry.el?.isConnected){entry.count++;entry.el.querySelector('span').textContent=`${body}${entry.count>1?` ×${entry.count}`:''}`;clearTimeout(entry.timer);entry.timer=setTimeout(()=>{entry.el.remove();V9.notificationMap.delete(mapKey);},3200);return;}
+    const el=document.createElement('div');el.className='nsv-v9-toast';el.style.setProperty('--toast-color',color);el.innerHTML=`<b>${escV9(title)}</b><span>${escV9(body)}</span>`;host.appendChild(el);entry={el,count:1,timer:setTimeout(()=>{el.remove();V9.notificationMap.delete(mapKey);},3200)};V9.notificationMap.set(mapKey,entry);
+  }
+
+  function v9OwnedWeapons(){
+    if(!player)return[];return V9_WEAPONS.map(w=>{const lv=w.level?Number(w.level(player)||0):Number(player[w.prop]||0);return Object.assign({},w,{lv});}).filter(w=>w.lv>0);
+  }
+  function v9CooldownText(w){if(!player)return'';const cd=Math.max(1,Number(w.cd?.(player)||1));const t=clampV9(Number(w.timer?.(player)||0),0,cd);if(cd<=2)return'';const rem=Math.max(0,(cd-t)/60);return rem<=.05?'READY':`${rem.toFixed(rem<10?1:0)}s`;}
+  function v9UpdateWeaponDock(force=false){
+    const dock=$('nsvV9WeaponDock'),bar=$('nsvV9SynergyBar');if(!dock||!bar)return;const active=gameState==='playing'&&!!player;dock.classList.toggle('hidden',!active);bar.classList.toggle('hidden',!active);if(!active)return;
+    const owned=v9OwnedWeapons();const sig=owned.map(w=>`${w.id}:${w.lv}:${v9CooldownText(w)}:${w.evo?.(player)||''}`).join('|');if(force||sig!==V9.lastWeaponSignature){V9.lastWeaponSignature=sig;dock.innerHTML=owned.map(w=>{const e=w.evo?.(player)||'';const ready=v9CooldownText(w)==='READY';return `<button class="nsv-v9-weapon-card${ready?' ready':''}" data-v9-weapon="${escV9(w.id)}"><b>${w.icon}</b><span>${escV9(w.name)}</span><small>Lv${w.lv}${w.lv>=w.max?' MAX':''} ${escV9(v9CooldownText(w))}</small>${e?`<i style="position:absolute;right:2px;top:1px;color:#facc15;font-size:9px">${escV9(e)}</i>`:''}</button>`;}).join('');}
+    const synergies=v9GetSynergies();bar.innerHTML=synergies.map(x=>`<span class="nsv-v9-synergy">${escV9(x.name)}</span>`).join('');
+  }
+  function v9GetSynergies(){if(!player)return[];const a=[];if(player.bladeRingLevel>0&&player.electricFieldLevel>0&&!player.evoThunderBlade)a.push({id:'bladeThunder',name:'⚡ 帯電円環'});if(player.onlineSniperLevel>0&&player.onlineGravityLevel>0)a.push({id:'sniperGravity',name:'🎯 重力貫通'});if((player.onlineShieldLevel>0||player.shieldLevel>0))a.push({id:'shieldBullet',name:'🛡 盾砲台'});if(player.onlineBounceBombLevel>0&&player.voidTempestLevel>0)a.push({id:'bombVoid',name:'💣 暴風連爆'});for(const x of a)V9.runMetrics.synergies.add(x.id);return a;}
+
+  function v9LayoutNonOverlap(){
+    const header=$('uiLayer')?.querySelector(':scope > .flex.justify-between.items-start');
+    const boss=$('bossHpContainer');
+    const warning=$('nsvV9NotifyWarning');
+    const achievement=$('nsvV9NotifyAchievement');
+    const mission=$('nsvV9NotifyMission');
+    const item=$('nsvV9NotifyItem');
+    const bars=$('uiLayer')?.querySelector(':scope > .w-full.max-w-2xl');
+    let top=8;
+    if(header&&getComputedStyle(header).display!=='none') top=Math.max(top,header.getBoundingClientRect().bottom+7);
+    if(boss&&!boss.classList.contains('hidden')&&getComputedStyle(boss).display!=='none') top=Math.max(top,boss.getBoundingClientRect().bottom+7);
+    if(warning) warning.style.top=`${Math.round(top)}px`;
+    const sideTop=top+50;
+    if(achievement) achievement.style.top=`${Math.round(sideTop)}px`;
+    if(mission) mission.style.top=`${Math.round(sideTop)}px`;
+    if(bars){const r=bars.getBoundingClientRect();const bottomGap=Math.max(175,innerHeight-r.top+62);if(item)item.style.bottom=`${Math.round(bottomGap)}px`;}
+  }
+
+  function v9UpdateHud(){
+    const active=gameState==='playing'&&!!player;for(const id of ['nsvV9AutoCollect','nsvV9RuleHud','nsvV9MapHint'])$(id)?.classList.toggle('hidden',!active);if(!active){$('nsvV9WeaponDock')?.classList.add('hidden');$('nsvV9SynergyBar')?.classList.add('hidden');return;}
+    const bars=$('uiLayer')?.querySelector(':scope > .w-full.max-w-2xl');bars?.classList.toggle('nsv-v9-low-hp',Number(player.hp)<=30);bars?.classList.toggle('nsv-v9-exp-ready',(player.expToNext>0&&player.exp/player.expToNext>=.88));
+    const auto=$('nsvV9AutoCollect');if(auto){const rem=Math.max(0,Math.ceil(V9.autoReadyAt-Number(gameTime||0)));auto.disabled=rem>0;auto.innerHTML=`AUTO<br><span>${rem>0?`${rem}s`:'READY'}</span>`;}
+    const rule=$('nsvV9RuleHud');if(rule){if(V9.rule){rule.textContent=`${V9.rule.icon} ${V9.rule.name} 残り${Math.max(0,Math.ceil(V9.rule.end-gameTime))}秒`;rule.classList.remove('hidden');}else rule.classList.add('hidden');}
+    const hint=$('nsvV9MapHint');if(hint){let nearest=null,nd=Infinity;for(const e of V9.mapEvents){if(e.used)continue;const d=Math.hypot(e.x-player.x,e.y-player.y);if(d<nd){nd=d;nearest=e;}}if(nearest&&nd<900){hint.textContent=`${nearest.icon} ${nearest.name} まで ${Math.round(nd)}m`;hint.classList.remove('hidden');}else hint.classList.add('hidden');}
+    const boss=enemies?.find(e=>e&&!e.markedForDeletion&&(e.isBoss||e.isMidBoss||e.isMonkey));if(boss&&$('bossNameDisplay')){$('bossNameDisplay').textContent=`${boss.nsvV9BossName||boss.bossPattern||'BOSS'}  PHASE ${boss.nsvV9Phase||1}`;}
+    v9UpdateWeaponDock();v9LayoutNonOverlap();
+  }
+
+  function v9CollectGems(limit=30,allVisible=false){if(!player||!Array.isArray(gems))return 0;let candidates=gems.filter(g=>g&&!g.markedForDeletion).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y));if(!allVisible)candidates=candidates.filter(g=>Math.hypot(g.x-player.x,g.y-player.y)<850);let n=0;for(const g of candidates.slice(0,limit)){g.markedForDeletion=true;try{recordGemPickup(g.value);}catch(_){}player.gainExp(Number(g.value)||1);n++;}for(let i=gems.length-1;i>=0;i--)if(gems[i]?.markedForDeletion)gems.splice(i,1);V9.runMetrics.autoCollected+=n;return n;}
+
+  class V9HomingBullet{
+    constructor(x,y,damage=10){this.x=x;this.y=y;this.damage=damage;this.radius=6;this.speed=3.2;this.angle=player?Math.atan2(player.y-y,player.x-x):0;this.vx=Math.cos(this.angle)*this.speed;this.vy=Math.sin(this.angle)*this.speed;this.life=420;this.markedForDeletion=false;this.isEnemyBullet=true;this.nsvV9Homing=true;this.color='#d8b4fe';}
+    update(){if(player){const a=Math.atan2(player.y-this.y,player.x-this.x);this.vx=this.vx*.93+Math.cos(a)*this.speed*.07;this.vy=this.vy*.93+Math.sin(a)*this.speed*.07;}const slow=V9.rule?.id==='bulletSlow'?.52:1;this.x+=this.vx*slow;this.y+=this.vy*slow;if(--this.life<=0)this.markedForDeletion=true;}
+    draw(c){c.save();c.beginPath();c.arc(this.x,this.y,this.radius,0,Math.PI*2);c.fillStyle='#c084fc';c.shadowBlur=14;c.shadowColor='#a855f7';c.fill();c.restore();}
+  }
+
+  function v9RolePool(){const t=Number(gameTime||0);const p=['brute','speed'];if(t>=180)p.push('hunter');if(t>=360)p.push('support','poison');if(t>=600)p.push('phase');return p;}
+  function v9EnsureEnemyRole(e){
+    if(!e||e.markedForDeletion||e.isCharmed||e.isBoss||e.isMidBoss||e.isMonkey||isOnlineMode)return;if(e.nsvV9Role)return;const role=randV9(v9RolePool())||'brute';e.nsvV9Role=role;e.nsvV9RoleTimer=Math.floor(Math.random()*120);
+    const data={brute:['赤・強攻撃','#ef4444'],speed:['青・高速','#38bdf8'],hunter:['紫・追尾弾','#c084fc'],support:['黄・強化支援','#facc15'],phase:['白・周期無敵','#f8fafc'],poison:['緑・毒残留','#22c55e']}[role];e.nsvV9RoleName=data[0];e.nsvV9RoleColor=data[1];e.color=data[1];
+    if(role==='brute')e.damage*=1.35;if(role==='speed')e.speed*=1.32;if(role==='phase')e.nsvV9PhaseCycle=0;
+    const eliteChance=Number(gameTime||0)>120?.045:.012;if(Math.random()<eliteChance){const kinds=['healer','puller','splitter','shield','chest'];e.nsvV9Elite=randV9(kinds);e.radius*=1.45;e.hp*=4;e.maxHp=e.hp;e.damage*=1.35;e.expValue*=4;V9.runMetrics.elites++;}
+  }
+
+  const v9OldEnemyTakeDamage=Enemy.prototype.takeDamage;
+  Enemy.prototype.takeDamage=function(amount,source=null){
+    v9EnsureEnemyRole(this);if(this.nsvV9Role==='phase'&&this.nsvV9Invulnerable&&Number(amount)<999999){if(frameCount%20===0)floatingTexts.push(new FloatingText(this.x,this.y-this.radius-12,'PHASE','#fff',12));return;}
+    if(this.nsvV9Elite==='shield')amount*=.46;return v9OldEnemyTakeDamage.call(this,amount,source);
+  };
+
+  const v9OldEnemyUpdate=Enemy.prototype.update;
+  Enemy.prototype.update=function(){
+    v9EnsureEnemyRole(this);const isBossLike=this.isBoss||this.isMidBoss||this.isMonkey;const oldType=this.type,oldSpeed=this.speed;
+    if(isBossLike){this.type=0;if(this.nsvV9Telegraph)this.speed=0;}
+    if(this.nsvV9BuffTimer>0){if(this.nsvV9BaseDamage==null)this.nsvV9BaseDamage=this.damage;this.nsvV9BuffTimer--;this.speed*=1.18;this.damage=this.nsvV9BaseDamage*1.2;}else if(this.nsvV9BaseDamage!=null){this.damage=this.nsvV9BaseDamage;delete this.nsvV9BaseDamage;}if(V9.rule?.id==='enemySpeed')this.speed*=1.9;if(V9.stage>=2&&!isBossLike)this.speed*=1.12;
+    if(isBossLike&&this.nsvV9Phase===2)this.speed*=1.12;if(isBossLike&&this.nsvV9Phase===3)this.speed*=1.27;
+    let ret;try{ret=v9OldEnemyUpdate.call(this);}finally{this.type=oldType;this.speed=oldSpeed;}
+    if(isOnlineMode)return ret;
+    this.nsvV9RoleTimer=(this.nsvV9RoleTimer||0)+1;
+    if(this.nsvV9Role==='hunter'&&this.nsvV9RoleTimer%190===0&&enemyBullets.length<420)enemyBullets.push(new V9HomingBullet(this.x,this.y,Math.max(6,this.damage*.55)));
+    if(this.nsvV9Role==='support'&&this.nsvV9RoleTimer%90===0){for(const o of enemies){if(o&&o!==this&&!o.markedForDeletion&&!o.isCharmed&&Math.hypot(o.x-this.x,o.y-this.y)<240)o.nsvV9BuffTimer=100;}}
+    if(this.nsvV9Role==='phase'){this.nsvV9PhaseCycle=(this.nsvV9PhaseCycle||0)+1;this.nsvV9Invulnerable=(this.nsvV9PhaseCycle%260)<50;}
+    if(this.nsvV9Elite==='healer'&&this.nsvV9RoleTimer%100===0){for(const o of enemies){if(o&&o!==this&&!o.markedForDeletion&&Math.hypot(o.x-this.x,o.y-this.y)<260)o.hp=Math.min(o.maxHp,o.hp+o.maxHp*.08);}}
+    if(this.nsvV9Elite==='puller'&&player&&this.nsvV9RoleTimer%4===0){const d=Math.hypot(this.x-player.x,this.y-player.y);if(d<330&&d>1){player.x+=(this.x-player.x)/d*1.7;player.y+=(this.y-player.y)/d*1.7;}}
+    return ret;
+  };
+
+  const v9OldEnemyDraw=Enemy.prototype.draw;
+  Enemy.prototype.draw=function(c){const r=v9OldEnemyDraw.call(this,c);if(this.nsvV9Role&&!this.isBoss&&!this.isMidBoss&&!this.isMonkey){c.save();c.beginPath();c.arc(this.x,this.y,this.radius+5,0,Math.PI*2);c.strokeStyle=this.nsvV9RoleColor||'#fff';c.lineWidth=this.nsvV9Elite?4:2;c.globalAlpha=this.nsvV9Invulnerable?.95:.65;c.setLineDash(this.nsvV9Elite?[6,4]:[]);c.stroke();if(this.nsvV9Elite){c.fillStyle='#fff';c.font='900 11px sans-serif';c.textAlign='center';c.fillText(`ELITE ${String(this.nsvV9Elite).toUpperCase()}`,this.x,this.y-this.radius-12);}c.restore();}return r;};
+
+  const v9OldEnemyDie=Enemy.prototype.die;
+  Enemy.prototype.die=function(source=null){
+    if(this.markedForDeletion)return;const bossLike=this.isBoss||this.isMidBoss||this.isMonkey;const x=this.x,y=this.y;const role=this.nsvV9Role,elite=this.nsvV9Elite;
+    const ret=v9OldEnemyDie.call(this,source);
+    if(!isOnlineMode){
+      if(role==='poison')V9.hazards.push({type:'poison',x,y,r:78,life:420,tick:0});
+      if(elite==='splitter'&&player){for(let i=0;i<2&&enemies.length<500;i++){const e=new Enemy(x+(Math.random()-.5)*80,y+(Math.random()-.5)*80,1);e.hp*=.65;e.maxHp=e.hp;enemies.push(e);}}
+      if(elite==='chest'){userData.coins=(userData.coins||0)+120;v9Notify('item','ELITE CHEST','120コイン獲得','elite-chest','#facc15');try{saveData();}catch(_){} }
+      if(bossLike){v9CollectGems(60,true);if(gameState!=='gameover'){V9.pendingBossRewards++;setTimeout(v9TryBossReward,280);}}
+    }
+    return ret;
+  };
+
+  function v9UpdateHazards(){for(const h of V9.hazards){h.life--;h.tick++;if(h.type==='poison'&&player&&Math.hypot(player.x-h.x,player.y-h.y)<h.r&&h.tick%50===0)player.takeDamage(6);if(h.type==='warningZone'&&h.life===60&&player&&Math.hypot(player.x-h.x,player.y-h.y)<h.r)player.takeDamage(h.damage||10);}V9.hazards=V9.hazards.filter(h=>h.life>0);}
+
+  function v9MapEventDef(type){return {heal:{name:'回復ゾーン',icon:'✚',color:'#22c55e'},power:{name:'攻撃力アップ',icon:'⚔',color:'#f97316'},chest:{name:'宝箱',icon:'🎁',color:'#facc15'},danger:{name:'危険区域',icon:'⚠',color:'#ef4444'},exchange:{name:'武器交換装置',icon:'⇄',color:'#22d3ee'},coin:{name:'コインエリア',icon:'◆',color:'#fde047'}}[type];}
+  function v9SpawnMapEvent(forceType=null){if(!player||isOnlineMode||V9.mapEvents.filter(e=>!e.used).length>=3)return;const types=['heal','power','chest','danger','exchange','coin'];const type=forceType||randV9(types);const d=v9MapEventDef(type),a=Math.random()*Math.PI*2,dist=520+Math.random()*620;V9.mapEvents.push({type,name:d.name,icon:d.icon,color:d.color,x:player.x+Math.cos(a)*dist,y:player.y+Math.sin(a)*dist,r:type==='heal'||type==='power'?110:72,life:type==='heal'||type==='power'?1800:2400,used:false,tick:0});V9.runMetrics.mapEvents++;v9Notify('item','MAP EVENT',`${d.icon} ${d.name}が近くに出現`,'map-event','#86efac');}
+  function v9UpdateMapEvents(){
+    if(isOnlineMode||!player)return;const now=Number(gameTime||0);if(now>25&&now-V9.lastMapEventAt>65){V9.lastMapEventAt=now;v9SpawnMapEvent();}
+    for(const e of V9.mapEvents){if(e.used)continue;e.life--;e.tick++;const d=Math.hypot(player.x-e.x,player.y-e.y);if(d>e.r)continue;
+      if(e.type==='heal'){if(e.tick%30===0){player.hp=Math.min(player.maxHp,player.hp+Math.max(2,player.maxHp*.025));updateUI();}}
+      else if(e.type==='power'){V9.powerTimer=300;v9Notify('item','POWER ZONE','攻撃力が一時上昇','power-zone','#fb923c');}
+      else if(e.type==='chest'){e.used=true;userData.coins=(userData.coins||0)+180;v9Notify('item','TREASURE','180コイン＋経験値獲得','map-chest','#facc15');player.gainExp(Math.max(8,player.expToNext*.55));try{saveData();}catch(_){} }
+      else if(e.type==='danger'){e.used=true;V9.dangerTimer=1800;v9Notify('warning','DANGER ZONE','30秒間、敵が増加','danger-zone','#ef4444');}
+      else if(e.type==='exchange'){e.used=true;v9OpenExchange();}
+      else if(e.type==='coin'){e.used=true;const amount=300;userData.coins=(userData.coins||0)+amount;v9Notify('item','COIN AREA',`${amount}コイン獲得`,'coin-area','#fde047');try{saveData();}catch(_){} }
+    }
+    V9.mapEvents=V9.mapEvents.filter(e=>!e.used&&e.life>0);
+    if(V9.dangerTimer>0){V9.dangerTimer--;if(V9.dangerTimer%12===0&&enemies.length<500){try{spawnEnemy();}catch(_){}}}
+    if(V9.powerTimer>0)V9.powerTimer--;
+  }
+
+  function v9OpenExchange(){if(V9.exchangeOpen||gameState!=='playing')return;V9.exchangeOpen=true;gameState='paused';if(animationId)cancelAnimationFrame(animationId);$('nsvV9ExchangeModal')?.classList.remove('hidden');resetJoystick();}
+  function v9ExchangeWeapon(doIt){
+    $('nsvV9ExchangeModal')?.classList.add('hidden');if(doIt&&player){const owned=V9_EXCHANGE_WEAPONS.filter(w=>Number(player[w.prop]||0)>0);const missing=V9_EXCHANGE_WEAPONS.filter(w=>Number(player[w.prop]||0)<=0);const from=randV9(owned),to=randV9(missing);if(from&&to){player[from.prop]=0;player[to.prop]=1;const timerProp=Object.keys(player).find(k=>k.toLowerCase().includes(to.id.toLowerCase())&&k.endsWith('Timer'));if(timerProp)player[timerProp]=9999;v9Notify('item','WEAPON EXCHANGE',`${from.name} → ${to.name}`,'weapon-exchange','#67e8f9');}else v9Notify('item','WEAPON EXCHANGE','交換できる武器がありません','weapon-exchange','#94a3b8');}
+    V9.exchangeOpen=false;gameState='playing';lastTime=performance.now();animationId=requestAnimationFrame(gameLoop);v9UpdateWeaponDock(true);
+  }
+
+  function v9GetPendingEvolution(){if(!player)return null;if((player.nsvV9BasicBulletLevel||1)>=5&&!player.nsvV9BasicBranch)return {id:'basic',name:'通常弾',choices:[{name:'高速型・ネオンラッシュ',desc:'連射速度が大幅上昇。1発の威力は少し下がる。',apply(){player.nsvV9BasicBranch='rapid';player.fireRate=Math.max(10,player.fireRate*.52);player.damage*=.88;}},{name:'貫通型・レールバレット',desc:'威力と貫通数が上昇。多数の敵を一直線に倒す。',apply(){player.nsvV9BasicBranch='pierce';player.pierce+=5;player.damage*=1.28;}}]};if((player.onlineSniperLevel||0)>=5&&!player.nsvV9SniperBranch)return {id:'sniper',name:'スナイパー',choices:[{name:'一撃型・ボスブレイカー',desc:'射撃間隔は長いが、1発の威力が約2倍。',apply(){player.nsvV9SniperBranch='power';}},{name:'連射型・ファントムバースト',desc:'威力を少し下げ、発射速度を約2倍にする。',apply(){player.nsvV9SniperBranch='rapid';}}]};return null;}
+  function v9ShowEvolutionChoice(def){
+    if(!def)return false;const modal=$('nsvV9BossReward'),box=$('nsvV9BossChoices');if(!modal||!box)return false;gameState='levelup';if(animationId)cancelAnimationFrame(animationId);modal.querySelector('h2').textContent=`${def.name}：進化先を選択`;modal.querySelector('p').textContent='この選択は今回のプレイ中、変更できません。';box.innerHTML=def.choices.map((c,i)=>`<button class="nsv-v9-choice" data-v9-evo="${i}"><b>${escV9(c.name)}</b>${escV9(c.desc)}</button>`).join('');box.querySelectorAll('[data-v9-evo]').forEach(btn=>btn.addEventListener('click',()=>{const c=def.choices[Number(btn.dataset.v9Evo)];c.apply();modal.classList.add('hidden');v9Notify('item','BRANCH EVOLUTION',c.name,'branch-evolution','#facc15');gameState='playing';lastTime=performance.now();animationId=requestAnimationFrame(gameLoop);v9UpdateWeaponDock(true);}));modal.classList.remove('hidden');return true;
+  }
+
+  function v9ApplySynergies(){
+    if(!player||isOnlineMode)return;const syn=v9GetSynergies();const ids=new Set(syn.map(x=>x.id));
+    if(ids.has('bladeThunder')&&frameCount%55===0){const targets=enemies.filter(e=>e&&!e.markedForDeletion&&!e.isCharmed).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y)).slice(0,Math.min(3,player.electricFieldLevel));for(const e of targets){e.takeDamage(8+player.bladeRingLevel*8+player.electricFieldLevel*7);effects.length<50&&effects.push(new LightningStrikeEffect(e.x,e.y));}}
+    if(ids.has('sniperGravity')){for(const b of sniperBullets){if(!b.nsvV9GravityPierce){b.nsvV9GravityPierce=true;b.pierce=(b.pierce||1)+3;b.damage*=1.18;}}}
+    if(ids.has('shieldBullet')&&frameCount%85===0){const target=enemies.find(e=>e&&!e.markedForDeletion&&!e.isCharmed);if(target&&bullets.length<260){const a=Math.atan2(target.y-player.y,target.x-player.x);bullets.push(new Bullet(player.x,player.y,a,player.damage*.72,player.bulletSpeed,5,2,'#bfdbfe','#3b82f6'));}}
+    if(ids.has('bombVoid')){for(const b of bounceBombs){if(!b||b.markedForDeletion)continue;let nearest=null,nd=Infinity;for(const e of enemies){if(e.markedForDeletion||e.isCharmed)continue;const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<nd){nd=d;nearest=e;}}if(nearest&&nd<260){b.x+=(nearest.x-b.x)*.025;b.y+=(nearest.y-b.y)*.025;if(nd<70&&frameCount%12===0){for(const e of enemies)if(!e.markedForDeletion&&Math.hypot(e.x-b.x,e.y-b.y)<150)e.takeDamage((b.damage||20)*.35);}}}}
+    for(const b of sniperBullets){if(!b||b.nsvV9BranchApplied)continue;b.nsvV9BranchApplied=true;if(player.nsvV9SniperBranch==='power'){b.damage*=2.05;b.pierce=Math.max(1,b.pierce||1);}if(player.nsvV9SniperBranch==='rapid')b.damage*=.72;}
+    if(player.nsvV9SniperBranch==='rapid'&&player.onlineSniperTimer>0)player.onlineSniperTimer+=.8;
+  }
+
+  function v9BossType(b){if(b.nsvV9BossType)return b.nsvV9BossType;const list=['charge','bullet','summon','shield','zone'];const idx=Math.abs(Math.floor((b.x+b.y+(gameTime||0)*13)))%list.length;b.nsvV9BossType=list[idx];b.nsvV9BossName={charge:'突進型ボス',bullet:'弾幕型ボス',summon:'召喚型ボス',shield:'防壁型ボス',zone:'危険地帯型ボス'}[b.nsvV9BossType];return b.nsvV9BossType;}
+  function v9StartBossTelegraph(b,kind,phase){const a=Math.atan2(player.y-b.y,player.x-b.x);b.nsvV9Telegraph={kind,timer:phase===3?42:58,max:phase===3?42:58,angle:a,targetX:player.x,targetY:player.y,phase};try{Sound.playTone(260,'square',.12,.055);setTimeout(()=>Sound.playTone(520,'square',.1,.04),110);}catch(_){}v9Notify('warning','BOSS ATTACK',`${b.nsvV9BossName||'BOSS'}：攻撃予告`,'boss-telegraph','#ef4444');}
+  function v9ExecuteBossAttack(b,t){if(!b||b.markedForDeletion||!player)return;const kind=t.kind,a=t.angle,phase=t.phase||1;try{Sound.bossSpawn();}catch(_){}if(kind==='charge'){b.x+=Math.cos(a)*(phase===3?300:220);b.y+=Math.sin(a)*(phase===3?300:220);effects.push(new Shockwave(b.x,b.y,'#fb923c',10,260));if(Math.hypot(player.x-b.x,player.y-b.y)<200)player.takeDamage(Math.max(10,b.damage*.18));}
+    else if(kind==='bullet'){const count=phase===1?10:phase===2?15:22;for(let i=0;i<count&&enemyBullets.length<450;i++)enemyBullets.push(new Bullet(b.x,b.y,Math.PI*2*i/count+(gameTime||0)*.04,b.damage*.25,phase===3?5.3:4.2,5,1,'#67e8f9','#06b6d4',true));if(phase===3)for(let i=0;i<3;i++)enemyBullets.push(new V9HomingBullet(b.x,b.y,b.damage*.22));}
+    else if(kind==='summon'){const count=phase===3?5:phase===2?4:3;for(let i=0;i<count&&enemies.length<500;i++){const e=new Enemy(b.x+(Math.random()-.5)*190,b.y+(Math.random()-.5)*190,i%2?1:5);enemies.push(e);}}
+    else if(kind==='shield'){b.nsvV9BossShield=phase===3?150:95;effects.push(new Shockwave(b.x,b.y,'#fde047',8,b.radius*4));}
+    else if(kind==='zone'){const count=phase===3?5:3;for(let i=0;i<count;i++)V9.hazards.push({type:'warningZone',x:player.x+(Math.random()-.5)*420,y:player.y+(Math.random()-.5)*420,r:90,life:150,tick:0,damage:Math.max(8,b.damage*.13)});}
+  }
+  function v9BossUpdate(){
+    if(isOnlineMode||!player)return;for(const b of enemies){if(!b||b.markedForDeletion||!(b.isBoss||b.isMidBoss||b.isMonkey))continue;if(b.isBeginnerBoss||player.level<=6){b.nsvV9Phase=1;b.nsvV9BossName='初心者ボス';b.nsvV9Telegraph=null;continue;}const ratio=clampV9(b.hp/Math.max(1,b.maxHp),0,1);const phase=ratio>.7?1:ratio>.3?2:3;b.nsvV9Phase=phase;v9BossType(b);if(b.nsvV9BossShield>0)b.nsvV9BossShield--;if(b.nsvV9Telegraph){b.nsvV9Telegraph.timer--;if(b.nsvV9Telegraph.timer<=0){const t=b.nsvV9Telegraph;b.nsvV9Telegraph=null;v9ExecuteBossAttack(b,t);}continue;}b.nsvV9SkillTimer=(b.nsvV9SkillTimer||0)+1;const interval=phase===1?220:phase===2?160:112;if(b.nsvV9SkillTimer>=interval){b.nsvV9SkillTimer=0;let kind=b.nsvV9BossType;if(phase===3&&Math.random()<.35)kind=randV9(['bullet','zone','charge']);v9StartBossTelegraph(b,kind,phase);}}
+  }
+  const v9TakeDamageBossShield=Enemy.prototype.takeDamage;
+  Enemy.prototype.takeDamage=function(amount,source=null){if((this.isBoss||this.isMidBoss||this.isMonkey)&&this.nsvV9BossShield>0&&Number(amount)<999999){if(frameCount%15===0)floatingTexts.push(new FloatingText(this.x,this.y-this.radius-15,'BARRIER','#fde047',13));return;}return v9TakeDamageBossShield.call(this,amount,source);};
+  try{triggerAdvancedBossPattern=function(){};}catch(_){}
+
+  function v9BossRewards(){return [
+    {id:'evolve',name:'武器を強化・進化',desc:'所持武器を1つ強化。進化可能なら分岐進化する。',apply(){const p=v9GetPendingEvolution();if(p){setTimeout(()=>v9ShowEvolutionChoice(p),80);return 'defer';}const w=randV9(V9_EXCHANGE_WEAPONS.filter(x=>Number(player[x.prop]||0)>0));if(w)player[w.prop]=Math.min(7,Number(player[w.prop]||0)+1);}},
+    {id:'hp',name:'最大HP＋20',desc:'最大HPを20増やし、HPを大きく回復。',apply(){player.maxHp+=20;player.hp=Math.min(player.maxHp,player.hp+Math.max(30,player.maxHp*.45));updateUI();}},
+    {id:'coin',name:'コイン報酬2倍',desc:'今回のプレイ終了時に獲得するコインが2倍。',apply(){V9.coinMultiplier=Math.max(2,V9.coinMultiplier);}},
+    {id:'revive',name:'復活回数＋1',desc:'HPが0になった時、一度だけ50％で復活。',apply(){player.nsvV9Revives=(player.nsvV9Revives||0)+1;}},
+    {id:'rare',name:'レア武器確定',desc:'未所持の強力な武器をランダムで1つ獲得。',apply(){const w=randV9(V9_EXCHANGE_WEAPONS.filter(x=>Number(player[x.prop]||0)<=0));if(w){player[w.prop]=1;v9Notify('item','RARE WEAPON',w.name,'rare-weapon','#facc15');}else{player.damage*=1.18;}}}
+  ];}
+  function v9TryBossReward(){if(V9.pendingBossRewards<=0||V9.bossRewardOpen||V9.exchangeOpen||gameState==='gameover'||isOnlineMode)return;if(gameState!=='playing'){setTimeout(v9TryBossReward,300);return;}V9.pendingBossRewards--;V9.bossRewardOpen=true;gameState='paused';if(animationId)cancelAnimationFrame(animationId);resetJoystick();const modal=$('nsvV9BossReward'),box=$('nsvV9BossChoices');modal.querySelector('h2').textContent='ボス撃破報酬';modal.querySelector('p').textContent='3つから1つ選んでください。';const options=[];const pool=v9BossRewards();while(options.length<3&&pool.length){options.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);}box.innerHTML=options.map((o,i)=>`<button class="nsv-v9-choice" data-v9-reward="${i}"><b>${escV9(o.name)}</b>${escV9(o.desc)}</button>`).join('');box.querySelectorAll('[data-v9-reward]').forEach(btn=>btn.addEventListener('click',()=>{const o=options[Number(btn.dataset.v9Reward)];const mode=o.apply();modal.classList.add('hidden');V9.bossRewardOpen=false;v9Notify('item','BOSS REWARD',o.name,'boss-reward','#facc15');if(mode!=='defer'){gameState='playing';lastTime=performance.now();animationId=requestAnimationFrame(gameLoop);}v9UpdateWeaponDock(true);}));modal.classList.remove('hidden');}
+
+  const v9OldPlayerTakeDamage=Player.prototype.takeDamage;
+  Player.prototype.takeDamage=function(amount){if((this.nsvV9Revives||0)>0&&this.hp-Number(amount||0)<=0){this.nsvV9Revives--;this.hp=Math.max(1,this.maxHp*.5);this.invincibleTimer=180;updateUI();v9Notify('warning','REVIVE','50％HPで復活しました','revive','#86efac');return;}return v9OldPlayerTakeDamage.call(this,amount);};
+  const v9OldGainExp=Player.prototype.gainExp;
+  Player.prototype.gainExp=function(amount){const mult=V9.rule?.id==='expDouble'?2:1;return v9OldGainExp.call(this,Number(amount||0)*mult);};
+  const v9OldProcessLevel=Player.prototype.processLevelUp;
+  Player.prototype.processLevelUp=function(){v9CollectGems(20,false);return v9OldProcessLevel.call(this);};
+
+  function v9StageUpdate(){
+    if(!player||isOnlineMode)return;const s=Math.floor(Number(gameTime||0)/600);if(s!==V9.stage){V9.stage=s;document.body.classList.toggle('nsv-v9-stage-night',s===1||s===2);document.body.classList.toggle('nsv-v9-stage-underworld',s===3);const names=['通常ステージ','夜のステージ','強化敵ステージ','裏世界','ボス連続ステージ'];const name=names[Math.min(s,4)]||'極限ステージ';v9Notify('warning','STAGE CHANGE',name,'stage-change','#c084fc');try{Sound.playChord([220,330,440],'triangle',.25,.05,70);}catch(_){} }
+    if(s>=4&&frameCount%5400===0&&!enemies.some(e=>e&&(e.isBoss||e.isMonkey))){const a=Math.random()*Math.PI*2,d=Math.max(width,height)*.7+150;const b=new Enemy(player.x+Math.cos(a)*d,player.y+Math.sin(a)*d,3);b.isBoss=true;b.maxHp=b.hp;enemies.push(b);triggerBossWarning();}
+  }
+
+  const V9_RULES=[
+    {id:'enemySpeed',name:'敵速度2倍',icon:'⚠',duration:30},
+    {id:'expDouble',name:'経験値2倍',icon:'✦',duration:20},
+    {id:'healRain',name:'回復ラッシュ',icon:'✚',duration:20},
+    {id:'bossFast',name:'小型高速ボス',icon:'👑',duration:25},
+    {id:'weaponRapid',name:'全武器連射アップ',icon:'⚡',duration:25},
+    {id:'bulletSlow',name:'敵弾スロー',icon:'◌',duration:25}
+  ];
+  function v9RuleUpdate(){if(!player||isOnlineMode)return;const now=Number(gameTime||0);if(V9.rule&&now>=V9.rule.end){v9Notify('item','SPECIAL RULE END',V9.rule.name,'rule-end','#94a3b8');V9.rule=null;V9.nextRuleAt=now+150+Math.random()*70;}if(!V9.rule&&now>=V9.nextRuleAt){const r=Object.assign({},randV9(V9_RULES));r.end=now+r.duration;V9.rule=r;v9Notify('warning','SPECIAL RULE',`${r.name}（${r.duration}秒）`,'rule-start','#c084fc');}if(V9.rule?.id==='healRain'&&frameCount%90===0){player.hp=Math.min(player.maxHp,player.hp+Math.max(3,player.maxHp*.04));updateUI();}if(V9.rule?.id==='weaponRapid'){const timers=['fireTimer','electricFieldTimer','voidTempestTimer','onlineSniperTimer','onlineBounceTimer','onlineGravityTimer','onlineRailgunZeroTimer','onlineNeonChainTimer','onlinePlasmaMissileTimer'];for(const k of timers)if(Number(player[k])>=0)player[k]+=1;}if(V9.rule?.id==='bossFast'){for(const b of enemies){if(b&&(b.isBoss||b.isMonkey)){if(!b.nsvV9RuleSize){b.nsvV9RuleSize=b.radius;b.radius*=.72;}b.speed*=1.001;}}}else for(const b of enemies){if(b?.nsvV9RuleSize){b.radius=b.nsvV9RuleSize;delete b.nsvV9RuleSize;}}}
+
+  function v9UpdateRunSystems(){
+    V9.v9Frame++;v9ApplySynergies();v9UpdateHazards();v9UpdateMapEvents();v9BossUpdate();v9StageUpdate();v9RuleUpdate();
+    if(!isOnlineMode&&Number(gameTime||0)-V9.lastAutoSweep>=30){V9.lastAutoSweep=Number(gameTime||0);if(gems.filter(g=>g&&!g.markedForDeletion).length>30){const n=v9CollectGems(25,false);if(n)v9Notify('item','AUTO SWEEP',`${n}個を自動回収`,'auto-sweep','#67e8f9');}}
+    if(performance.now()-V9.lastHudUpdate>180){V9.lastHudUpdate=performance.now();v9UpdateHud();}
+  }
+
+  function v9DrawWorldOverlay(){
+    if(!ctx||!player)return;ctx.save();ctx.setTransform(1,0,0,1,0,0);
+    for(const h of V9.hazards){const x=h.x-camera.x,y=h.y-camera.y;if(h.type==='poison'){ctx.beginPath();ctx.arc(x,y,h.r,0,Math.PI*2);ctx.fillStyle='rgba(34,197,94,.15)';ctx.fill();ctx.strokeStyle='#22c55e';ctx.setLineDash([8,6]);ctx.stroke();}else if(h.type==='warningZone'){ctx.beginPath();ctx.arc(x,y,h.r,0,Math.PI*2);ctx.fillStyle=`rgba(239,68,68,${h.life>60?.12:.28})`;ctx.fill();ctx.strokeStyle='#ef4444';ctx.lineWidth=3;ctx.stroke();}}
+    for(const e of V9.mapEvents){const x=e.x-camera.x,y=e.y-camera.y,p=1+Math.sin((frameCount+e.x)*.08)*.06;ctx.beginPath();ctx.arc(x,y,e.r*p,0,Math.PI*2);ctx.fillStyle=e.color+'22';ctx.fill();ctx.strokeStyle=e.color;ctx.lineWidth=3;ctx.setLineDash([10,6]);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#fff';ctx.font=`900 ${Math.max(18,e.r*.3)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(e.icon,x,y);ctx.font='800 12px sans-serif';ctx.fillText(e.name,x,y+e.r+17);}
+    for(const b of enemies){if(!b?.nsvV9Telegraph)continue;const t=b.nsvV9Telegraph,bx=b.x-camera.x,by=b.y-camera.y,tx=t.targetX-camera.x,ty=t.targetY-camera.y,progress=t.timer/t.max;ctx.strokeStyle='#ef4444';ctx.fillStyle='rgba(239,68,68,.12)';ctx.lineWidth=4;ctx.setLineDash([12,7]);if(t.kind==='charge'){ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(tx,ty);ctx.stroke();}else{ctx.beginPath();ctx.arc(tx,ty,t.kind==='zone'?115:80,0,Math.PI*2);ctx.fill();ctx.stroke();}ctx.setLineDash([]);ctx.beginPath();ctx.arc(bx,by,(b.radius||40)+18,-Math.PI/2,-Math.PI/2+Math.PI*2*(1-progress));ctx.strokeStyle='#facc15';ctx.lineWidth=6;ctx.stroke();}
+    if(V9.stage===1){ctx.fillStyle='rgba(2,6,23,.12)';ctx.fillRect(0,0,width,height);}if(V9.stage===3){ctx.fillStyle='rgba(76,29,149,.08)';ctx.fillRect(0,0,width,height);}ctx.restore();
+  }
+
+  function v9RenderProgressSummary(){
+    const screen=$('gameOverScreen');if(!screen)return;let box=$('nsvV9ProgressSummary');if(!box){box=document.createElement('div');box.id='nsvV9ProgressSummary';const btn=$('restartBtn');if(btn&&btn.parentNode===screen)screen.insertBefore(box,btn);else screen.appendChild(box);}
+    const r=userData?.retention||{},snap=V9.runSnapshot||{},mastery=r.mastery||{};const gained=[];for(const [k,m] of Object.entries(mastery)){const before=Number(snap.mastery?.[k]?.xp||0),after=Number(m?.xp||0);if(after>before)gained.push(`${m.name||k} +${after-before}XP`);}const achNow=Object.keys(r.achievements||{}).filter(k=>!snap.achievements?.includes(k));const profileGain=Math.max(0,Number(r.profile?.xp||0)-Number(snap.profileXp||0));const currentScore=Math.floor(Number(score||0));const prev=Number(r.v9PreviousScore||0);const improve=currentScore-prev;r.v9PreviousScore=currentScore;
+    box.innerHTML=`<div style="color:#67e8f9;font-weight:900;margin-bottom:8px">今回の成長</div><div class="nsv-v9-progress-grid"><div class="nsv-v9-progress-item"><b>武器熟練度</b><br>${escV9(gained.slice(0,3).join(' / ')||'今回の上昇なし')}</div><div class="nsv-v9-progress-item"><b>新しい実績</b><br>${escV9(achNow.length?`${achNow.length}件解除`:'解除なし')}</div><div class="nsv-v9-progress-item"><b>プレイヤー経験値</b><br>+${profileGain} XP</div><div class="nsv-v9-progress-item"><b>前回との比較</b><br>${improve>=0?`+${improve} SCORE`:`${improve} SCORE`}</div><div class="nsv-v9-progress-item"><b>自動回収</b><br>${V9.runMetrics.autoCollected}ジェム</div><div class="nsv-v9-progress-item"><b>発見</b><br>エリート${V9.runMetrics.elites}体 / イベント${V9.runMetrics.mapEvents}個</div></div>`;try{saveData();}catch(_){}
+  }
+
+  const v9OldInitGame=initGame;
+  initGame=function(mode='solo'){
+    const r=userData?.retention||{};V9.runSnapshot={mastery:JSON.parse(JSON.stringify(r.mastery||{})),achievements:Object.keys(r.achievements||{}),profileXp:Number(r.profile?.xp||0),score:Number(r.v9PreviousScore||0)};V9.mapEvents=[];V9.hazards=[];V9.lastMapEventAt=0;V9.dangerTimer=0;V9.powerTimer=0;V9.stage=-1;V9.rule=null;V9.nextRuleAt=160+Math.random()*50;V9.autoReadyAt=0;V9.lastAutoSweep=0;V9.pendingBossRewards=0;V9.bossRewardOpen=false;V9.exchangeOpen=false;V9.coinMultiplier=1;V9.runMetrics={autoCollected:0,elites:0,mapEvents:0,synergies:new Set(),newAchievements:[]};const ret=v9OldInitGame.call(this,mode);if(player){player.nsvV9BasicBulletLevel=1;player.nsvV9Revives=0;}setTimeout(()=>{v9EnsureUi();v9UpdateHud();},50);return ret;
+  };
+
+  const v9OldGameOver=gameOver;
+  gameOver=function(){const before=Number(userData?.coins||0);const ret=v9OldGameOver.apply(this,arguments);const earned=Math.max(0,Number(userData?.coins||0)-before);if(V9.coinMultiplier>1&&earned>0){const bonus=Math.floor(earned*(V9.coinMultiplier-1));userData.coins+=bonus;const el=$('earnedCoinsDisplay');if(el)el.textContent=`+${earned+bonus}`;try{if(userData.stats)userData.stats.totalCoinsEarned=(userData.stats.totalCoinsEarned||0)+bonus;saveData();}catch(_){} }setTimeout(v9RenderProgressSummary,30);return ret;};
+
+  const v9OldCloseLevelUp=closeLevelUpScreen;
+  closeLevelUpScreen=function(){const ret=v9OldCloseLevelUp.apply(this,arguments);if(V9.pendingBossRewards>0)v9TryBossReward();return ret;};
+
+  const v9OldTriggerLevel=triggerLevelUpScreen;
+  triggerLevelUpScreen=function(){const evo=v9GetPendingEvolution();if(evo&&v9ShowEvolutionChoice(evo))return;return v9OldTriggerLevel.apply(this,arguments);};
+
+  const v9OldUpdateLogic=updateLogic;
+  updateLogic=function(){const baseDamage=player?.damage;if(player&&V9.powerTimer>0)player.damage=baseDamage*1.45;let ret;try{ret=v9OldUpdateLogic.apply(this,arguments);}finally{if(player&&baseDamage!=null)player.damage=baseDamage;}try{v9UpdateRunSystems();}catch(e){console.warn('[V9 systems]',e);}return ret;};
+  const v9OldDrawAll=drawAll;
+  drawAll=function(){const ret=v9OldDrawAll.apply(this,arguments);try{v9DrawWorldOverlay();}catch(e){console.warn('[V9 draw]',e);}return ret;};
+
+  const v9OldShowMissionToast=showMissionToast;
+  showMissionToast=function(title,body=''){v9Notify('mission',title,body,String(title),'#facc15');};
+
+  function v9ObserveLegacyToasts(){
+    const obs=new MutationObserver(()=>{const host=$('nsvV2ToastHost');if(!host)return;for(const card of Array.from(host.children)){if(card.dataset.v9Moved)return;card.dataset.v9Moved='1';const text=card.textContent.trim(),title=card.querySelector('b')?.textContent||'NOTICE',body=card.querySelector('span')?.textContent||'';let ch='item',color='#22d3ee';if(/実績|ACHIEVEMENT/.test(text)){ch='achievement';color='#c084fc';}else if(/ミッション|MISSION/.test(text)){ch='mission';color='#facc15';}else if(/BOSS|WARNING|危険/.test(text)){ch='warning';color='#ef4444';}v9Notify(ch,title,body,title,color);card.remove();}});obs.observe(document.body,{childList:true,subtree:true});
+  }
+
+  function v9BindWeaponDock(){const dock=$('nsvV9WeaponDock');dock?.addEventListener('click',e=>{const btn=e.target.closest('[data-v9-weapon]');if(!btn||!player)return;const w=V9_WEAPONS.find(x=>x.id===btn.dataset.v9Weapon);if(w)v9Notify('item',`${w.icon} ${w.name}`,`Lv${w.level?w.level(player):player[w.prop]||0}｜${w.desc}${w.evo?.(player)?`｜${w.evo(player)}`:''}`,`weapon-${w.id}`,'#67e8f9');});
+    const container=$('upgradesContainer');container?.addEventListener('click',e=>{const card=e.target.closest('.upgrade-card');if(!card||!player)return;const name=card.querySelector('h3')?.textContent||'';setTimeout(()=>{if(name.includes('通常弾'))player.nsvV9BasicBulletLevel=Math.min(5,(player.nsvV9BasicBulletLevel||1)+1);v9UpdateWeaponDock(true);},0);},true);
+  }
+
+  function v9BindDynamicJoystick(){
+    canvas.addEventListener('pointerdown',e=>{if(V9.joystick.mode!=='dynamic'||!isJoystickEnabled||gameState!=='playing'||e.pointerType==='mouse')return;if(e.clientY<innerHeight*.35)return;e.preventDefault();const size=V9.joystick.size;joystickZone.style.left=`${clampV9(e.clientX-size/2,4,innerWidth-size-4)}px`;joystickZone.style.top=`${clampV9(e.clientY-size/2,4,innerHeight-size-4)}px`;joystickZone.style.right='auto';joystickZone.style.bottom='auto';joystickData.active=true;joystickData.touchId=e.pointerId;V9.dynamicPointer=e.pointerId;updateJoystick(e.clientX,e.clientY);},{passive:false});
+    window.addEventListener('pointerup',e=>{if(V9.dynamicPointer===e.pointerId){V9.dynamicPointer=null;resetJoystick();setTimeout(v9ApplyControls,30);}});
+  }
+
+  function v9SuppressOldBossSourceSafety(){try{triggerAdvancedBossPattern=function(){};}catch(_){} }
+
+  function v9Boot(){
+    v9LoadControls();v9EnsureUi();v9BindWeaponDock();v9BindDynamicJoystick();v9ObserveLegacyToasts();v9SuppressOldBossSourceSafety();document.title='Neon Survivor V9 Gameplay & HUD Reforge Complete';document.querySelectorAll('.nsv-pause-mini').forEach(el=>el.textContent=V9_VERSION);const badge=$('nsvStableBadge')||$('nsvV100VersionBadge');if(badge)badge.textContent='V9 GAMEPLAY REFORGE';
+    setInterval(()=>{try{v9UpdateHud();}catch(_){}},350);window.addEventListener('resize',()=>requestAnimationFrame(v9LayoutNonOverlap),{passive:true});window.addEventListener('orientationchange',()=>setTimeout(v9LayoutNonOverlap,120),{passive:true});
+  }
+  if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',v9Boot,{once:true});else v9Boot();
+})();
 
 </script>  
   
@@ -15111,12 +15556,12 @@ window.NEON_FIREBASE_CONFIG = {
     `;
     document.head.appendChild(style);
 
-    document.title = 'Neon Survivor V7 60FPS 5X Online Sync Complete';
+    document.title = 'Neon Survivor V9 Gameplay HUD Reforge Complete';
     document.querySelectorAll('.nsv-pause-mini').forEach(el => {
-      el.textContent = 'V7 60FPS ONLINE SYNC';
+      el.textContent = 'V9 GAMEPLAY REFORGE';
     });
     const badge = document.getElementById('nsvStableBadge') || document.getElementById('nsvV100VersionBadge');
-    if (badge) badge.textContent = 'V7 60FPS ONLINE SYNC';
+    if (badge) badge.textContent = 'V9 GAMEPLAY REFORGE';
   }
 
   if (document.readyState === 'loading') {
@@ -15126,6 +15571,105 @@ window.NEON_FIREBASE_CONFIG = {
   }
 })();
 </script>
+
+
+
+<!-- =====================================================================
+     V8 NON-OVERLAP PLAY HUD
+     全表示を専用領域へ分離し、動的に縦位置を調整する。
+     ===================================================================== -->
+<script>
+(function(){
+  'use strict';
+  const STYLE_ID='nsvV8NoOverlapStyle';
+  function visible(el){return !!el && !el.classList.contains('hidden') && getComputedStyle(el).display!=='none' && getComputedStyle(el).visibility!=='hidden';}
+  function bottomOf(el,fallback=0){if(!visible(el))return fallback;const r=el.getBoundingClientRect();return Number.isFinite(r.bottom)?r.bottom:fallback;}
+  function setTop(el,y){if(el)el.style.setProperty('top',Math.max(6,Math.round(y))+'px','important');}
+  function installStyle(){
+    if(document.getElementById(STYLE_ID))return;
+    const st=document.createElement('style');st.id=STYLE_ID;st.textContent=`
+      #uiLayer{padding:max(8px,var(--ui-safe-top,0px)) max(8px,var(--ui-safe-right,0px)) max(8px,var(--ui-safe-bottom,0px)) max(8px,var(--ui-safe-left,0px))!important;}
+      #uiLayer>.flex.justify-between.items-start{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:start!important;gap:10px!important;width:100%!important;}
+      #uiLayer>.flex.justify-between.items-start>div:first-child{min-width:0!important;max-width:min(58vw,420px)!important;overflow:hidden!important;}
+      #uiLayer>.flex.justify-between.items-start>div:last-child{width:max-content!important;max-width:118px!important;min-width:88px!important;}
+      #uiLayer>.flex.justify-between.items-start *{box-sizing:border-box!important;}
+      #uiLayer #onlineHud,#uiLayer #missionMiniHud{max-width:100%!important;overflow-wrap:anywhere!important;}
+      #bossHpContainer{position:fixed!important;left:50%!important;transform:translateX(-50%)!important;width:min(620px,calc(100vw - 24px))!important;margin:0!important;z-index:125!important;}
+      #missionToast{width:min(480px,calc(100vw - 24px))!important;}
+      #nsvV2TutorialHud{width:min(560px,calc(100vw - 24px))!important;min-width:0!important;}
+      #nsv93RushHud{max-width:calc(100vw - 24px)!important;white-space:normal!important;line-height:1.2!important;}
+      #nsvV2ToastHost{right:max(8px,var(--ui-safe-right,0px))!important;width:min(360px,calc(100vw - 24px))!important;}
+      #nsvV7FpsHud{display:none!important;}
+      #uiLayer>.w-full.max-w-2xl{left:max(8px,var(--ui-safe-left,0px))!important;right:calc(max(8px,var(--ui-safe-right,0px)) + 142px)!important;bottom:max(8px,var(--ui-safe-bottom,0px))!important;transform:none!important;width:auto!important;max-width:none!important;min-width:150px!important;margin:0!important;}
+      #nsvV2ModeHud{left:max(8px,var(--ui-safe-left,0px))!important;right:calc(max(8px,var(--ui-safe-right,0px)) + 142px)!important;transform:none!important;width:auto!important;max-width:none!important;text-align:left!important;}
+      #joystickZone{left:auto!important;right:calc(max(8px,var(--ui-safe-right,0px)) + 8px)!important;bottom:calc(max(8px,var(--ui-safe-bottom,0px)) + 8px)!important;}
+      #nsvV2HealBtn{left:auto!important;right:calc(max(8px,var(--ui-safe-right,0px)) + 25px)!important;}
+      #nsvStableBadge,#nsvV100VersionBadge,#nsvV99VersionBadge,#nsvV98VersionBadge{max-width:190px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+      @media(max-width:720px){
+        #uiLayer>.flex.justify-between.items-start{gap:6px!important;}
+        #uiLayer>.flex.justify-between.items-start>div:first-child{max-width:calc(100vw - 112px)!important;font-size:.78rem!important;line-height:1.22!important;}
+        #uiLayer>.flex.justify-between.items-start>div:last-child{min-width:82px!important;max-width:96px!important;gap:5px!important;}
+        #pauseBtn{font-size:.7rem!important;padding:7px 8px!important;min-height:38px!important;}
+        #uiLayer>.w-full.max-w-2xl,#nsvV2ModeHud{right:calc(max(8px,var(--ui-safe-right,0px)) + 130px)!important;}
+        #bossHpContainer{width:calc(100vw - 16px)!important;}
+        #nsvV2ToastHost{width:min(310px,calc(100vw - 16px))!important;}
+      }
+      @media(max-width:430px){
+        #uiLayer>.flex.justify-between.items-start>div:first-child{max-width:calc(100vw - 102px)!important;}
+        #uiLayer>.w-full.max-w-2xl,#nsvV2ModeHud{right:124px!important;left:7px!important;}
+        #joystickZone{width:108px!important;height:108px!important;right:8px!important;bottom:8px!important;}
+        #nsvV2HealBtn{right:27px!important;width:62px!important;height:62px!important;min-height:62px!important;}
+      }
+    `;document.head.appendChild(st);
+  }
+  function layout(){
+    installStyle();
+    const ui=document.getElementById('uiLayer');
+    const playing=visible(ui);
+    document.querySelectorAll('[data-version-badge],#nsvStableBadge,#nsvV100VersionBadge,#nsvV99VersionBadge,#nsvV98VersionBadge,#nsvV2ProfileBadge').forEach(el=>{el.style.display=playing?'none':'';});
+    if(!playing)return;
+    const header=ui.querySelector(':scope > .flex.justify-between.items-start');
+    let y=Math.max(8,bottomOf(header,8))+8;
+    const tutorial=document.getElementById('nsvV2TutorialHud');
+    if(visible(tutorial)){setTop(tutorial,y);y=bottomOf(tutorial,y)+8;}
+    const rush=document.getElementById('nsv93RushHud');
+    if(visible(rush)){setTop(rush,y);y=bottomOf(rush,y)+8;}
+    const boss=document.getElementById('bossHpContainer');
+    if(visible(boss)){setTop(boss,y);y=bottomOf(boss,y)+8;}
+    const mission=document.getElementById('missionToast');
+    setTop(mission,y);
+    const missionBottom=bottomOf(mission,y);
+    const toast=document.getElementById('nsvV2ToastHost');
+    setTop(toast,Math.max(y,missionBottom+8));
+
+    const bar=ui.querySelector(':scope > .w-full.max-w-2xl');
+    const mode=document.getElementById('nsvV2ModeHud');
+    const barH=visible(bar)?Math.max(34,bar.getBoundingClientRect().height):42;
+    if(mode)mode.style.setProperty('bottom',`calc(max(8px,var(--ui-safe-bottom,0px)) + ${Math.ceil(barH)+10}px)`,'important');
+    const stick=document.getElementById('joystickZone');
+    const heal=document.getElementById('nsvV2HealBtn');
+    if(heal){const stickH=visible(stick)?Math.max(96,stick.getBoundingClientRect().height):112;heal.style.setProperty('bottom',`calc(max(8px,var(--ui-safe-bottom,0px)) + ${Math.ceil(stickH)+24}px)`,'important');}
+  }
+  let raf=0;function schedule(){cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>requestAnimationFrame(layout));}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
+  window.addEventListener('resize',schedule,{passive:true});window.addEventListener('orientationchange',schedule,{passive:true});
+  new MutationObserver(schedule).observe(document.documentElement,{attributes:true,subtree:true,childList:true,attributeFilter:['class']});
+  setInterval(layout,500);
+  document.title='Neon Survivor V9 Gameplay HUD Reforge Complete';
+})();
+</script>
+
+<style id="nsvV9FinalNoOverlapFix">
+#uiLayer>.flex.justify-between.items-start{width:auto!important;max-width:none!important;}
+@media(max-width:720px){
+  #uiLayer>.w-full.max-w-2xl,#nsvV2ModeHud{left:8px!important;right:calc(var(--nsv-v9-stick-size) + 28px)!important;}
+  #nsvV9WeaponDock{left:82px!important;right:calc(var(--nsv-v9-stick-size) + 26px)!important;}
+}
+@media(max-width:430px){
+  #uiLayer>.w-full.max-w-2xl,#nsvV2ModeHud{left:7px!important;right:calc(var(--nsv-v9-stick-size) + 28px)!important;}
+  #nsvV9WeaponDock{left:82px!important;right:calc(var(--nsv-v9-stick-size) + 26px)!important;}
+}
+</style>
 
 </body>  
 </html>
