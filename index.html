@@ -13916,6 +13916,1021 @@ window.NEON_FIREBASE_CONFIG = {
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installV4WeaponAndProjectileSystem, { once:true });
         else installV4WeaponAndProjectileSystem();
 
+        /* =====================================================================
+           V7 60FPS TARGET / TRUE SPEED / ONLINE SHARED-SYNC PATCH
+           - 1x / 2x / 3x / 5x fixed-step simulation
+           - Fast mode removes large visual effects without removing weapon damage
+           - Online/Co-op is always locked to 1x
+           - Room host shares enemies, enemy bullets and attack visuals
+           - Non-host damage to shared enemies/projectiles is returned to the host
+           ===================================================================== */
+        (function(){
+            'use strict';
+            const PATCH_VERSION = 'V7 60FPS ONLINE SYNC';
+            const ALLOWED_SPEEDS = [1, 2, 3, 5];
+            const STEP_MS = 1000 / 60;
+            const $ = (id) => document.getElementById(id);
+            const nowMs = () => (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
+            const unixNow = () => Date.now();
+            const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+            const finite = (v, fallback = 0) => Number.isFinite(Number(v)) ? Number(v) : fallback;
+
+            const V7 = {
+                speed: 1,
+                fast: false,
+                avgFrameMs: 16.7,
+                fps: 60,
+                frameSamples: 0,
+                logicSteps: 0,
+                lastFpsUiAt: 0,
+                lastClampAt: 0,
+                sharedUnsub: null,
+                sharedRoom: '',
+                sharedRef: null,
+                sharedData: null,
+                joinedAt: 0,
+                hostId: '',
+                isHost: false,
+                enemySeq: 0,
+                bulletSeq: 0,
+                lastPresenceWriteAt: 0,
+                lastRoomWriteAt: 0,
+                lastHitFlushAt: 0,
+                lastRoomCleanupAt: 0,
+                enemyHitQueue: new Map(),
+                projectileHitQueue: new Map(),
+                processedEnemyHits: new Set(),
+                processedProjectileHits: new Set(),
+                remoteAttackSeen: new Map(),
+                remoteAttackVisuals: [],
+                previousAttackCounts: Object.create(null),
+                lastLocalAttack: null,
+                sharedEnemySnapshotAt: 0,
+                sharedProjectileSnapshotAt: 0,
+                onlineStatus: 'OFFLINE',
+                diagnostics: {
+                    speedLoopInstalled: false,
+                    onlineSpeedLocked: false,
+                    presenceInstalled: false,
+                    sharedRoomInstalled: false,
+                    enemySyncActive: false,
+                    projectileSyncActive: false,
+                    attackVisualSyncActive: false,
+                    lastError: ''
+                }
+            };
+            window.__NSV_V7__ = V7;
+
+            function onlineActive(){
+                try { return !!isOnlineMode || !!window.NSV_COOP_MODE; }
+                catch (_) { return !!window.NSV_COOP_MODE; }
+            }
+
+            function normalizeSpeed(value){
+                const n = Number(value);
+                if (!Number.isFinite(n)) return 1;
+                return ALLOWED_SPEEDS.reduce((best, x) => Math.abs(x - n) < Math.abs(best - n) ? x : best, 1);
+            }
+
+            function updateSpeedControls(){
+                const locked = onlineActive();
+                const current = locked ? 1 : normalizeSpeed(V7.speed || gameSpeedMultiplier || 1);
+                document.querySelectorAll('input[name="gameSpeed"]').forEach(input => {
+                    const value = Number(input.value);
+                    input.checked = value === current;
+                    input.disabled = locked && value !== 1;
+                    const label = input.closest('label');
+                    if (label) {
+                        label.style.opacity = input.disabled ? '.35' : '1';
+                        label.style.pointerEvents = input.disabled ? 'none' : 'auto';
+                    }
+                });
+                const status = $('nsvV7SpeedStatus');
+                if (status) {
+                    status.textContent = locked
+                        ? 'ONLINE：速度は x1.0 固定'
+                        : (current > 1 ? `x${current.toFixed(1)}｜高速軽量モード：大型エフェクトOFF` : 'x1.0｜通常描画');
+                    status.className = locked ? 'nsv-v7-speed-status locked' : (current > 1 ? 'nsv-v7-speed-status fast' : 'nsv-v7-speed-status');
+                }
+                const speedContainer = $('speedSettingContainer');
+                if (speedContainer) speedContainer.dataset.onlineLocked = locked ? '1' : '0';
+            }
+
+            function setFastVisualMode(speed){
+                V7.speed = speed;
+                V7.fast = speed > 1;
+                document.body.dataset.nsvGameSpeed = String(speed);
+                document.body.dataset.nsvFastMode = V7.fast ? '1' : '0';
+                if (V7.fast) {
+                    try {
+                        whiteFlash = 0; purpleFlash = 0; blueFlash = 0; redFlash = 0;
+                        const cutin = $('generalCutin'); if (cutin) cutin.classList.add('hidden');
+                        const shatter = $('shatterEffect'); if (shatter) shatter.classList.add('hidden');
+                    } catch (_) {}
+                }
+                updateSpeedControls();
+            }
+
+            window.setGameSpeed = function nsvV7SetGameSpeed(requested){
+                let speed = normalizeSpeed(requested);
+                if (onlineActive()) {
+                    speed = 1;
+                    V7.diagnostics.onlineSpeedLocked = true;
+                }
+                gameSpeedMultiplier = speed;
+                timeAccumulator = 0;
+                setFastVisualMode(speed);
+                return speed;
+            };
+
+            function installSpeedUI(){
+                const container = $('speedSettingContainer');
+                if (!container) return;
+                const row = container.querySelector('.flex.flex-wrap') || container.querySelector('.flex');
+                if (row && !row.querySelector('input[value="5.0"]')) {
+                    const label = document.createElement('label');
+                    label.className = 'cursor-pointer';
+                    label.innerHTML = '<input type="radio" name="gameSpeed" value="5.0" class="sr-only"><div class="speed-btn px-4 py-2 border border-cyan-500 rounded text-cyan-500 transition">x5.0</div>';
+                    const input = label.querySelector('input');
+                    input.addEventListener('change', () => { if (input.checked) window.setGameSpeed(5); });
+                    row.appendChild(label);
+                }
+                document.querySelectorAll('input[name="gameSpeed"]').forEach(input => {
+                    if (input.dataset.nsvV7Bound === '1') return;
+                    input.dataset.nsvV7Bound = '1';
+                    input.addEventListener('change', () => { if (input.checked) window.setGameSpeed(Number(input.value)); });
+                });
+                if (!$('nsvV7SpeedStatus')) {
+                    const status = document.createElement('div');
+                    status.id = 'nsvV7SpeedStatus';
+                    status.className = 'nsv-v7-speed-status';
+                    status.textContent = 'x1.0｜通常描画';
+                    container.appendChild(status);
+                }
+                updateSpeedControls();
+            }
+
+            function trimArray(arr, max){
+                if (Array.isArray(arr) && arr.length > max) arr.splice(0, arr.length - max);
+            }
+            function trimEnemies(max){
+                if (!Array.isArray(enemies) || enemies.length <= max) return;
+                const important = enemies.filter(e => e && (e.isBoss || e.isMidBoss || e.isMonkey || e.isApeOverlord || e.isApeOverlordSecondPhase));
+                const normals = enemies.filter(e => e && !important.includes(e));
+                const keep = Math.max(0, max - important.length);
+                enemies = normals.slice(-keep).concat(important);
+                window.enemies = enemies;
+            }
+            function clampFastRuntime(force = false){
+                const t = nowMs();
+                if (!force && t - V7.lastClampAt < 80) return;
+                V7.lastClampAt = t;
+                const speed = onlineActive() ? 1 : normalizeSpeed(gameSpeedMultiplier || V7.speed || 1);
+                let level = 0;
+                if (speed >= 5) level = 3;
+                else if (speed >= 3) level = 2;
+                else if (speed >= 2) level = 1;
+                if (V7.fps < 46) level = Math.max(level, 2);
+                if (V7.fps < 34) level = 3;
+                const limits = [
+                    { p:320, ft:100, fx:110, b:560, eb:240, g:280, e:250, special:52 },
+                    { p:80,  ft:48,  fx:34,  b:340, eb:160, g:190, e:190, special:28 },
+                    { p:26,  ft:28,  fx:14,  b:230, eb:110, g:140, e:145, special:16 },
+                    { p:8,   ft:16,  fx:6,   b:160, eb:72,  g:90,  e:105, special:9 }
+                ][level];
+                try {
+                    trimArray(particles, limits.p);
+                    trimArray(floatingTexts, limits.ft);
+                    trimArray(effects, limits.fx);
+                    trimArray(bullets, limits.b);
+                    trimArray(enemyBullets, limits.eb);
+                    trimArray(gems, limits.g);
+                    trimEnemies(limits.e);
+                    [sniperBullets, phantomDaggers, gravityPulsars, railgunZeros, blackholeGrenades, neonChains, plasmaMissiles, overdriveBlades,
+                     hollowMurasakis, kamehamehas, infinitySnaps, infiniteBladeSwords, unibeams, keraunosStorms, vaderSkills, stormbreakers,
+                     disneyMagics, muryokushos, bounceBombs, poisonClouds, blackholes, divineSwords, bananaPeels, astralJudgements,
+                     harisenNovas, overlordFlames, cosmicSushiStorms, hollowMurasakiCharges, infiniteBladeCharges, keraunosCharges]
+                        .forEach(a => trimArray(a, limits.special));
+                    trimArray(bgStars, level >= 3 ? 18 : (level >= 2 ? 32 : 64));
+                    if (level >= 1) { whiteFlash = 0; purpleFlash = 0; blueFlash = 0; redFlash = 0; }
+                } catch (_) {}
+            }
+            window.nsvV7ClampFastRuntime = clampFastRuntime;
+
+            try {
+                const previousCreateParticles = createParticles;
+                createParticles = function nsvV7CreateParticles(x, y, count = 8, color = '#0ff', size = 3){
+                    const speed = onlineActive() ? 1 : normalizeSpeed(gameSpeedMultiplier || V7.speed || 1);
+                    if (speed >= 5) return;
+                    const ratio = speed >= 3 ? .12 : (speed >= 2 ? .28 : 1);
+                    const adjusted = Math.max(0, Math.ceil(finite(count) * ratio));
+                    if (adjusted <= 0) return;
+                    return previousCreateParticles(x, y, adjusted, color, size);
+                };
+                window.createParticles = createParticles;
+            } catch (_) {}
+
+            function drawFastCircleGroup(group, radius, color, limit = 220){
+                if (!Array.isArray(group)) return;
+                const begin = Math.max(0, group.length - limit);
+                for (let i = begin; i < group.length; i++) {
+                    const o = group[i];
+                    if (!o || o.markedForDeletion || !Number.isFinite(o.x) || !Number.isFinite(o.y)) continue;
+                    ctx.beginPath();
+                    ctx.arc(o.x, o.y, Math.max(2, Math.min(18, finite(o.radius, radius))), 0, Math.PI * 2);
+                    ctx.fillStyle = String(o.color || color);
+                    ctx.fill();
+                }
+            }
+
+            function updateFastBossHud(){
+                const boss = Array.isArray(enemies) ? enemies.find(e => e && !e.markedForDeletion && (e.isBoss || e.isMonkey || e.isMidBoss)) : null;
+                const box = $('bossHpContainer');
+                if (!box) return;
+                if (!boss) { box.classList.add('hidden'); return; }
+                box.classList.remove('hidden');
+                const bar = $('bossHpBar');
+                const name = $('bossNameDisplay');
+                if (bar) bar.style.width = `${clamp((finite(boss.hp) / Math.max(1, finite(boss.maxHp,1))) * 100, 0, 100)}%`;
+                if (name) name.textContent = boss.isApeOverlordSecondPhase ? 'DEMON APE OVERLORD 第2形態' : (boss.isApeOverlord ? 'DEMON APE OVERLORD' : (boss.isMonkey ? 'MONKEY KING' : (boss.bossPattern || 'BOSS')));
+            }
+
+            function drawFastFrame(){
+                const w = Math.max(1, finite(width, 800));
+                const h = Math.max(1, finite(height, 600));
+                ctx.setTransform(1,0,0,1,0,0);
+                ctx.globalAlpha = 1;
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#030712';
+                ctx.fillRect(0,0,w,h);
+                if (player) { camera.x = player.x - w/2; camera.y = player.y - h/2; }
+
+                ctx.save();
+                ctx.translate(-finite(camera.x), -finite(camera.y));
+                const grid = 420;
+                const sx = Math.floor(finite(camera.x)/grid)*grid;
+                const sy = Math.floor(finite(camera.y)/grid)*grid;
+                ctx.strokeStyle = 'rgba(34,211,238,.10)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (let x=sx; x<=finite(camera.x)+w+grid; x+=grid){ ctx.moveTo(x,finite(camera.y)-grid); ctx.lineTo(x,finite(camera.y)+h+grid); }
+                for (let y=sy; y<=finite(camera.y)+h+grid; y+=grid){ ctx.moveTo(finite(camera.x)-grid,y); ctx.lineTo(finite(camera.x)+w+grid,y); }
+                ctx.stroke();
+
+                if (Array.isArray(mapBlackholes)) {
+                    for (const bh of mapBlackholes.slice(-8)) {
+                        if (!bh || bh.markedForDeletion) continue;
+                        ctx.beginPath(); ctx.arc(finite(bh.x),finite(bh.y),Math.min(80,finite(bh.core,35)),0,Math.PI*2);
+                        ctx.fillStyle='#160328'; ctx.fill(); ctx.strokeStyle='#a855f7'; ctx.lineWidth=3; ctx.stroke();
+                    }
+                }
+                drawFastCircleGroup(gems, 4, '#22d3ee', 140);
+                drawFastCircleGroup(enemyBullets, 6, '#f472b6', 120);
+                drawFastCircleGroup(bullets, 4, '#67e8f9', 220);
+                drawFastCircleGroup(sniperBullets, 7, '#f87171', 80);
+                drawFastCircleGroup(bounceBombs, 8, '#facc15', 50);
+                drawFastCircleGroup(phantomDaggers, 6, '#c084fc', 70);
+                drawFastCircleGroup(gravityPulsars, 9, '#818cf8', 45);
+                drawFastCircleGroup(railgunZeros, 7, '#67e8f9', 45);
+                drawFastCircleGroup(blackholeGrenades, 10, '#a855f7', 40);
+                drawFastCircleGroup(neonChains, 6, '#22d3ee', 55);
+                drawFastCircleGroup(plasmaMissiles, 8, '#fb923c', 50);
+                drawFastCircleGroup(overdriveBlades, 8, '#f43f5e', 50);
+
+                if (Array.isArray(enemies)) {
+                    const begin = Math.max(0, enemies.length - 150);
+                    for (let i=begin;i<enemies.length;i++) {
+                        const e=enemies[i];
+                        if(!e || e.markedForDeletion) continue;
+                        const r=Math.max(4,Math.min(e.isBoss||e.isMonkey?42:22,finite(e.radius,10)));
+                        ctx.beginPath(); ctx.arc(finite(e.x),finite(e.y),r,0,Math.PI*2);
+                        ctx.fillStyle=e.isCharmed?'#f9a8d4':'rgba(2,6,23,.92)'; ctx.fill();
+                        ctx.strokeStyle=String(e.color||'#ef4444'); ctx.lineWidth=e.isBoss||e.isMonkey?4:2; ctx.stroke();
+                        if (e.hp < e.maxHp) {
+                            ctx.fillStyle='rgba(0,0,0,.75)'; ctx.fillRect(e.x-r,e.y-r-8,r*2,4);
+                            ctx.fillStyle='#22c55e'; ctx.fillRect(e.x-r,e.y-r-8,r*2*clamp(e.hp/Math.max(1,e.maxHp),0,1),4);
+                        }
+                    }
+                }
+                try { drawEnemyProjectileDurabilityV4(ctx); } catch (_) {}
+                try { drawRemoteOnlinePlayers(ctx); } catch (_) {}
+                if (player) {
+                    const pr=Math.max(10,Math.min(22,finite(player.radius,16)));
+                    ctx.beginPath(); ctx.arc(finite(player.x),finite(player.y),pr,0,Math.PI*2);
+                    ctx.fillStyle='#06121f'; ctx.fill(); ctx.strokeStyle='#22d3ee'; ctx.lineWidth=3; ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(player.x,player.y); ctx.lineTo(player.x+Math.cos(finite(player.faceAngle))*pr*1.6,player.y+Math.sin(finite(player.faceAngle))*pr*1.6);
+                    ctx.strokeStyle='#fef08a'; ctx.lineWidth=3; ctx.stroke();
+                }
+                ctx.restore();
+                updateFastBossHud();
+                try { drawOnlineArrows(); } catch (_) {}
+                try { drawBossPointer(); } catch (_) {}
+                try { drawSkillCooldowns(); } catch (_) {}
+            }
+
+            try {
+                const previousDrawAll = drawAll;
+                drawAll = function nsvV7DrawAll(){
+                    const speed = onlineActive() ? 1 : normalizeSpeed(gameSpeedMultiplier || V7.speed || 1);
+                    const adaptiveLite = speed > 1 || V7.fps < 50;
+                    document.body.dataset.nsvAdaptiveLite = adaptiveLite ? '1' : '0';
+                    if (adaptiveLite) return drawFastFrame();
+                    return previousDrawAll.apply(this, arguments);
+                };
+                window.drawAll = drawAll;
+            } catch (_) {}
+
+            function updateFps(delta){
+                const d = clamp(finite(delta, 16.7), 1, 100);
+                V7.avgFrameMs = V7.avgFrameMs * .93 + d * .07;
+                V7.fps = clamp(Math.round(1000 / Math.max(1, V7.avgFrameMs)), 1, 60);
+                V7.frameSamples++;
+                const t = nowMs();
+                if (t - V7.lastFpsUiAt > 500) {
+                    V7.lastFpsUiAt = t;
+                    const el = $('nsvV7FpsHud');
+                    if (el) el.textContent = `${V7.fps} FPS  x${(onlineActive() ? 1 : normalizeSpeed(gameSpeedMultiplier || 1)).toFixed(1)}`;
+                }
+            }
+
+            function finishPendingLevelUp(){
+                try {
+                    if (player && player.pendingLevelUps > 0 && gameState === 'playing') {
+                        player.pendingLevelUps--;
+                        player.processLevelUp();
+                    }
+                } catch (e) { console.warn('V7 level-up guard:', e); }
+            }
+
+            gameLoop = function nsvV7GameLoop(currentTime){
+                if (gameState !== 'playing') { animationId = null; return; }
+                const current = finite(currentTime, nowMs());
+                let delta = current - lastTime;
+                if (!Number.isFinite(delta) || delta <= 0) delta = STEP_MS;
+                delta = clamp(delta, 1, 50);
+                lastTime = current;
+                updateFps(delta);
+                try { nsvTrackFrameV66(delta); } catch (_) {}
+
+                let speed = onlineActive() ? 1 : normalizeSpeed(gameSpeedMultiplier || V7.speed || 1);
+                if (onlineActive() && gameSpeedMultiplier !== 1) window.setGameSpeed(1);
+                V7.speed = speed;
+                V7.fast = speed > 1;
+
+                timeAccumulator += delta * speed;
+                const maxSteps = Math.max(3, speed * 4);
+                const maxBacklog = STEP_MS * maxSteps;
+                if (timeAccumulator > maxBacklog) timeAccumulator = maxBacklog;
+                let steps = 0;
+                while (timeAccumulator + .001 >= STEP_MS && steps < maxSteps) {
+                    try { updateLogic(); V7.logicSteps++; }
+                    catch (e) { console.warn('V7 guarded logic:', e); V7.diagnostics.lastError = String(e?.message || e); }
+                    timeAccumulator -= STEP_MS;
+                    steps++;
+                    if (speed > 1 && (steps === 1 || steps % 2 === 0)) clampFastRuntime();
+                }
+                if (timeAccumulator < 0) timeAccumulator = 0;
+
+                try { drawAll(); }
+                catch (e) { console.warn('V7 guarded draw:', e); V7.diagnostics.lastError = String(e?.message || e); }
+                finishPendingLevelUp();
+                if (gameState === 'playing') animationId = requestAnimationFrame(gameLoop);
+            };
+            window.gameLoop = gameLoop;
+            V7.diagnostics.speedLoopInstalled = true;
+
+            /* ------------------------ Online shared room ------------------------ */
+            function roomCode(){
+                try {
+                    if (typeof nsv915NormalizeRoomCode === 'function') {
+                        return nsv915NormalizeRoomCode(window.NSV_ONLINE_ROOM_CODE || localStorage.getItem('neon_survivor_online_room_code') || '');
+                    }
+                } catch (_) {}
+                return String(window.NSV_ONLINE_ROOM_CODE || localStorage.getItem('neon_survivor_online_room_code') || '').replace(/\D/g, '').slice(0, 3);
+            }
+            function ensureJoinedAt(reset = false){
+                if (reset || !V7.joinedAt) {
+                    V7.joinedAt = finite(window.NSV_ONLINE_JOINED_AT, 0) || unixNow();
+                    window.NSV_ONLINE_JOINED_AT = V7.joinedAt;
+                    try { localStorage.setItem('neon_survivor_online_joined_at', String(V7.joinedAt)); } catch (_) {}
+                }
+                return V7.joinedAt;
+            }
+            function roomRef(){
+                const room = roomCode();
+                if (!room || !db || !fbDoc) return null;
+                return fbDoc(db, 'artifacts', appId, 'public', 'data', 'neon_survivor_online_rooms', room);
+            }
+            function currentModeName(){ return window.NSV_COOP_MODE ? 'coop' : 'pvp'; }
+
+            function weaponSummary(){
+                if (!player) return {};
+                const fields = [
+                    'bladeRingLevel','electricFieldLevel','voidTempestLevel','sniperLevel','onlineBounceLevel','onlineGravityLevel',
+                    'onlineShieldLevel','onlineRailgunZeroLevel','onlineBlackholeGrenadeLevel','onlineNeonChainLevel','onlinePlasmaMissileLevel',
+                    'onlineOverdriveBladeLevel','hollowMurasakiLevel','kamehamehaLevel','muryokuLevel','infinitySnapLevel','infiniteBladeLevel',
+                    'keraunosLevel','orbitalStrikeLevel','ironmanSuitLevel','disneyMagicLevel','funnelLevel','thorLevel','vaderLevel'
+                ];
+                const out = {};
+                for (const key of fields) {
+                    const value = finite(player[key], 0);
+                    if (value > 0) out[key] = Math.min(99, value);
+                }
+                return out;
+            }
+
+            function detectLocalAttack(){
+                if (!player) return V7.lastLocalAttack;
+                const groups = [
+                    ['railgun', railgunZeros], ['blackhole', blackholeGrenades], ['missile', plasmaMissiles], ['blade', overdriveBlades],
+                    ['sniper', sniperBullets], ['bomb', bounceBombs], ['gravity', gravityPulsars], ['chain', neonChains],
+                    ['beam', kamehamehas], ['special', hollowMurasakis], ['bullet', bullets]
+                ];
+                let changed = null;
+                for (const [type, group] of groups) {
+                    const count = Array.isArray(group) ? group.length : 0;
+                    const previous = finite(V7.previousAttackCounts[type], 0);
+                    if (count > previous) changed = type;
+                    V7.previousAttackCounts[type] = count;
+                }
+                if (changed) {
+                    V7.lastLocalAttack = {
+                        seq: unixNow(), type: changed,
+                        x: finite(player.x), y: finite(player.y),
+                        angle: finite(player.faceAngle, 0)
+                    };
+                }
+                return V7.lastLocalAttack;
+            }
+
+            function electHost(){
+                const candidates = [{ id: onlinePlayerId, joinedAt: ensureJoinedAt() }];
+                try {
+                    remotePlayers.forEach(r => candidates.push({ id: r.id, joinedAt: finite(r.roomJoinedAt || r.joinedAt, unixNow() + 999999) }));
+                } catch (_) {}
+                candidates.sort((a,b) => a.joinedAt - b.joinedAt || String(a.id).localeCompare(String(b.id)));
+                V7.hostId = candidates[0]?.id || onlinePlayerId;
+                V7.isHost = V7.hostId === onlinePlayerId;
+                return V7.isHost;
+            }
+
+            function addRemoteAttackVisual(remote){
+                const attack = remote?.attack;
+                if (!attack || !attack.seq) return;
+                const last = finite(V7.remoteAttackSeen.get(remote.id), 0);
+                if (finite(attack.seq) <= last) return;
+                V7.remoteAttackSeen.set(remote.id, finite(attack.seq));
+                V7.remoteAttackVisuals.push({
+                    id: `${remote.id}:${attack.seq}`,
+                    type: String(attack.type || 'bullet'),
+                    x: finite(attack.x, remote.x), y: finite(attack.y, remote.y),
+                    angle: finite(attack.angle, 0), life: 18, maxLife: 18,
+                    color: '#a78bfa'
+                });
+                trimArray(V7.remoteAttackVisuals, 40);
+                V7.diagnostics.attackVisualSyncActive = true;
+            }
+
+            function onlinePresenceListener(){
+                const room = roomCode();
+                if (!room || !db || !fbCollection || !fbOnSnapshot) return;
+                try {
+                    onlineRoomCollection = fbCollection(db, 'artifacts', appId, 'public', 'data', 'neon_survivor_online_players');
+                    if (onlineUnsubscribe) { try { onlineUnsubscribe(); } catch (_) {} }
+                    onlineUnsubscribe = fbOnSnapshot(onlineRoomCollection, snap => {
+                        const current = unixNow();
+                        const next = new Map();
+                        snap.forEach(docSnap => {
+                            if (docSnap.id === onlinePlayerId) return;
+                            const d = docSnap.data() || {};
+                            if (String(d.roomCode || '') !== room) return;
+                            if (String(d.mode || 'pvp') !== currentModeName()) return;
+                            if (current - finite(d.updatedAt, 0) > 12000) return;
+                            const prev = remotePlayers?.get?.(docSnap.id);
+                            const record = {
+                                id: docSnap.id,
+                                nickname: normalizeNickname(d.nickname || 'PLAYER'),
+                                x: finite(d.x), y: finite(d.y),
+                                hp: finite(d.hp, 1), maxHp: Math.max(1, finite(d.maxHp, 1)),
+                                level: Math.max(1, finite(d.level, 1)),
+                                shieldLevel: finite(d.shieldLevel), score: finite(d.score),
+                                role: String(d.role || ''), roleName: String(d.roleName || ''),
+                                mode: String(d.mode || 'pvp'), roomJoinedAt: finite(d.roomJoinedAt || d.joinedAt, 0),
+                                weaponState: d.weaponState || {}, attack: d.attack || null,
+                                lastHitFlash: prev?.lastHitFlash || 0
+                            };
+                            next.set(docSnap.id, record);
+                            addRemoteAttackVisual(record);
+                        });
+                        remotePlayers = next;
+                        electHost();
+                        try { updateOnlineHud(); } catch (_) {}
+                    }, err => { V7.onlineStatus = 'PRESENCE ERROR'; V7.diagnostics.lastError = String(err?.message || err); });
+                    V7.diagnostics.presenceInstalled = true;
+                } catch (e) {
+                    V7.diagnostics.lastError = String(e?.message || e);
+                }
+            }
+
+            function onlinePresenceWrite(){
+                if (!onlineActive() || !player || !db || !fbDoc || !fbSetDoc) return;
+                const t = unixNow();
+                if (t - V7.lastPresenceWriteAt < 120) return;
+                V7.lastPresenceWriteAt = t;
+                const room = roomCode();
+                if (!room) return;
+                ensureJoinedAt();
+                detectLocalAttack();
+                try {
+                    const ref = fbDoc(db, 'artifacts', appId, 'public', 'data', 'neon_survivor_online_players', onlinePlayerId);
+                    fbSetDoc(ref, {
+                        roomCode: room, roomJoinedAt: V7.joinedAt, mode: currentModeName(),
+                        nickname: getNickname() || 'PLAYER',
+                        x: finite(player.x), y: finite(player.y), hp: finite(player.hp, 1), maxHp: finite(player.maxHp, 1),
+                        level: finite(player.level, 1), shieldLevel: finite(player.onlineShieldLevel, 0), score: Math.floor(finite(score)),
+                        role: player.onlineRole || '', roleName: player.onlineRoleName || '',
+                        weaponState: weaponSummary(), attack: V7.lastLocalAttack || null,
+                        speed: 1, updatedAt: t
+                    }, { merge:true }).catch(e => { V7.diagnostics.lastError = String(e?.message || e); });
+                } catch (e) { V7.diagnostics.lastError = String(e?.message || e); }
+            }
+
+            function serializeEnemy(e){
+                if (!e || e.markedForDeletion) return null;
+                if (!e.__nsvV7EnemyId) e.__nsvV7EnemyId = `${onlinePlayerId}_e${(++V7.enemySeq).toString(36)}`;
+                return {
+                    i:e.__nsvV7EnemyId, t:finite(e.type), x:finite(e.x), y:finite(e.y), h:Math.max(0,finite(e.hp)), m:Math.max(1,finite(e.maxHp,1)),
+                    r:Math.max(2,finite(e.radius,10)), d:Math.max(0,finite(e.damage)), s:Math.max(0,finite(e.speed)), c:String(e.color || '#f05'),
+                    b:!!e.isBoss, q:!!e.isMidBoss, k:!!e.isMonkey, o:!!e.isApeOverlord, z:!!e.isApeOverlordSecondPhase,
+                    p:String(e.bossPattern || ''), a:finite(e.clubAngle,0), v:finite(e.invincibleTimer,0)
+                };
+            }
+            function serializeEnemyProjectile(b){
+                if (!b || b.markedForDeletion) return null;
+                if (!b.__nsvV7ProjectileId) b.__nsvV7ProjectileId = `${onlinePlayerId}_p${(++V7.bulletSeq).toString(36)}`;
+                try { ensureEnemyProjectileDurabilityV4(b); } catch (_) {}
+                return {
+                    i:b.__nsvV7ProjectileId, x:finite(b.x), y:finite(b.y), vx:finite(b.vx), vy:finite(b.vy), d:Math.max(0,finite(b.damage)),
+                    r:Math.max(2,finite(b.radius,6)), c:String(b.color || '#f472b6'), sh:String(b.shadow || b.color || '#f472b6'),
+                    h:Math.max(0,finite(b.__nsvV4Hp,1)), m:Math.max(1,finite(b.__nsvV4MaxHp,1)), hm:!!(b.constructor && b.constructor.name === 'BossHomingBullet')
+                };
+            }
+
+            function processHostRoomHits(data){
+                if (!V7.isHost || !data) return;
+                const clear = {};
+                const enemyHits = data.enemyHits || {};
+                for (const [hitId, hit] of Object.entries(enemyHits)) {
+                    if (!hit || V7.processedEnemyHits.has(hitId)) continue;
+                    V7.processedEnemyHits.add(hitId);
+                    const e = enemies.find(x => x && x.__nsvV7EnemyId === hit.enemyId && !x.markedForDeletion);
+                    if (e) {
+                        try { V7.originalEnemyTakeDamage.call(e, clamp(finite(hit.damage,1),1,50000), 'online-shared'); }
+                        catch (_) {}
+                    }
+                    if (fbDeleteField) clear[`enemyHits.${hitId}`] = fbDeleteField();
+                }
+                const projectileHits = data.projectileHits || {};
+                for (const [hitId, hit] of Object.entries(projectileHits)) {
+                    if (!hit || V7.processedProjectileHits.has(hitId)) continue;
+                    V7.processedProjectileHits.add(hitId);
+                    const b = enemyBullets.find(x => x && x.__nsvV7ProjectileId === hit.projectileId && !x.markedForDeletion);
+                    if (b) {
+                        try { V7.originalProjectileDamage(b, clamp(finite(hit.damage,1),1,50000), '#67e8f9'); }
+                        catch (_) {}
+                    }
+                    if (fbDeleteField) clear[`projectileHits.${hitId}`] = fbDeleteField();
+                }
+                if (V7.processedEnemyHits.size > 1200) V7.processedEnemyHits = new Set(Array.from(V7.processedEnemyHits).slice(-500));
+                if (V7.processedProjectileHits.size > 1200) V7.processedProjectileHits = new Set(Array.from(V7.processedProjectileHits).slice(-500));
+                if (Object.keys(clear).length && fbUpdateDoc && V7.sharedRef) fbUpdateDoc(V7.sharedRef, clear).catch(() => {});
+            }
+
+            function applySharedEnemies(list){
+                if (V7.isHost || !Array.isArray(list)) return;
+                const existing = new Map();
+                for (const e of enemies) if (e?.__nsvV7EnemyId) existing.set(e.__nsvV7EnemyId, e);
+                const next = [];
+                for (const s of list.slice(0, 130)) {
+                    if (!s?.i) continue;
+                    let e = existing.get(s.i);
+                    if (!e) {
+                        try { e = new Enemy(finite(s.x), finite(s.y), finite(s.t)); }
+                        catch (_) { continue; }
+                    }
+                    e.__nsvV7EnemyId = s.i;
+                    e.__nsvV7SharedRemote = true;
+                    e.__nsvV7TargetX = finite(s.x);
+                    e.__nsvV7TargetY = finite(s.y);
+                    if (!Number.isFinite(e.x)) e.x = e.__nsvV7TargetX;
+                    if (!Number.isFinite(e.y)) e.y = e.__nsvV7TargetY;
+                    e.hp = Math.max(0, finite(s.h)); e.maxHp = Math.max(1, finite(s.m,1));
+                    e.radius = Math.max(2, finite(s.r,10)); e.damage = Math.max(0, finite(s.d)); e.speed = Math.max(0, finite(s.s));
+                    e.color = String(s.c || e.color || '#f05'); e.isBoss=!!s.b; e.isMidBoss=!!s.q; e.isMonkey=!!s.k;
+                    e.isApeOverlord=!!s.o; e.isApeOverlordSecondPhase=!!s.z; e.bossPattern=String(s.p||''); e.clubAngle=finite(s.a);
+                    e.invincibleTimer=Math.max(e.invincibleTimer||0, finite(s.v)); e.markedForDeletion = e.hp <= 0;
+                    if (!e.markedForDeletion) next.push(e);
+                }
+                enemies = next;
+                window.enemies = enemies;
+                V7.sharedEnemySnapshotAt = unixNow();
+                V7.diagnostics.enemySyncActive = true;
+            }
+
+            function applySharedProjectiles(list){
+                if (V7.isHost || !Array.isArray(list)) return;
+                const existing = new Map();
+                for (const b of enemyBullets) if (b?.__nsvV7ProjectileId) existing.set(b.__nsvV7ProjectileId, b);
+                const next = [];
+                for (const s of list.slice(0, 120)) {
+                    if (!s?.i) continue;
+                    let b = existing.get(s.i);
+                    if (!b) {
+                        try { b = new Bullet(finite(s.x), finite(s.y), 0, finite(s.d), 0, finite(s.r,6), 1, String(s.c||'#f472b6'), String(s.sh||s.c||'#f472b6'), true); }
+                        catch (_) { continue; }
+                    }
+                    b.__nsvV7ProjectileId = s.i; b.__nsvV7SharedRemote = true;
+                    b.__nsvV7TargetX = finite(s.x); b.__nsvV7TargetY = finite(s.y);
+                    b.vx = finite(s.vx); b.vy = finite(s.vy); b.damage = Math.max(0,finite(s.d)); b.radius=Math.max(2,finite(s.r,6));
+                    b.color=String(s.c||b.color||'#f472b6'); b.shadow=String(s.sh||b.shadow||b.color); b.isEnemy=true;
+                    b.__nsvV4Hp=Math.max(0,finite(s.h,1)); b.__nsvV4MaxHp=Math.max(1,finite(s.m,1)); b.markedForDeletion=b.__nsvV4Hp<=0;
+                    if (!b.markedForDeletion) next.push(b);
+                }
+                enemyBullets = next;
+                window.enemyBullets = enemyBullets;
+                V7.sharedProjectileSnapshotAt = unixNow();
+                V7.diagnostics.projectileSyncActive = true;
+            }
+
+            function sharedRoomListener(){
+                const ref = roomRef();
+                if (!ref || !fbOnSnapshot) return;
+                if (V7.sharedUnsub) { try { V7.sharedUnsub(); } catch (_) {} }
+                V7.sharedRef = ref;
+                V7.sharedRoom = roomCode();
+                try {
+                    V7.sharedUnsub = fbOnSnapshot(ref, snap => {
+                        const data = snap.exists() ? (snap.data() || {}) : {};
+                        V7.sharedData = data;
+                        electHost();
+                        if (V7.isHost) processHostRoomHits(data);
+                        else {
+                            applySharedEnemies(data.enemies || []);
+                            applySharedProjectiles(data.enemyProjectiles || []);
+                        }
+                        V7.onlineStatus = 'SYNCED';
+                    }, err => {
+                        V7.onlineStatus = 'ROOM ERROR';
+                        V7.diagnostics.lastError = String(err?.message || err);
+                    });
+                    V7.diagnostics.sharedRoomInstalled = true;
+                } catch (e) { V7.diagnostics.lastError = String(e?.message || e); }
+            }
+
+            function publishSharedRoom(){
+                if (!V7.isHost || !V7.sharedRef || !fbSetDoc) return;
+                const t = unixNow();
+                if (t - V7.lastRoomWriteAt < 180) return;
+                V7.lastRoomWriteAt = t;
+                const enemyList = enemies.filter(e => e && !e.markedForDeletion).slice(0,130).map(serializeEnemy).filter(Boolean);
+                const projectileList = enemyBullets.filter(b => b && !b.markedForDeletion).slice(0,120).map(serializeEnemyProjectile).filter(Boolean);
+                fbSetDoc(V7.sharedRef, {
+                    version: 7, roomCode: V7.sharedRoom, mode: currentModeName(), hostId: onlinePlayerId,
+                    hostUpdatedAt: t, gameTime: finite(gameTime), enemies: enemyList, enemyProjectiles: projectileList
+                }, { merge:true }).catch(e => { V7.diagnostics.lastError = String(e?.message || e); });
+                V7.diagnostics.enemySyncActive = true;
+                V7.diagnostics.projectileSyncActive = true;
+            }
+
+            function queueEnemyHit(enemy, damage){
+                if (!enemy?.__nsvV7EnemyId) return;
+                const id = enemy.__nsvV7EnemyId;
+                V7.enemyHitQueue.set(id, finite(V7.enemyHitQueue.get(id),0) + Math.max(1,finite(damage,1)));
+            }
+            function queueProjectileHit(projectile, damage){
+                if (!projectile?.__nsvV7ProjectileId) return;
+                const id = projectile.__nsvV7ProjectileId;
+                V7.projectileHitQueue.set(id, finite(V7.projectileHitQueue.get(id),0) + Math.max(1,finite(damage,1)));
+            }
+            function flushSharedHits(){
+                if (V7.isHost || !V7.sharedRef || !fbSetDoc) return;
+                const t = unixNow();
+                if (t - V7.lastHitFlushAt < 110) return;
+                if (!V7.enemyHitQueue.size && !V7.projectileHitQueue.size) return;
+                V7.lastHitFlushAt = t;
+                const payload = {};
+                if (V7.enemyHitQueue.size) {
+                    const map = {};
+                    for (const [enemyId, damage] of V7.enemyHitQueue) {
+                        const hitId = `${onlinePlayerId}_${t.toString(36)}_e_${Math.random().toString(36).slice(2,7)}`;
+                        map[hitId] = { enemyId, damage: Math.round(clamp(damage,1,50000)), from:onlinePlayerId, at:t };
+                    }
+                    payload.enemyHits = map;
+                    V7.enemyHitQueue.clear();
+                }
+                if (V7.projectileHitQueue.size) {
+                    const map = {};
+                    for (const [projectileId, damage] of V7.projectileHitQueue) {
+                        const hitId = `${onlinePlayerId}_${t.toString(36)}_p_${Math.random().toString(36).slice(2,7)}`;
+                        map[hitId] = { projectileId, damage: Math.round(clamp(damage,1,50000)), from:onlinePlayerId, at:t };
+                    }
+                    payload.projectileHits = map;
+                    V7.projectileHitQueue.clear();
+                }
+                if (fbUpdateDoc) {
+                    const flat = {};
+                    for (const [group, values] of Object.entries(payload)) {
+                        for (const [hitId, hit] of Object.entries(values || {})) flat[`${group}.${hitId}`] = hit;
+                    }
+                    fbUpdateDoc(V7.sharedRef, flat).catch(() => {
+                        fbSetDoc(V7.sharedRef, payload, { merge:true }).catch(e => { V7.diagnostics.lastError = String(e?.message || e); });
+                    });
+                } else {
+                    fbSetDoc(V7.sharedRef, payload, { merge:true }).catch(e => { V7.diagnostics.lastError = String(e?.message || e); });
+                }
+            }
+
+            function sendEnvironmentDamage(targetId, damage){
+                if (!targetId || !db || !fbDoc || !fbSetDoc) return;
+                const t = unixNow();
+                const hitId = `env_${onlinePlayerId}_${t.toString(36)}_${Math.random().toString(36).slice(2,7)}`;
+                const ref = fbDoc(db, 'artifacts', appId, 'public', 'data', 'neon_survivor_online_players', targetId);
+                fbSetDoc(ref, { hits: { [hitId]: { from:onlinePlayerId, fromName:'ENEMY', damage:Math.round(clamp(damage,1,50)), at:t, environment:true } } }, { merge:true }).catch(() => {});
+            }
+
+            function hostEnemyContactDamage(){
+                if (!V7.isHost || !onlineActive() || !Array.isArray(enemies)) return;
+                const t = unixNow();
+                remotePlayers.forEach(r => {
+                    if (!r || r.hp <= 0) return;
+                    for (const e of enemies) {
+                        if (!e || e.markedForDeletion || e.isCharmed) continue;
+                        const rr = finite(e.radius,10) + ONLINE_REMOTE_RADIUS + 4;
+                        if ((finite(e.x)-finite(r.x))**2 + (finite(e.y)-finite(r.y))**2 <= rr*rr) {
+                            const key = `__nsvV7Contact_${r.id}`;
+                            if (t - finite(e[key],0) > 650) {
+                                e[key] = t;
+                                sendEnvironmentDamage(r.id, Math.min(35, finite(e.damage,5)));
+                            }
+                            break;
+                        }
+                    }
+                });
+            }
+
+            function sharedOnlineTick(){
+                if (!onlineActive()) return;
+                if (gameSpeedMultiplier !== 1) window.setGameSpeed(1);
+                onlinePresenceWrite();
+                if (!V7.sharedUnsub && db && fbOnSnapshot) sharedRoomListener();
+                electHost();
+                if (V7.isHost) { processHostRoomHits(V7.sharedData); publishSharedRoom(); hostEnemyContactDamage(); }
+                else flushSharedHits();
+            }
+            window.nsvV7OnlineTick = sharedOnlineTick;
+
+            try {
+                startOnlinePresence = function nsvV7StartOnlinePresence(){
+                    ensureJoinedAt();
+                    onlinePresenceListener();
+                    sharedRoomListener();
+                    V7.onlineStatus = 'CONNECTING';
+                };
+                window.startOnlinePresence = startOnlinePresence;
+                syncOnlinePresence = function nsvV7SyncOnlinePresence(){ onlinePresenceWrite(); sharedOnlineTick(); };
+                window.syncOnlinePresence = syncOnlinePresence;
+            } catch (_) {}
+
+            try {
+                const previousStartOnlineMode = startOnlineMode;
+                startOnlineMode = function nsvV7StartOnlineMode(){
+                    window.setGameSpeed(1);
+                    ensureJoinedAt(true);
+                    const result = previousStartOnlineMode.apply(this, arguments);
+                    updateSpeedControls();
+                    sharedRoomListener();
+                    return result;
+                };
+                window.startOnlineMode = startOnlineMode;
+            } catch (_) {}
+
+            try {
+                const previousStopOnlineMode = stopOnlineMode;
+                stopOnlineMode = function nsvV7StopOnlineMode(){
+                    if (V7.sharedUnsub) { try { V7.sharedUnsub(); } catch (_) {} V7.sharedUnsub = null; }
+                    V7.sharedRef = null; V7.sharedData = null; V7.sharedRoom = ''; V7.hostId = ''; V7.isHost = false;
+                    V7.enemyHitQueue.clear(); V7.projectileHitQueue.clear(); V7.remoteAttackVisuals.length = 0;
+                    const result = previousStopOnlineMode.apply(this, arguments);
+                    updateSpeedControls();
+                    return result;
+                };
+                window.stopOnlineMode = stopOnlineMode;
+            } catch (_) {}
+
+            try {
+                const previousInitGame = initGame;
+                initGame = function nsvV7InitGame(mode = 'solo'){
+                    if (mode === 'online' || window.NSV_COOP_MODE) window.setGameSpeed(1);
+                    const result = previousInitGame.apply(this, arguments);
+                    if (mode === 'online' || isOnlineMode || window.NSV_COOP_MODE) {
+                        window.setGameSpeed(1);
+                        setTimeout(() => { try { sharedOnlineTick(); updateSpeedControls(); } catch (_) {} }, 0);
+                    }
+                    return result;
+                };
+                window.initGame = initGame;
+            } catch (_) {}
+
+            try {
+                V7.originalEnemyTakeDamage = Enemy.prototype.takeDamage;
+                Enemy.prototype.takeDamage = function nsvV7SharedEnemyTakeDamage(amount, source){
+                    if (onlineActive() && !V7.isHost && this.__nsvV7SharedRemote) {
+                        const damage = Math.max(1, finite(amount,1));
+                        queueEnemyHit(this, damage);
+                        this.hp = Math.max(1, finite(this.hp,1) - damage);
+                        return;
+                    }
+                    return V7.originalEnemyTakeDamage.apply(this, arguments);
+                };
+                const originalEnemyUpdate = Enemy.prototype.update;
+                Enemy.prototype.update = function nsvV7SharedEnemyUpdate(){
+                    if (onlineActive() && !V7.isHost && this.__nsvV7SharedRemote) {
+                        this.x += (finite(this.__nsvV7TargetX,this.x) - finite(this.x)) * .58;
+                        this.y += (finite(this.__nsvV7TargetY,this.y) - finite(this.y)) * .58;
+                        if (this.invincibleTimer > 0) this.invincibleTimer--;
+                        return;
+                    }
+                    return originalEnemyUpdate.apply(this, arguments);
+                };
+            } catch (e) { V7.diagnostics.lastError = String(e?.message || e); }
+
+            try {
+                const originalBulletUpdate = Bullet.prototype.update;
+                Bullet.prototype.update = function nsvV7SharedBulletUpdate(){
+                    if (onlineActive() && !V7.isHost && this.__nsvV7SharedRemote) {
+                        this.prevX = this.x; this.prevY = this.y;
+                        this.x += (finite(this.__nsvV7TargetX,this.x) - finite(this.x)) * .7;
+                        this.y += (finite(this.__nsvV7TargetY,this.y) - finite(this.y)) * .7;
+                        return;
+                    }
+                    return originalBulletUpdate.apply(this, arguments);
+                };
+                if (typeof BossHomingBullet === 'function') {
+                    const originalHomingUpdate = BossHomingBullet.prototype.update;
+                    BossHomingBullet.prototype.update = function nsvV7SharedHomingUpdate(){
+                        if (onlineActive() && !V7.isHost && this.__nsvV7SharedRemote) {
+                            this.x += (finite(this.__nsvV7TargetX,this.x) - finite(this.x)) * .7;
+                            this.y += (finite(this.__nsvV7TargetY,this.y) - finite(this.y)) * .7;
+                            return;
+                        }
+                        return originalHomingUpdate.apply(this, arguments);
+                    };
+                }
+            } catch (_) {}
+
+            try {
+                V7.originalProjectileDamage = damageEnemyProjectileV4;
+                damageEnemyProjectileV4 = function nsvV7SharedProjectileDamage(projectile, damage, color){
+                    if (onlineActive() && !V7.isHost && projectile?.__nsvV7SharedRemote) {
+                        queueProjectileHit(projectile, damage);
+                    }
+                    return V7.originalProjectileDamage.apply(this, arguments);
+                };
+                window.damageEnemyProjectileV4 = damageEnemyProjectileV4;
+            } catch (_) { V7.originalProjectileDamage = function(){}; }
+
+            try {
+                const previousUpdateLogic = updateLogic;
+                updateLogic = function nsvV7OnlineUpdateLogic(){
+                    const result = previousUpdateLogic.apply(this, arguments);
+                    if (onlineActive()) {
+                        sharedOnlineTick();
+                        if (!V7.isHost && V7.sharedData) {
+                            enemies = enemies.filter(e => e && e.__nsvV7SharedRemote && !e.markedForDeletion);
+                            enemyBullets = enemyBullets.filter(b => b && b.__nsvV7SharedRemote && !b.markedForDeletion);
+                            window.enemies = enemies;
+                            window.enemyBullets = enemyBullets;
+                        }
+                    }
+                    return result;
+                };
+                window.updateLogic = updateLogic;
+            } catch (_) {}
+
+            try {
+                const previousSpawnEnemyV7 = spawnEnemy;
+                spawnEnemy = function nsvV7SharedSpawnEnemy(){
+                    if (onlineActive() && !V7.isHost && V7.sharedData) return;
+                    return previousSpawnEnemyV7.apply(this, arguments);
+                };
+                window.spawnEnemy = spawnEnemy;
+            } catch (_) {}
+            try {
+                if (typeof spawnAdvancedEnemyAtEdge === 'function') {
+                    const previousAdvancedSpawnV7 = spawnAdvancedEnemyAtEdge;
+                    spawnAdvancedEnemyAtEdge = function nsvV7SharedAdvancedSpawn(){
+                        if (onlineActive() && !V7.isHost && V7.sharedData) return;
+                        return previousAdvancedSpawnV7.apply(this, arguments);
+                    };
+                    window.spawnAdvancedEnemyAtEdge = spawnAdvancedEnemyAtEdge;
+                }
+            } catch (_) {}
+
+            function drawRemoteAttackVisuals(renderCtx){
+                if (!renderCtx || !V7.remoteAttackVisuals.length) return;
+                renderCtx.save();
+                renderCtx.globalCompositeOperation = 'screen';
+                for (let i = V7.remoteAttackVisuals.length - 1; i >= 0; i--) {
+                    const v = V7.remoteAttackVisuals[i];
+                    v.life--;
+                    if (v.life <= 0) { V7.remoteAttackVisuals.splice(i,1); continue; }
+                    const alpha = v.life / v.maxLife;
+                    const length = v.type === 'railgun' || v.type === 'beam' ? 230 : 90;
+                    const widthV = v.type === 'blackhole' || v.type === 'special' ? 34 : 9;
+                    renderCtx.globalAlpha = alpha * .85;
+                    renderCtx.strokeStyle = v.type === 'missile' ? '#fb923c' : (v.type === 'blackhole' ? '#c084fc' : '#a78bfa');
+                    renderCtx.fillStyle = renderCtx.strokeStyle;
+                    renderCtx.shadowBlur = 16; renderCtx.shadowColor = renderCtx.strokeStyle;
+                    if (v.type === 'blackhole' || v.type === 'special') {
+                        renderCtx.beginPath(); renderCtx.arc(v.x, v.y, widthV * (1.6-alpha*.5), 0, Math.PI*2); renderCtx.stroke();
+                    } else {
+                        renderCtx.lineWidth = widthV;
+                        renderCtx.beginPath(); renderCtx.moveTo(v.x, v.y);
+                        renderCtx.lineTo(v.x + Math.cos(v.angle)*length, v.y + Math.sin(v.angle)*length); renderCtx.stroke();
+                    }
+                }
+                renderCtx.restore();
+            }
+            try {
+                const previousDrawRemote = drawRemoteOnlinePlayers;
+                drawRemoteOnlinePlayers = function nsvV7DrawRemotePlayers(renderCtx){
+                    previousDrawRemote.apply(this, arguments);
+                    drawRemoteAttackVisuals(renderCtx);
+                };
+                window.drawRemoteOnlinePlayers = drawRemoteOnlinePlayers;
+            } catch (_) {}
+
+            function installV7StyleAndHud(){
+                if (!$('nsvV7Style')) {
+                    const style = document.createElement('style');
+                    style.id = 'nsvV7Style';
+                    style.textContent = `
+                        .nsv-v7-speed-status{width:100%;text-align:center;color:#a5f3fc;font-weight:800;font-size:12px;margin-top:8px;padding:7px 10px;border:1px solid rgba(34,211,238,.35);border-radius:10px;background:rgba(2,6,23,.72)}
+                        .nsv-v7-speed-status.fast{color:#fef08a;border-color:rgba(250,204,21,.55)}
+                        .nsv-v7-speed-status.locked{color:#fca5a5;border-color:rgba(248,113,113,.55)}
+                        #speedSettingContainer[data-online-locked="1"] .speed-btn{filter:grayscale(.45)}
+                        body[data-nsv-fast-mode="1"] #generalCutin,
+                        body[data-nsv-fast-mode="1"] #shatterEffect{display:none!important;visibility:hidden!important;opacity:0!important}
+                        body[data-nsv-fast-mode="1"] #lavaOverlay.active{opacity:.08!important;animation:none!important}
+                        body[data-nsv-fast-mode="1"] .cutin-base{animation:none!important}
+                        body[data-nsv-fast-mode="1"] canvas{image-rendering:auto}
+                        #nsvV7FpsHud{position:fixed;right:10px;top:10px;z-index:145;pointer-events:none;padding:5px 9px;border-radius:999px;background:rgba(2,6,23,.70);border:1px solid rgba(103,232,249,.38);color:#a5f3fc;font:800 10px Orbitron,Noto Sans JP,sans-serif;letter-spacing:.05em}
+                    `;
+                    document.head.appendChild(style);
+                }
+                if (!$('nsvV7FpsHud')) {
+                    const fps = document.createElement('div'); fps.id = 'nsvV7FpsHud'; fps.textContent = '60 FPS  x1.0'; document.body.appendChild(fps);
+                }
+                installSpeedUI();
+                document.title = 'Neon Survivor V7 60FPS Online Sync Complete';
+                document.querySelectorAll('.nsv-pause-mini').forEach(el => el.textContent = PATCH_VERSION);
+                const badge = $('nsvStableBadge') || $('nsvV100VersionBadge'); if (badge) badge.textContent = PATCH_VERSION;
+            }
+
+            window.NSV7OnlineDiagnostics = function(){
+                return {
+                    version: PATCH_VERSION,
+                    online: onlineActive(), room: roomCode(), hostId: V7.hostId, isHost: V7.isHost,
+                    remotePlayers: remotePlayers?.size || 0, speed: gameSpeedMultiplier,
+                    gameState: (typeof gameState !== 'undefined' ? gameState : 'unknown'), gameTime: finite(gameTime), logicSteps: V7.logicSteps,
+                    sharedEnemies: Array.isArray(V7.sharedData?.enemies) ? V7.sharedData.enemies.length : 0,
+                    sharedProjectiles: Array.isArray(V7.sharedData?.enemyProjectiles) ? V7.sharedData.enemyProjectiles.length : 0,
+                    fps: V7.fps, status: V7.onlineStatus, diagnostics: { ...V7.diagnostics }
+                };
+            };
+
+            document.addEventListener('visibilitychange', () => {
+                lastTime = nowMs(); timeAccumulator = 0;
+                if (onlineActive()) window.setGameSpeed(1);
+            });
+            window.addEventListener('pageshow', () => { lastTime = nowMs(); timeAccumulator = 0; updateSpeedControls(); });
+            setInterval(() => {
+                try {
+                    installSpeedUI();
+                    updateSpeedControls();
+                    if (onlineActive()) {
+                        window.setGameSpeed(1);
+                        if (!V7.sharedUnsub && db && fbOnSnapshot) sharedRoomListener();
+                    }
+                    clampFastRuntime();
+                } catch (_) {}
+            }, 1000);
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installV7StyleAndHud, { once:true });
+            else installV7StyleAndHud();
+        })();
+
 </script>  
   
 
@@ -14096,12 +15111,12 @@ window.NEON_FIREBASE_CONFIG = {
     `;
     document.head.appendChild(style);
 
-    document.title = 'Neon Survivor V6 HUD Layout Complete';
+    document.title = 'Neon Survivor V7 60FPS 5X Online Sync Complete';
     document.querySelectorAll('.nsv-pause-mini').forEach(el => {
-      el.textContent = 'V6 HUD LAYOUT';
+      el.textContent = 'V7 60FPS ONLINE SYNC';
     });
     const badge = document.getElementById('nsvStableBadge') || document.getElementById('nsvV100VersionBadge');
-    if (badge) badge.textContent = 'V6 HUD LAYOUT';
+    if (badge) badge.textContent = 'V7 60FPS ONLINE SYNC';
   }
 
   if (document.readyState === 'loading') {
